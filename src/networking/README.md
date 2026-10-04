@@ -153,7 +153,7 @@ are described here for completeness but are exercised only by functions that are
 | --- | --- | --- | --- |
 | 0x00 | `int32_t` | `socket` | 0 until a connection is accepted or opened |
 | 0x04 | `uint8_t` | `data_ready` | set by the transport when a read can succeed |
-| 0x05 | `uint8_t` | `unknown_05` |  |
+| 0x05 | `uint8_t` | `connection_failed` |  |
 | 0x06 | `int16_t` | `pad_06` |  |
 | 0x08 | `int32_t` | `socket_key` | -1 when unused; the fd_set entry value |
 | 0x0c | `uint8_t` | `flags` | bit0 connection oriented (buffer the payload), |
@@ -161,7 +161,7 @@ are described here for completeness but are exercised only by functions that are
 | 0x0e | `int16_t` | `last_error` | see network_error_code |
 | 0x10 | `circular_buffer *` | `incoming` | 0x18 header plus 0x10001 bytes |
 | 0x14 | `int32_t` | `unknown_14` | constructed as -1 |
-| 0x18 | `int32_t` | `unknown_18` |  |
+| 0x18 | `int32_t` | `reject_reason` |  |
 
 ### `network_channel_list` — size 0x114
 
@@ -172,7 +172,7 @@ are described here for completeness but are exercised only by functions that are
 | 0x104 | `network_receive_queue` | `**entries` | capacity pointers, GlobalAlloc backed |
 | 0x108 | `int32_t` | `capacity` | the constructor refuses more than 0x40 |
 | 0x10c | `int32_t` | `last_index` | -1 when empty, else the highest used index |
-| 0x110 | `int32_t` | `unknown_110` |  |
+| 0x110 | `int32_t` | `service_cursor` |  |
 
 ### `network_channel_stream` — size 0x534
 
@@ -204,7 +204,7 @@ are described here for completeness but are exercised only by functions that are
 | --- | --- | --- | --- |
 | 0x000 | `network_receive_queue *` | `endpoint` |  |
 | 0x004 | `int32_t` | `last_activity_ms` | network_channel_record_timestamp, QPC milliseconds |
-| 0x008 | `int32_t` | `unknown_008` |  |
+| 0x008 | `int32_t` | `accept_callback` |  |
 | 0x00c | `circular_buffer *` | `incoming` | named "transport-incoming" |
 | 0x010 | `network_channel_stream` | `outgoing` | the message staging stream: every queue/send |
 | 0x544 | `network_channel_stream` | `retransmit` | the retransmission staging stream: only |
@@ -292,10 +292,10 @@ are described here for completeness but are exercised only by functions that are
 | --- | --- | --- | --- |
 | 0x00 | `uint16_t` | `name[12]` | UTF-16, NUL terminated inside the field |
 | 0x18 | `int16_t` | `color_index` | 0xffff when unused; 0x4df790 picks a free one |
-| 0x1a | `int16_t` | `unknown_1a` | reset to 0xffff alongside color_index |
+| 0x1a | `int16_t` | `icon_index` | reset to 0xffff alongside color_index |
 | 0x1c | `int8_t` | `machine_index` | 0xff when the row is free |
 | 0x1d | `int8_t` | `machine_player_index` | always 0 on the PC build |
-| 0x1e | `int8_t` | `unknown_1e` | 0xff when free |
+| 0x1e | `int8_t` | `team_index` | 0xff when free |
 | 0x1f | `int8_t` | `slot_index` | 0xff when free, else the row index in players[] |
 
 ### `network_game_session` — size 0x3b0
@@ -311,11 +311,11 @@ are described here for completeness but are exercised only by functions that are
 | 0x104 | `game_variant` | `variant` | see types/game.h |
 | 0x19c | `uint8_t` | `unknown_19c` |  |
 | 0x19d | `uint8_t` | `maximum_players` | initialized to 16 |
-| 0x19e | `int16_t` | `unknown_19e` | seeded from 0x00696564 |
+| 0x19e | `int16_t` | `difficulty` | seeded from 0x00696564 |
 | 0x1a0 | `int16_t` | `player_count` | the value the summary log averages |
 | 0x1a2 | `network_player_entry` | `players[16]` |  |
 | 0x3a2 | `uint8_t` | `unknown_3a2[10]` |  |
-| 0x3ac | `uint8_t` | `unknown_3ac` | copied from 0x0071c2c1 |
+| 0x3ac | `uint8_t` | `map_loaded` | copied from 0x0071c2c1 |
 | 0x3ad | `uint8_t` | `pad_3ad[3]` |  |
 
 ### `network_machine` — size 0x60
@@ -323,40 +323,40 @@ are described here for completeness but are exercised only by functions that are
 | offset | type | field | note |
 | --- | --- | --- | --- |
 | 0x00 | `network_channel *` | `channel` |  |
-| 0x04 | `int32_t` | `unknown_04` |  |
+| 0x04 | `int32_t` | `last_update_id` |  |
 | 0x08 | `int32_t` | `unknown_08` |  |
 | 0x0c | `int16_t` | `machine_id` | 0xffff means the slot is free |
 | 0x0e | `uint8_t` | `flags` | see network_machine_flags |
 | 0x0f | `uint8_t` | `unknown_0f` |  |
-| 0x10 | `uint8_t` | `unknown_10` | cleared by 0x4df690 |
+| 0x10 | `uint8_t` | `disconnect_timer_active` | cleared by 0x4df690 |
 | 0x11 | `uint8_t` | `pad_11[3]` |  |
 | 0x14 | `int32_t` | `timer_14` | cleared by 0x4df690 |
 | 0x18 | `int32_t` | `timer_18` | cleared by 0x4df690 |
 | 0x1c | `uint8_t` | `connect_state[0x34]` | zeroed as one block by 0x4df690 |
-| 0x50 | `uint8_t` | `unknown_50` | cleared by 0x4e0b90 |
-| 0x51 | `uint8_t` | `unknown_51` |  |
-| 0x52 | `int32_t` | `unknown_52` | unaligned in the original |
+| 0x50 | `uint8_t` | `player_joined` | cleared by 0x4e0b90 |
+| 0x51 | `uint8_t` | `players_removed_broadcast` |  |
+| 0x52 | `int32_t` | `short_name` | unaligned in the original |
 | 0x56 | `int32_t` | `unknown_56` | unaligned in the original |
 | 0x5a | `int16_t` | `unknown_5a` |  |
-| 0x5c | `int32_t` | `unknown_5c` | initialized to -1 |
+| 0x5c | `int32_t` | `gcd_user_id` | initialized to -1 |
 
 ### `network_server_globals` — size 0xa10
 
 | offset | type | field | note |
 | --- | --- | --- | --- |
 | 0x000 | `network_channel *` | `listen_channel` | network_channel_new(1) |
-| 0x004 | `int16_t` | `unknown_004` | tested against 0 and 2 by host_dispose |
+| 0x004 | `int16_t` | `state` | tested against 0 and 2 by host_dispose |
 | 0x006 | `uint16_t` | `flags` | bit0 session initialized, bit1 host, bit2 stats logging |
 | 0x008 | `network_game_session` | `session` | everything shared but the password lives here |
 | 0x3b8 | `network_machine` | `machines[16]` |  |
-| 0x9b8 | `int32_t` | `unknown_9b8` | cleared by host_new, along with 0x9c4..0x9d4 |
-| 0x9bc | `uint8_t` | `unknown_9bc[0x3c]` |  |
-| 0x9f8 | `uint8_t` | `unknown_9f8` |  |
-| 0x9f9 | `uint8_t` | `unknown_9f9` |  |
-| 0x9fa | `uint8_t` | `unknown_9fa` |  |
+| 0x9b8 | `int32_t` | `update_tick` | cleared by host_new, along with 0x9c4..0x9d4 |
+| 0x9bc | `uint8_t` | `last_challenge_sent_ms[0x3c]` |  |
+| 0x9f8 | `uint8_t` | `join_finalize_pending` |  |
+| 0x9f9 | `uint8_t` | `scenario_announced` |  |
+| 0x9fa | `uint8_t` | `new_server_pending` |  |
 | 0x9fb | `uint8_t` | `pad_9fb` |  |
 | 0x9fc | `uint16_t` | `password[9]` | wcsncpy of 8 wide chars plus a forced NUL at 0xa0c |
-| 0xa0e | `uint8_t` | `unknown_a0e` |  |
+| 0xa0e | `uint8_t` | `full_state_broadcast_pending` |  |
 | 0xa0f | `uint8_t` | `game_over` | the end-of-game flag game.h records |
 
 ### `network_connection_endpoint` — size 0x28
@@ -368,7 +368,7 @@ are described here for completeness but are exercised only by functions that are
 | 0x18 | `int32_t` | `last_send_ms` | (0xacc) last keepalive send, QPC milliseconds |
 | 0x1c | `int16_t` | `message_count` | (0xad0) incremented once per keepalive sent |
 | 0x1e | `int16_t` | `retry_count` | (0xad2) incremented once per overdue retransmit |
-| 0x20 | `int16_t` | `unknown_20` | (0xad4) set to (0x4ed350's result << 1) on retransmit |
+| 0x20 | `int16_t` | `current_ping_ms` | (0xad4) set to (0x4ed350's result << 1) on retransmit |
 | 0x22 | `uint8_t` | `ready` | (0xad6) 0 while being rebuilt, 1 once populated |
 | 0x23 | `uint8_t` | `unknown_23` | (0xad7) |
 | 0x24 | `void *` | `control_block` | (0xad8) GlobalAlloc of 0x264, first two dwords zeroed |
@@ -380,7 +380,7 @@ are described here for completeness but are exercised only by functions that are
 | 0x00 | `uint32_t` | `unknown_00` | (0xae0) cleared at the start of every attempt |
 | 0x04 | `int32_t` | `started_ms` | (0xae4) QPC milliseconds; the progress bar's time base |
 | 0x08 | `int32_t` | `elapsed_counter` | (0xae8) driven by the join status text animation |
-| 0x0c | `uint8_t` | `unknown_0c` | (0xaec) cleared at the start of every attempt |
+| 0x0c | `uint8_t` | `loading_started` | (0xaec) cleared at the start of every attempt |
 | 0x0d | `uint8_t` | `pad_0d` | (0xaed) |
 | 0x0e | `uint32_t` | `session_info[9]` | (0xaee) nine dwords copied from the caller, unaligned |
 | 0x32 | `uint8_t` | `unknown_32[2]` | (0xb12) not written by any function in this module |
@@ -401,28 +401,28 @@ are described here for completeness but are exercised only by functions that are
 
 | offset | type | field | note |
 | --- | --- | --- | --- |
-| 0x000 | `uint16_t` | `unknown_000` | initialized to 0xffff |
-| 0x002 | `uint8_t` | `unknown_002[0xab2]` |  |
+| 0x000 | `uint16_t` | `machine_index` | initialized to 0xffff |
+| 0x002 | `uint8_t` | `pad_002[0xab2]` |  |
 | 0xab4 | `network_connection_endpoint` | `connection` | the server this client is talking to |
 | 0xadc | `network_channel *` | `channel` | network_channel_new(2), deleted by destroy |
 | 0xae0 | `network_connection_attempt_state` | `connect_attempt` |  |
 | 0xb14 | `network_game_session` | `session` | the same block the server embeds at +0x008 |
 | 0xec4 | `int32_t` | `unknown_ec4` |  |
 | 0xec8 | `int32_t` | `unknown_ec8` |  |
-| 0xecc | `int32_t` | `unknown_ecc` |  |
-| 0xed0 | `int32_t` | `unknown_ed0` |  |
-| 0xed4 | `int32_t` | `unknown_ed4` |  |
-| 0xed8 | `uint16_t` | `unknown_ed8` | initialized to 0xffff |
+| 0xecc | `int32_t` | `last_update_id` |  |
+| 0xed0 | `int32_t` | `last_update_received_ms` |  |
+| 0xed4 | `int32_t` | `last_presence_broadcast_ms` |  |
+| 0xed8 | `uint16_t` | `game_start_countdown_seconds` | initialized to 0xffff |
 | 0xeda | `uint16_t` | `state` | see network_client_state; NOT padding, see 0x4d8bb0 |
-| 0xedc | `int16_t` | `unknown_edc` |  |
-| 0xede | `uint16_t` | `unknown_ede` | bits 1 and 2 cleared at create |
-| 0xee0 | `uint8_t` | `unknown_ee0` |  |
-| 0xee1 | `uint8_t` | `unknown_ee1` |  |
-| 0xee2 | `uint16_t` | `pad_ee2` |  |
+| 0xedc | `int16_t` | `disconnect_reason` |  |
+| 0xede | `uint16_t` | `flags` | bits 1 and 2 cleared at create |
+| 0xee0 | `uint8_t` | `network_error_displayed` |  |
+| 0xee1 | `uint8_t` | `connection_stalled` |  |
+| 0xee2 | `uint16_t` | `settings_ack_sent` |  |
 | 0xee4 | `network_client_timer_record` | `timer` | the first five dwords of the zeroed run |
 | 0xef8 | `network_resolved_address` | `server_address` | filled by 0x4dd390 from |
-| 0xf10 | `int32_t` | `unknown_f10` | initialized to -1 |
-| 0xf14 | `int32_t` | `unknown_f14[13]` | zeroed as one run at create |
+| 0xf10 | `int32_t` | `team_index` | initialized to -1 |
+| 0xf14 | `int32_t` | `last_update_sent[13]` | zeroed as one run at create |
 | 0xf48 | `void *` | `update_history` | player_update_history *, GlobalAlloc of 0x2c |
 | 0xf4c | `int32_t` | `connection_rate_index` | profile connection_type at begin_connect, 4 on host create; sent as the join request rate_index |
 
@@ -466,7 +466,7 @@ are described here for completeness but are exercised only by functions that are
 | 0x00 | `int32_t` | `next_update_id` | incremented modulo 0x40 per add |
 | 0x04 | `player_update_history_node *` | `head` |  |
 | 0x08 | `player_update_history_node *` | `tail` |  |
-| 0x0c | `int32_t` | `unknown_0c[8]` | the rest of the 0x2c allocation |
+| 0x0c | `int32_t` | `statistics[8]` | the rest of the 0x2c allocation |
 
 ### `ban_list_entry` — size 0x38
 
@@ -488,7 +488,7 @@ whole-module pass, which is what let the four array codecs stop taking an `int32
 | offset | type | field | note |
 | --- | --- | --- | --- |
 | 0x00 | `int32_t` | `kind` | index into `message_delta_field_type_table`, stride 0x18 |
-| 0x04 | `uint8_t` | `unknown_04[0x4c]` |  |
+| 0x04 | `uint8_t` | `name[0x4c]` |  |
 | 0x50 | fn ptr | `encode` | `(type, previous, destination, stream) -> bits`; called by 0x4e95e0, 0x4ec6a0 |
 | 0x54 | fn ptr | `decode` | same shape; called by 0x4e9330 |
 | 0x58 | `void *` | `array_descriptor` | the array codecs' `{count, ...}` block |
@@ -694,18 +694,18 @@ is positional, and the low 3 bits of every packed code are the record's own tag.
 | 0x0008 | `uint32_t` | `sample_interval_ms` | seeded from 0x006894b0 |
 | 0x000c | `int32_t` | `units_index` | 0 bytes, 1 packets (0x4d8a20) |
 | 0x0010 | `int32_t` | `direction_index` | 0 sent, 1 received (0x4d8a50) |
-| 0x0014 | `uint8_t` | `unknown_0014[0x12]` |  |
+| 0x0014 | `uint8_t` | `width[0x12]` |  |
 | 0x0026 | `int16_t` | `left` | screen bounds, recomputed on a resize |
 | 0x0028 | `int16_t` | `baseline` |  |
 | 0x002a | `int16_t` | `right` |  |
-| 0x002c | `uint8_t` | `unknown_002c[0x90]` | label text and layout scratch |
+| 0x002c | `uint8_t` | `layout[0x90]` | label text and layout scratch |
 | 0x00bc | `int32_t` | `bits_sent` | accumulated by 0x4d79d0 |
 | 0x00c0 | `int32_t` | `bits_received` | accumulated by 0x4d7a50 |
 | 0x00c4 | `int32_t` | `rate_base_ms` |  |
 | 0x00c8 | `float` | `rate_sent` | bits per second |
 | 0x00cc | `float` | `rate_received` | bits per second |
 | 0x00d0 | `int32_t` | `pending_sample` | folded into history on the next interval |
-| 0x00d4 | `int32_t` | `unknown_00d4` |  |
+| 0x00d4 | `int32_t` | `peak_samples_remaining` |  |
 | 0x00d8 | `int32_t` | `history[320]` |  |
 | 0x05d8 | `network_graph_vertex` | `columns[320]` |  |
 | 0x23d8 | `int32_t` | `peak_scale` | initialized to 1 |
@@ -720,7 +720,7 @@ is positional, and the low 3 bits of every packed code are the record's own tag.
 | 0x08 | `void *` | `data` | GlobalAlloc of size bytes, NUL terminated |
 | 0x0c | `int32_t` | `size` | payload length plus the terminator |
 | 0x10 | `uint8_t` | `local_file` | 1 when the source was a file, not a URL |
-| 0x11 | `uint8_t` | `pad_11[3]` |  |
+| 0x11 | `uint8_t` | `cancelled[3]` |  |
 
 ### `server_list_globals` — size 0x10
 
@@ -775,7 +775,7 @@ typedef in `network_client_drain_queued_updates.c`).
 | 0x08 | `int32_t item_count` | total items; the drain loop compares `processed_count` against it |
 | 0x0c | `int32_t bits_read` | accumulates `message_delta_read_changed_subfields`'s return |
 | 0x10 | `void *stream` | bit cursor; `0x4ed1d0` reads +0x08/+0x0c/+0x10/+0x14 off it |
-| 0x14 | `int32_t unknown_14` | |
+| 0x14 | `int32_t start_bit_offset` | |
 | 0x18 | `int32_t processed_count` | items the drain loop has dispatched |
 | 0x1c | `uint8_t more_items` | the drain loop stops when this clears |
 | 0x1d | `uint8_t changed` | every delta handler stores 1 here after decoding |

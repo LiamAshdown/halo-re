@@ -348,7 +348,7 @@ blended result first, then the two candidate axes it mixes.
 | `0x10` | `float` | `air_lift` — bit `0x10` |
 | `0x14` | `float` | `thrust` — bit `0x20` |
 | `0x18` | `float` | `antigrav` — bit `0x40` |
-| `0x1c` | `uint8_t[0x10]` | `unknown_1c` — untouched by this module |
+| `0x1c` | `uint8_t[0x10]` | `rotation` — untouched by this module |
 | `0x2c` | `float` | `matrix_scale` — start of the `real_matrix4x3` `0x507840` writes |
 | `0x30` | `float[3][3]` | `matrix` — transposed in place after `matrix4x3_from_quaternion` |
 | `0x54` | `float[3]` | `matrix_position` |
@@ -362,7 +362,7 @@ reads them in flag-bit order.
 |---|---|---|
 | `0x000` | `uint8_t` | `initialized` — every entry point bails when 0 |
 | `0x001` | `uint32_t[16][8]` | `active` — one bit per breakable surface, set while intact. **Unaligned on purpose** |
-| `0x201` | `uint8_t[3]` | `unknown_201` — padding |
+| `0x201` | `uint8_t[3]` | `pad_201` — padding |
 | `0x204` | `float[16][256]` | `health` — crossing zero clears the bit and fires the break effect |
 
 The bit vector starting at offset 1 is why every reader writes
@@ -419,17 +419,17 @@ face-side bits:
 | Off | `projectiles.h` | What this module writes |
 |---|---|---|
 | `0x00` | `type` | `0` is also produced here, by the fog-plane test — which is why `point_physics` treats 0 as "hit water" |
-| `0x04` | `unknown_04[8]` | `int32_t` **first** leaf of the segment walk |
+| `0x04` | `first_leaf[8]` | `int32_t` **first** leaf of the segment walk |
 | `0x08` | (same) | `int16_t` cluster of that leaf |
 | `0x0c` | `leaf` | the **last** leaf of the walk (the endpoint leaf) |
 | `0x10` | (same) | its cluster |
 | `0x30` | `unknown_30` | the `d` of the contact plane; `0x24`..`0x33` is one `real_plane3d` |
-| `0x3c` | `unknown_3c` | `int16_t region_index` |
+| `0x3c` | `region_index` | `int16_t region_index` |
 | `0x3e` | `marker_index` | collision **node** index, not a marker index |
-| `0x40` | `unknown_40` | `int16_t permutation_index`; `0x42` stays untouched |
-| `0x48` | `unknown_48` | `int32_t plane_index`, sign bit set on a back-face hit |
-| `0x4d` | `unknown_4d` | the surface's `breakable_surface` index |
-| `0x4e` | `unknown_4e` | `int16_t` index into `ScenarioStructureBSP.collision_materials` |
+| `0x40` | `permutation_index` | `int16_t permutation_index`; `0x42` stays untouched |
+| `0x48` | `plane_index` | `int32_t plane_index`, sign bit set on a back-face hit |
+| `0x4d` | `breakable_surface_index` | the surface's `breakable_surface` index |
+| `0x4e` | `collision_material_index` | `int16_t` index into `ScenarioStructureBSP.collision_materials` |
 
 The two leaf pairs at `0x04`/`0x08` and `0x0c`/`0x10` are distinct records. Conflating them was
 one of the drift bugs the integration pass fixed.

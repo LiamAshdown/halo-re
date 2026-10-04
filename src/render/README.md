@@ -160,13 +160,13 @@ belong to `types/rasterizer.h` and are not repeated here.
 | `0x00` | `int16_t` | `convolution_extra_passes` |
 | `0x02` | `int16_t` | `convolution_type` |
 | `0x04` | `float` | `convolution_radius` |
-| `0x08` | `uint32_t` | `unknown_08` (the weapon block keeps its mask BitmapData* here) |
+| `0x08` | `uint32_t` | `mask_bitmap_data` (the weapon block keeps its mask BitmapData* here) |
 | `0x0c` | `float` | `filter_light_enhancement_intensity` |
 | `0x10` | `float` | `filter_desaturation_intensity` |
 | `0x14` | `ColorRGB` | `filter_desaturation_tint` (black means unset; replaced by green) |
 | `0x20` | `uint8_t` | `filter_desaturation_is_additive` |
-| `0x21` | `uint8_t` | `unknown_21` (weapon block: night vision masked) |
-| `0x22` | `uint8_t` | `unknown_22` (weapon block: desaturation masked) |
+| `0x21` | `uint8_t` | `night_vision_masked` (weapon block: night vision masked) |
+| `0x22` | `uint8_t` | `desaturation_masked` (weapon block: desaturation masked) |
 | `0x23` | `uint8_t` | `video_enabled` |
 | `0x24` | `int16_t` | `video_overbright_mode` |
 | `0x26` | `int16_t` | `unknown_26` |

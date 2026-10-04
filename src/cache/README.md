@@ -52,7 +52,7 @@ All structs are declared in `types/cache.h` under `#pragma pack(push, 1)`.
 | 0x01c | `uint32_t` | `unknown_01c` | never read |
 | 0x020 | `char[32]` | `name` | `strlen < 0x20` |
 | 0x040 | `uint8_t[32]` | `unknown_040` | published layout says `build[32]` |
-| 0x060 | `int16_t` | `unknown_060` | the slot *category* argument; published layout says map type |
+| 0x060 | `int16_t` | `map_type` | the slot *category* argument; published layout says map type |
 | 0x062 | `int16_t` | `unknown_062` | |
 | 0x064 | `uint32_t` | `crc32` | read only by the game-state save/load code at 0x00538569 |
 | 0x068 | `uint8_t[0x794]` | `unknown_068` | |
@@ -123,9 +123,9 @@ are the only ones anything in the image touches.
 | 0x1c | `uint8_t` | `priority` (raised to 1 in place by blocking waiters) |
 | 0x1d | `uint8_t` | `pending` |
 | 0x1e | `uint8_t` | `started` |
-| 0x1f | `uint8_t` | `unknown_1f` |
+| 0x1f | `uint8_t` | `pad_1f` |
 | 0x20 | `uint8_t` | `data_file_index` (`cache_io_data_file`) |
-| 0x21 | `uint8_t[3]` | `unknown_21` |
+| 0x21 | `uint8_t[3]` | `pad_21` |
 | 0x24 | `cache_io_completion` | `completion` |
 
 ### `cache_io_completion` — 0x0c

@@ -262,8 +262,8 @@ widget_instance (widget_open @0x497a70 allocates it from the widget heap, widget
 | `0x12` | `uint8_t` | `hidden` | skipped by the focus and hit-test walks |
 | `0x13` | `uint8_t` | `pauses_game_time` | definition flags bit 1, drives ui_pause_depth |
 | `0x14` | `uint8_t` | `closing` | widget_close latches this to stay reentrant |
-| `0x15` | `uint8_t` | `unknown_15` | tested by main_menu_on_shown @0x498ab0 |
-| `0x16` | `uint8_t` | `unknown_16[2]` |  |
+| `0x15` | `uint8_t` | `is_error_dialog` | tested by main_menu_on_shown @0x498ab0 |
+| `0x16` | `uint8_t` | `close_on_controller_connected[2]` |  |
 | `0x18` | `int32_t` | `creation_time` | copied from ui_time_milliseconds |
 | `0x1c` | `int32_t` | `milliseconds_to_auto_close` | definition + 0x30, negatives clamped to 0 |
 | `0x20` | `int32_t` | `milliseconds_auto_close_fade` | definition + 0x34, negatives clamped to 0 |
@@ -436,32 +436,32 @@ first_person_weapon_interface (interface_globals_allocate @0x494340 reserves it,
 | `0x0004` | `datum_index` | `unit_index` | the controlled unit object |
 | `0x0008` | `datum_index` | `weapon_index` | the unit current weapon object |
 | `0x000c` | `int16_t` | `state` | animation state, driven by 0x492d20 and 0x492e60 |
-| `0x000e` | `int16_t` | `unknown_0e` |  |
-| `0x0010` | `int16_t` | `unknown_10` |  |
+| `0x000e` | `int16_t` | `idle_delay_ticks` |  |
+| `0x0010` | `int16_t` | `idle_ticks` |  |
 | `0x0012` | `int16_t` | `shutdown_countdown` | reseeded to 0x1e by 0x4942e0 |
 | `0x0014` | `int16_t` | `animation_index` | first person animation index, -1 when none |
-| `0x0016` | `int16_t` | `unknown_16` |  |
-| `0x0018` | `uint8_t` | `unknown_18[2]` |  |
-| `0x001a` | `int16_t` | `unknown_1a` |  |
+| `0x0016` | `int16_t` | `current_animation` |  |
+| `0x0018` | `uint8_t` | `current_animation_frame[2]` |  |
+| `0x001a` | `int16_t` | `moving_animation` |  |
 | `0x001c` | `uint8_t` | `unknown_1c[4]` |  |
-| `0x0020` | `int16_t` | `unknown_20` |  |
-| `0x0022` | `uint8_t` | `unknown_22[6]` |  |
-| `0x0028` | `float` | `unknown_28` | cleared together with the next field by 0x493c60 |
+| `0x0020` | `int16_t` | `overcharged_animation` |  |
+| `0x0022` | `uint8_t` | `pad_22[6]` |  |
+| `0x0028` | `float` | `recoil` | cleared together with the next field by 0x493c60 |
 | `0x002c` | `float` | `charge` | nudged by action code 0 in 0x4940f0 |
-| `0x0030` | `uint8_t` | `unknown_30[0x58]` | aim sway and idle timers written by 0x493150 |
+| `0x0030` | `uint8_t` | `move_sway_x[0x58]` | aim sway and idle timers written by 0x493150 |
 | `0x0088` | `int16_t` | `blend_start` | written by 0x4930b0 when a blended change starts |
 | `0x008a` | `int16_t` | `blend_end` |  |
 | `0x008c` | `uint8_t` | `animation_control[0x800]` | node control block fed to the animation system |
 | `0x088c` | `uint8_t` | `previous_pose[0x800]` | copied from animation_control by 0x4930b0 |
-| `0x108c` | `uint8_t` | `unknown_108c[0xd00]` | node scratch gathered by 0x493ea0 and 0x4924b0 |
+| `0x108c` | `uint8_t` | `node_matrices[0xd00]` | node scratch gathered by 0x493ea0 and 0x4924b0 |
 | `0x1d8c` | `uint8_t` | `weapon_hud_valid` | result of hud_meter_find_matching_element |
 | `0x1d8d` | `uint8_t` | `pad_1d8d` |  |
 | `0x1d8e` | `int16_t` | `weapon_hud_element[0x40]` | match table filled by 0x493f00 |
 | `0x1e0e` | `uint8_t` | `device_hud_valid` | second hud_meter_find_matching_element result |
 | `0x1e0f` | `uint8_t` | `pad_1e0f` |  |
 | `0x1e10` | `int16_t` | `device_hud_element[0x44]` | second match table |
-| `0x1e98` | `int32_t` | `unknown_1e98` | reset to -1 |
-| `0x1e9c` | `int16_t` | `unknown_1e9c` | reset to -1 |
+| `0x1e98` | `int32_t` | `frame_sound_index` | reset to -1 |
+| `0x1e9c` | `int16_t` | `frame_sound_state` | reset to -1 |
 | `0x1e9e` | `int16_t` | `unknown_1e9e` |  |
 
 ### `hud_message_slot` (size 0x8c)
@@ -725,21 +725,21 @@ player_control_settings (player_profile_refresh_settings_cache @0x496060) The li
 |---|---|---|---|
 | `0x000` | `float` | `look_rate_80` | table 80 at clamp(profile+0x12e minus 1, 0, 9) |
 | `0x004` | `float` | `look_rate_40` | table 40 at the same index |
-| `0x008` | `uint8_t` | `unknown_008[0xda]` | profile+0x134 verbatim |
-| `0x0e2` | `uint32_t` | `unknown_0e2[7]` | profile+0x20e verbatim |
+| `0x008` | `uint8_t` | `keyboard[0xda]` | profile+0x134 verbatim |
+| `0x0e2` | `uint32_t` | `mouse_button[7]` | profile+0x20e verbatim |
 | `0x0fe` | `uint8_t` | `unknown_0fe[0x100]` | profile+0x22a verbatim |
 | `0x1fe` | `uint32_t` | `unknown_1fe[4]` | profile+0x32a verbatim |
 | `0x20e` | `uint8_t` | `unknown_20e[0x200]` | profile+0x33a verbatim |
 | `0x40e` | `uint8_t` | `unknown_40e[0x400]` | profile+0x53a verbatim |
 | `0x80e` | `uint8_t` | `pad_80e[2]` | always zero |
-| `0x810` | `uint32_t` | `unknown_810[6]` | profile+0x93c verbatim |
+| `0x810` | `uint32_t` | `forward_rate[6]` | profile+0x93c verbatim |
 | `0x828` | `float` | `sensitivity_01_a` | table 01 at min(profile+0x954, 9) |
 | `0x82c` | `float` | `sensitivity_01_b` | table 01 at min(profile+0x955, 9) |
-| `0x830` | `uint32_t` | `unknown_830[2]` | profile+0x960 verbatim |
+| `0x830` | `uint32_t` | `gamepad_axis_scale_x[2]` | profile+0x960 verbatim |
 | `0x838` | `float` | `rate_80[4]` | table 80 at min(profile+0x956 + i, 9) |
 | `0x848` | `float` | `rate_40[4]` | table 40 at min(profile+0x95a + i, 9) |
-| `0x858` | `uint8_t` | `unknown_858` | profile+0x12f |
-| `0x859` | `uint8_t` | `unknown_859` | profile+0x131 |
+| `0x858` | `uint8_t` | `look_inverted` | profile+0x12f |
+| `0x859` | `uint8_t` | `look_inverted_driving` | profile+0x131 |
 | `0x85a` | `uint8_t` | `pad_85a[2]` | always zero |
 
 ### `loading_thread_record` (size 0x05 as read (true allocation unknown))
@@ -757,7 +757,7 @@ weapon_screen_effect_parameters (first_person_weapon_update_screen_effects @0x49
 
 | Offset | Type | Field | Notes |
 |---|---|---|---|
-| `0x00` | `int16_t` | `unknown_00` | never written by 0x494730 |
+| `0x00` | `int16_t` | `convolution_extra_passes` | never written by 0x494730 |
 | `0x02` | `int16_t` | `convolution_type` | 2 when a convolution amount is set |
 | `0x04` | `float` | `convolution_amount` | radius interpolated over the fov bounds |
 | `0x08` | `uint32_t` | `mask_bitmap_data` | mask bitmap tag +0x64, bitmaps.pointer |
@@ -767,7 +767,7 @@ weapon_screen_effect_parameters (first_person_weapon_update_screen_effects @0x49
 | `0x20` | `uint8_t` | `desaturation_additive` | desaturation_flags bit 2 |
 | `0x21` | `uint8_t` | `night_vision_masked` | night vision flags bit 2 |
 | `0x22` | `uint8_t` | `desaturation_masked` | desaturation_flags bit 3 |
-| `0x23` | `uint8_t` | `unknown_23[0x15]` | never written by 0x494730 |
+| `0x23` | `uint8_t` | `has_extra_maps[0x15]` | never written by 0x494730 |
 
 ### `first_person_light_parameters` (size 0x20)
 
@@ -777,8 +777,8 @@ first_person_light_parameters (first_person_weapon_update_lighting @0x4924b0) Th
 |---|---|---|---|
 | `0x00` | `uint16_t` | `armed` | 1 when the unit light is on |
 | `0x02` | `uint16_t` | `pad_02` | never written |
-| `0x04` | `float` | `unknown_37c` | unit +0x37c |
-| `0x08` | `float` | `unknown_380` | unit +0x380 |
+| `0x04` | `float` | `unit_37c` | unit +0x37c |
+| `0x08` | `float` | `unit_380` | unit +0x380 |
 | `0x0c` | `uint32_t` | `unit_handle` | the controlled unit datum |
 | `0x10` | `float` | `camera_x` | copied from 0x007c3114 |
 | `0x14` | `float` | `camera_y` | 0x007c3118 |

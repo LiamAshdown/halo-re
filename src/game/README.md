@@ -72,7 +72,7 @@ and `king_hill_state` enums are not repeated here; read them in the header.
 
 | off | field | notes |
 |---|---|---|
-| `0x00` | `uint8_t unknown_00` | never read or written |
+| `0x00` | `uint8_t initialized` | never read or written |
 | `0x01` | `uint8_t active` | 0x470ae0 sets it; advance_simulation_ticks refuses to run any tick while it is zero |
 | `0x02` | `uint8_t paused` | units / hs read it as a "time is running" gate, and both game_engine_build_local_player_control_input (0x4710b0) and game_engine_update_local_player_control (0x471ae0) refuse to turn stick input into look deltas, or to cycle the weapon / grenade / zoom level, while it is set |
 | `0x03` | `uint8_t unknown_03[0x0c - 0x03]` |  |
@@ -150,19 +150,19 @@ view), and `game_engine_ctf_initialize_flags` / `_on_flag_captured` / `_is_flag_
 | `0x34` | `void *post_rasterize` | render_scene_draw (0x50bfb0) |
 | `0x38` | `void *update` | game_engine_tick |
 | `0x3c` | `void *object_in_play_update` | 0x45f560 (per-tick pickup bookkeeping) |
-| `0x40` | `void *unknown_40` |  |
+| `0x40` | `void *weapon_ready_state_change` |  |
 | `0x44` | `void *object_expired` | 0x45f510 (unclaimed item about to despawn) |
 | `0x48` | `void *unknown_48` |  |
 | `0x4c` | `void *get_score` | 0x463480 / kill-feed builder; takes a player handle (or -1) and returns its score |
 | `0x50` | `void *get_team_score` | called with 0 and 1 |
-| `0x54` | `void *unknown_54_build_player_text` | (player, wchar buffer) -> scoreboard row text |
+| `0x54` | `void *build_player_text` | (player, wchar buffer) -> scoreboard row text |
 | `0x58` | `void *build_score_header_text` | (wchar buffer) |
 | `0x5c` | `void *build_team_score_text` | (team, wchar buffer) |
 | `0x60` | `void *unknown_60` | reached from the units module (0x56da00) |
 | `0x64` | `void *unknown_64` | reached from the units module (0x5674a0) |
-| `0x68` | `void *unknown_68` | fired first thing in game_engine_on_player_death |
+| `0x68` | `void *on_player_death` | fired first thing in game_engine_on_player_death |
 | `0x6c` | `void *build_message_text` | variant override for the kill-feed text builder |
-| `0x70` | `void *unknown_70` |  |
+| `0x70` | `void *rate_starting_location` |  |
 | `0x74` | `void *player_team_changed` | 0x4611b0 |
 | `0x78` | `void *allow_grenade_counts` | game_engine_apply_player_grenade_counts |
 | `0x7c` | `void *unknown_7c` |  |
@@ -221,7 +221,7 @@ view), and `game_engine_ctf_initialize_flags` / `_on_flag_captured` / `_is_flag_
 | off | field | notes |
 |---|---|---|
 | `0x00` | `int16_t identifier` | datum_header |
-| `0x02` | `uint8_t unknown_02[0x28 - 0x02]` |  |
+| `0x02` | `uint8_t pad_02[0x28 - 0x02]` |  |
 | `0x28` | `player_update_queue queue` |  |
 
 #### `player` size 0x200 == k_player_size
@@ -231,7 +231,7 @@ view), and `game_engine_ctf_initialize_flags` / `_on_flag_captured` / `_is_flag_
 | `0x00` | `int16_t identifier` | datum_header salt |
 | `0x02` | `int16_t local_player_index` | -1 unless this player is driven locally; game_set_local_player keeps it in sync with player_globals::local_players |
 | `0x04` | `uint16_t name[12]` | UTF-16, _wcsncpy of 11 chars plus the NUL the constructors write at 0x1a |
-| `0x1c` | `int32_t unknown_1c` | both constructors write -1 |
+| `0x1c` | `int32_t squad_index` | both constructors write -1 |
 | `0x20` | `int32_t team` | 0..k_team_pair_index_count-1; both constructors seed it with 1, 0x45c440 recomputes it |
 | `0x24` | `datum_index interaction_object` | board / swap / assassinate target |
 | `0x28` | `int16_t interaction_type` | player_set_pending_interaction_action keeps the highest value; 0xb clears the slot |
@@ -264,15 +264,15 @@ view), and `game_engine_ctf_initialize_flags` / `_on_flag_captured` / `_is_flag_
 | `0x98` | `int16_t multikill_count` | reset to 1 when the previous kill is more than ticks (4 s) old, else incremented |
 | `0x9a` | `int16_t last_kill_tick` | game_time of the last kill, -1 on death |
 | `0x9c` | `int16_t kills` |  |
-| `0x9e` | `int16_t unknown_9e` |  |
-| `0xa0` | `int32_t unknown_a0` |  |
+| `0x9e` | `int16_t kills_1` |  |
+| `0xa0` | `int32_t kills_2_and_3` |  |
 | `0xa4` | `int16_t assists` | credited to each of the four recent damagers |
-| `0xa6` | `int16_t unknown_a6` |  |
-| `0xa8` | `int32_t unknown_a8` |  |
+| `0xa6` | `int16_t assists_1` |  |
+| `0xa8` | `int32_t assists_2_and_3` |  |
 | `0xac` | `int16_t betrayals` | +1 when killer and victim are not enemies |
 | `0xae` | `int16_t deaths` | compared against game_variant::lives_per_round to decide elimination |
 | `0xb0` | `int16_t suicides` | +1 when the killer is the victim |
-| `0xb2` | `int16_t unknown_b2` |  |
+| `0xb2` | `int16_t pad_b2` |  |
 | `0xb4` | `int32_t unknown_b4` | game_engine_update_teleporter |
 | `0xb8` | `uint8_t unknown_b8[0xc0 - 0xb8]` |  |
 | `0xc0` | `int16_t betrayal_penalty_count` | +1 per betrayal; on_player_death scales it by game_variant::betrayal_penalty and clears it |
@@ -333,14 +333,14 @@ view), and `game_engine_ctf_initialize_flags` / `_on_flag_captured` / `_is_flag_
 | `0x00` | `datum_index unknown_00` | seeded to -1, never read |
 | `0x04` | `datum_index local_players[1]` | local_player_to_player_index / game_set_local_player |
 | `0x08` | `datum_index local_player_units[1]` | the unit each local player drives; indexed by player::local_player_index |
-| `0x0c` | `int16_t unknown_0c` |  |
+| `0x0c` | `int16_t local_player_count` |  |
 | `0x0e` | `int16_t respawn_stagger` | bumped and decremented while respawns are spread across frames |
 | `0x10` | `uint8_t no_player_has_a_unit` | 0x474e10 sets 1 then clears it if any player still has a unit |
-| `0x11` | `uint8_t unknown_11` |  |
-| `0x12` | `int16_t unknown_12` | seeded to -1 |
+| `0x11` | `uint8_t input_disabled` |  |
+| `0x12` | `int16_t bsp_switch_trigger_volume_index` | seeded to -1 |
 | `0x14` | `int16_t mode` | written with 0 and with 3 |
-| `0x16` | `uint8_t unknown_16` |  |
-| `0x17` | `uint8_t unknown_17[0x98 - 0x17]` | zeroed by players_dispose, never read |
+| `0x16` | `uint8_t teleported` |  |
+| `0x17` | `uint8_t bsp_switch_state[0x98 - 0x17]` | zeroed by players_dispose, never read |
 
 #### `local_player_control` size 0x40
 
@@ -428,17 +428,17 @@ view), and `game_engine_ctf_initialize_flags` / `_on_flag_captured` / `_is_flag_
 | `0x01` | `uint8_t pad_01[3]` |  |
 | `0x04` | `datum_index player` | the handle 0x466e80 matches against |
 | `0x08` | `int16_t kills` | <- player + 0x9c   (the cache copies 0x9c..0xb2 as |
-| `0x0a` | `int16_t unknown_0a` | <- player + 0x9e    four dwords and three words, so |
-| `0x0c` | `int32_t unknown_0c` | <- player + 0xa0    the field split here is the |
+| `0x0a` | `int16_t kills_1` | <- player + 0x9e    four dwords and three words, so |
+| `0x0c` | `int32_t kills_2_and_3` | <- player + 0xa0    the field split here is the |
 | `0x10` | `int16_t assists` | <- player + 0xa4    player's, not the copy's) |
-| `0x12` | `int16_t unknown_12` | <- player + 0xa6 |
-| `0x14` | `int32_t unknown_14` | <- player + 0xa8 |
+| `0x12` | `int16_t assists_1` | <- player + 0xa6 |
+| `0x14` | `int32_t assists_2_and_3` | <- player + 0xa8 |
 | `0x18` | `int16_t betrayals` | <- player + 0xac |
 | `0x1a` | `int16_t deaths` | <- player + 0xae |
 | `0x1c` | `int16_t suicides` | <- player + 0xb0 |
 | `0x1e` | `int32_t objective_time` | <- player + 0xc4 (seconds here, ticks in the player; the king engine rescales by 30 across the copy) |
-| `0x22` | `int16_t unknown_22` | <- player + 0xc8 |
-| `0x24` | `int32_t unknown_24` | <- player + 0x88 |
+| `0x22` | `int16_t objective_score` | <- player + 0xc8 |
+| `0x24` | `int32_t slayer_target` | <- player + 0x88 |
 | `0x28` | `uint8_t odd_man_out` | <- player + 0x8c |
 | `0x29` | `uint8_t pad_29[3]` |  |
 | `0x2c` | `float speed` | <- player + 0x6c |
@@ -475,7 +475,7 @@ view), and `game_engine_ctf_initialize_flags` / `_on_flag_captured` / `_is_flag_
 | off | field | notes |
 |---|---|---|
 | `0x00` | `datum_index player` |  |
-| `0x04` | `int32_t unknown_04` | never compared |
+| `0x04` | `int32_t single_sort_key` | never compared |
 | `0x08` | `int32_t key_0` | primary sort key, built by 0x45cc30: a clamped score |
 | `0x0c` | `int32_t key_1` | biased by +1000 plus bit 0x40000000 when the player |
 | `0x10` | `int32_t key_2` | still has lives left and bit 0x20000000 when the |
@@ -534,7 +534,7 @@ view), and `game_engine_ctf_initialize_flags` / `_on_flag_captured` / `_is_flag_
 |---|---|---|
 | `0x00` | `uint32_t flag_id_mask` | bit i set means usage_id i exists on this map |
 | `0x04` | `int32_t team_flag_id[16]` |  |
-| `0x44` | `uint8_t unknown_44[0x148 - 0x44]` | UNRESOLVED: per-team capture counters, the captured bitmasks 0x46ec10 sends, and the neutral-flag slot at 0x006b1314 |
+| `0x44` | `uint8_t team_captured_flags_mask[0x148 - 0x44]` | UNRESOLVED: per-team capture counters, the captured bitmasks 0x46ec10 sends, and the neutral-flag slot at 0x006b1314 |
 
 #### `king_globals` size 0x0c
 
@@ -577,7 +577,7 @@ view), and `game_engine_ctf_initialize_flags` / `_on_flag_captured` / `_is_flag_
 
 | off | field | notes |
 |---|---|---|
-| `0x00` | `int32_t unknown_00` | copied verbatim into the 0x006e4738 draw-state slot |
+| `0x00` | `int32_t alpha` | copied verbatim into the 0x006e4738 draw-state slot |
 | `0x04` | `real color_r` |  |
 | `0x08` | `real color_g` |  |
 | `0x0c` | `real color_b` |  |
