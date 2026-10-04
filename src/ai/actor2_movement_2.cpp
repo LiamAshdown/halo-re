@@ -502,17 +502,17 @@ void ActorView::movement_update()
 
     movement_style = a->movement_style_override;
     if (movement_style == -1) {
-        movement_style = 2;
+        movement_style = _actor_movement_type_combat;
         if (a->cowering != 0) {
-            movement_style = 4;
+            movement_style = _actor_movement_type_flaming;
         } else if (a->crouch_hold != 0) {
-            movement_style = 3;
+            movement_style = _actor_movement_type_panic;
         } else if (a->awareness_level == 1) {
-            movement_style = 1;
+            movement_style = _actor_movement_type_asleep;
         } else if (a->awareness_level == 2) {
-            movement_style = 0;
+            movement_style = _actor_movement_type_alert;
         } else if (a->awareness_level == 3) {
-            movement_style = 2;
+            movement_style = _actor_movement_type_combat;
         }
     }
     a->control_animation_mode = movement_style;
@@ -538,7 +538,7 @@ void ActorView::movement_update()
             a->aim_unlocked = 0;
             a->look_unlocked = 0;
             movement_mode = 0;
-        } else if (a->control_animation_mode == 1) {
+        } else if (a->control_animation_mode == _actor_movement_type_asleep) {
             a->moving = 0;
             a->aim_unlocked = 0;
             a->look_unlocked = 0;

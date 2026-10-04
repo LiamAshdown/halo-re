@@ -548,7 +548,7 @@ void ActorOps::movement_apply_steering(int16_t cached_axis, uint8_t keep_z, datu
     }
 
     dot_facing = aim.j * facing->j + aim.k * facing->k + aim.i * facing->i;
-    if (order_failed || act->control_animation_mode == 4) {
+    if (order_failed || act->control_animation_mode == _actor_movement_type_flaming) {
         take_step = 1;
     } else {
         if (!act->flying) {

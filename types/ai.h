@@ -171,6 +171,15 @@ typedef struct actor_order {
 // The queued / active movement action pair inside the actor. The setters at 0x417610,
 // 0x417750, 0x417830 and 0x417910 write the queued copy at actor+0x400 and then copy all
 // six dwords to the active copy at actor+0x46c, which is what fixes the 0x18-byte layout.
+// How an actor moves (CEA actor_movement_type); selects the control animation (actor_control_animation_state_table).
+typedef enum actor_movement_type {
+    _actor_movement_type_alert = 0,
+    _actor_movement_type_asleep = 1,
+    _actor_movement_type_combat = 2,
+    _actor_movement_type_panic = 3,
+    _actor_movement_type_flaming = 4
+} actor_movement_type;
+
 // The destination kinds an actor movement action can have (CEA destination_type).
 typedef enum actor_destination_type {
     _actor_destination_none = 0,              // stopped
