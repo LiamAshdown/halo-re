@@ -1,3 +1,4 @@
+#include "halo/core/flag_bits.hpp"
 #include "halo/tags/flags.hpp"
 #include "halo/ai/flags.hpp"
 #include "halo/core/bit_cast.hpp"
@@ -147,7 +148,7 @@ void ActorView::refresh_combat_context()
         head = marker.node_transform.position;
         self->in_water = halo::scenario::scenario_location_get_water_and_weather(&head, &self->location, 0);
     }
-    self->flying = (uint8_t)((actor_tag->flags >> 21) & 1);
+    self->flying = (uint8_t)test_flag(actor_tag->flags, halo::tags::actor_tag_flag::flying);
 
     if (parent != 0 && parent->base.type == _object_type_vehicle) {
         Vehicle *vehicle_tag = halo::ai::tag_data<Vehicle>(parent->base.definition_tag);

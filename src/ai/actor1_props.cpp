@@ -1,3 +1,4 @@
+#include "halo/core/flag_bits.hpp"
 #include "halo/math/constants.hpp"
 #include "halo/objects/flags.hpp"
 #include "halo/units/flags.hpp"
@@ -194,7 +195,7 @@ void halo::ai::prop_ops::apply_unit_definition_properties(datum_index actor_vari
             }
         }
     }
-    if (variant->flags & 0x30) {
+    if (test_flag(variant->flags, halo::tags::actor_variant_tag_flag::active_camouflage | halo::tags::actor_variant_tag_flag::super_active_camouflage)) {
         if (halo::ai::flag_set(variant->flags, halo::tags::actor_variant_tag_flag::super_active_camouflage)) {
             ((unit_object *)unit)->unit.flags |= halo::to_bits(halo::units::unit_flag::super_camouflaged);
         }

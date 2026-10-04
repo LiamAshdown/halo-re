@@ -1,3 +1,4 @@
+#include "halo/core/flag_bits.hpp"
 #include "halo/math/constants.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/ai/flags.hpp"
@@ -1733,7 +1734,7 @@ uint8_t ActorView::update_movement_destination()
     if (actor->order_committed == 0) {
         uint8_t follow_lead = 0;
 
-        if (actor->crouch_active != 0 && (static_cast<uint8_t>(actor_tag->flags) & 0x20) != 0) {
+        if (actor->crouch_active != 0 && test_flag(actor_tag->flags, halo::tags::actor_tag_flag::try_to_stay_still_when_crouched)) {
             halo::ai::actor_update_target_lead_position(actor_index);
             follow_lead = halo::ai::actor_firing_position_near_point(actor_index, &actor->pathfinding_point,
                 (int32_t)(uint32_t)actor->pathfinding_surface_index, 0);

@@ -1,3 +1,5 @@
+#include "halo/core/flag_bits.hpp"
+#include "halo/tags/flags.hpp"
 #include "halo/core/bit_cast.hpp"
 #include "halo/ai/actor_movement.hpp"
 #include "halo/math/api.hpp"
@@ -759,7 +761,7 @@ uint8_t halo::ai::movement_ops::evaluate_search_node(datum_index vehicle_index, 
     facing = (uint8_t)(dot > 0.6f);
     in_front = (uint8_t)(distance < 1.1f && dot > 0.0f);
     score = 10.0f / (distance + 1.0f);
-    if ((halo::units::unit_seat_flag_bit3(vehicle_index, seat_index) != 0) != ((static_cast<uint8_t>(variant->flags) & 0x80) != 0)) {
+    if ((halo::units::unit_seat_flag_bit3(vehicle_index, seat_index) != 0) != (test_flag(variant->flags, halo::tags::actor_variant_tag_flag::prefer_passenger_seat))) {
         score = score + 3.5f;
     }
     if (out_entry != 0) {

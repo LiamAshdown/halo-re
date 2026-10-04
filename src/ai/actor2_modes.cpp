@@ -1,3 +1,5 @@
+#include "halo/core/flag_bits.hpp"
+#include "halo/tags/flags.hpp"
 #include "halo/ai/actor_behavior.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
@@ -39,13 +41,13 @@ void ActorView::mode_uncover_tick()
     if (kind == 0) {
         if (actor_tag->defensive_crouch_type == 4) {
             act->mode_data.uncover.crouch = (uint8_t)(act->target_combat_status != 6);
-        } else if ((static_cast<uint8_t>(actor_tag->flags) & 2) && act->target_combat_status == 5 &&
+        } else if (test_flag(actor_tag->flags, halo::tags::actor_tag_flag::sneak_uncovering_target) && act->target_combat_status == 5 &&
                    (int8_t)halo::ai::prop_at(act->target_unit_index)->distance_class <= 2) {
             act->mode_data.uncover.crouch = 1;
         }
     } else if (kind == 1) {
         if (actor_tag->defensive_crouch_type == 4 ||
-            ((static_cast<uint8_t>(actor_tag->flags) & 4) &&
+            (test_flag(actor_tag->flags, halo::tags::actor_tag_flag::sneak_uncovering_pursuit_position) &&
              halo::math::vector3d_distance_squared(*(&act->mode_data.uncover.position), act->body_position) < 100.0f)) {
             act->mode_data.uncover.crouch = 1;
         }
@@ -110,7 +112,7 @@ void ActorView::mode_uncover_update()
                 act->bombard_target = 1;
                 forced = 1;
             } else {
-                act->wants_to_fire = (uint8_t)(act->target_combat_status >= ((static_cast<uint8_t>(actor_tag->flags) & 0x10) ? 5 : 6));
+                act->wants_to_fire = (uint8_t)(act->target_combat_status >= (test_flag(actor_tag->flags, halo::tags::actor_tag_flag::shoot_at_target_s_last_location) ? 5 : 6));
             }
         }
         if ((act->wants_to_fire && (kind == 0 || kind == 1)) || forced) {

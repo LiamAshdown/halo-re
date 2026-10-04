@@ -1,3 +1,4 @@
+#include "halo/core/flag_bits.hpp"
 #include "halo/ai/actor_view.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
@@ -568,7 +569,7 @@ void ActorView::movement_update()
         } else if (a->incoming_fire_ticks >= 1) {
             a->moving = 0;
             a->aim_unlocked = 1;
-            movement_mode = (uint8_t)((actor_def->flags >> 0x1e) & 1);
+            movement_mode = (uint8_t)test_flag(actor_def->flags, halo::tags::actor_tag_flag::crouch_when_in_line_of_fire);
         } else {
             clear_recognition = 1;
             if (movement_style == 2 &&

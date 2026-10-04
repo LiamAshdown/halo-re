@@ -1,3 +1,5 @@
+#include "halo/core/flag_bits.hpp"
+#include "halo/tags/flags.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/core/collision_flags.hpp"
 #include "halo/core/bit_cast.hpp"
@@ -250,7 +252,7 @@ int16_t halo::ai::look_ops::dispatch_look_handler_by_posture(int16_t posture, ui
         return 0;
     }
     scale = 1.0f;
-    if ((static_cast<uint8_t>(actor_tag->flags) & 1) == 0) {
+    if (!test_flag(actor_tag->flags, halo::tags::actor_tag_flag::can_see_in_darkness)) {
         if ((int8_t)stance_a == 0) {
             scale = 0.3f;
         } else if ((int8_t)stance_a == 1) {

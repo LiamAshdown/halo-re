@@ -1,3 +1,4 @@
+#include "halo/core/flag_bits.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/units/animation_states.hpp"
 #include "halo/tags/flags.hpp"
@@ -886,7 +887,7 @@ void halo::ai::search_mode::tick()
         act->mode_data.search.unknown_03 = 1;
     } else {
         act->mode_data.search.unknown_03 = 0;
-        if ((static_cast<uint8_t>(actor_tag->flags) & 2) && act->mode_data.search.stage == 0 && act->target_combat_status == 5 &&
+        if (test_flag(actor_tag->flags, halo::tags::actor_tag_flag::sneak_uncovering_target) && act->mode_data.search.stage == 0 && act->target_combat_status == 5 &&
             (int8_t)halo::ai::prop_at(act->target_unit_index)->distance_class <= 2) {
             act->mode_data.search.unknown_03 = 1;
         }
@@ -971,7 +972,7 @@ void halo::ai::search_mode::update()
     }
     act->look_posture = 3;
     if (act->mode_data.search.stage == 0) {
-        act->wants_to_fire = (uint8_t)(act->target_combat_status >= ((static_cast<uint8_t>(actor_tag->flags) & 0x10) ? 5 : 6));
+        act->wants_to_fire = (uint8_t)(act->target_combat_status >= (test_flag(actor_tag->flags, halo::tags::actor_tag_flag::shoot_at_target_s_last_location) ? 5 : 6));
     }
     act->crouch_decision[0] = act->mode_data.search.unknown_03;
     act->crouch_decision[1] = act->mode_data.search.unknown_03;

@@ -1,3 +1,4 @@
+#include "halo/core/flag_bits.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/ai/actor_view.hpp"
 #include "halo/ai/flags.hpp"
@@ -185,7 +186,7 @@ void ActorView::update_firing_state()
             if (!forced && a->firing_delay_timer > 0) return true;
             if (halo::ai::actor_action_has_queued_secondary(actor_index)) return true;
             if (!forced) {
-                if (a->airborne && !a->flying && !(static_cast<uint8_t>(variant->flags) & 1)) return true;
+                if (a->airborne && !a->flying && !test_flag(variant->flags, halo::tags::actor_variant_tag_flag::can_shoot_while_flying)) return true;
                 if (halo::ai::flag_set(actor_tag->flags, halo::tags::actor_tag_flag::must_crouch_to_shoot) && !a->crouching) return true;
                 if (halo::ai::flag_set(actor_tag->more_flags, halo::tags::actor_more_tag_flag::must_stand_to_fire) && a->crouching) return true;
                 if (halo::ai::flag_set(actor_tag->more_flags, halo::tags::actor_more_tag_flag::must_stop_to_fire) && a->moving) return true;

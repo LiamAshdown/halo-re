@@ -1,3 +1,4 @@
+#include "halo/core/flag_bits.hpp"
 #include "halo/objects/flags.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/units/animation_states.hpp"
@@ -878,7 +879,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
     if (self->charge_trigger_active != 0) {
         if (self->charge_trigger_delay > 0) {
             self->charge_trigger_delay -= 1;
-        } else if ((static_cast<uint8_t>(variant->flags) & 8) != 0 && (int8_t)self->tally.group_c_total > 0) {
+        } else if (test_flag(variant->flags, halo::tags::actor_variant_tag_flag::movement_switching_try_to_stay_with_friends) && (int8_t)self->tally.group_c_total > 0) {
 
             prop *axis_prop = halo::ai::prop_at(self->target_unit_index);
             actor_prop_iterator iterator;
