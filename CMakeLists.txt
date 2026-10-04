@@ -100,8 +100,8 @@ target_link_libraries(halo_rebuilt PRIVATE
     kernel32 user32 gdi32 advapi32 ole32 oleaut32 winmm ws2_32 shell32 version shlwapi comdlg32
     dsound dinput8 dxguid d3d9 d3dx9 opengl32 legacy_stdio_definitions wininet
     stb_vorbis mojoshader)
-# the data image sits at the original addresses (0x400000..0x891000), so the exe must load elsewhere, unrelocated
-target_link_options(halo_rebuilt PRIVATE /FIXED /DYNAMICBASE:NO /BASE:0x10000000 /SAFESEH:NO /OPT:NOREF /OPT:NOICF
+# the data image is ordinary relocatable C++ data, so the exe loads anywhere (only map memory stays at 0x40000000)
+target_link_options(halo_rebuilt PRIVATE /SAFESEH:NO /OPT:NOREF /OPT:NOICF
     /LARGEADDRESSAWARE:NO /NODEFAULTLIB:msvcrt.lib /NODEFAULTLIB:libcpmt.lib /MAP)
 
 if(EXISTS "${HALO_FX_OVERRIDE}")
