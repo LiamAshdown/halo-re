@@ -55,6 +55,7 @@ set(CMAKE_EXE_LINKER_FLAGS_DEBUG "/INCREMENTAL:NO /DEBUG")
 
 # ---- the rewritten game functions, one file each
 file(GLOB GAME_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/src/*/*.c" "${CMAKE_SOURCE_DIR}/src/*/*.cpp")
+list(FILTER GAME_SOURCES EXCLUDE REGEX "/src/platform/[a-z0-9]+_posix\.cpp$")   # the POSIX platform layer is for Emscripten / Linux
 add_library(halo_game OBJECT ${GAME_SOURCES})
 # the game code is compiled as C++20. No exceptions, no RTTI.
 set(CXX_GAME_SOURCES ${GAME_SOURCES})
@@ -138,8 +139,8 @@ target_compile_options(map_inspect PRIVATE /std:c++20 /EHsc /W3)
 target_compile_definitions(map_inspect PRIVATE _CRT_SECURE_NO_WARNINGS)
 
 
-# ---- check of the 16-bit wide string functions (src/platform/wchar16.cpp) against the MSVC C library
-add_executable(wchar16_test tools/wchar16_test.cpp src/platform/wchar16.cpp)
-target_include_directories(wchar16_test PRIVATE "${CMAKE_SOURCE_DIR}/include")
-target_compile_options(wchar16_test PRIVATE /std:c++20 /W3)
-target_compile_definitions(wchar16_test PRIVATE _CRT_SECURE_NO_WARNINGS)
+# ---- checks of the portable platform pieces (wide strings, SHA-1, Windows-1252) against the Windows originals
+add_executable(platform_test tools/platform_test.cpp src/platform/wchar16.cpp src/platform/system_portable.cpp)
+target_include_directories(platform_test PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/src/platform")
+target_compile_options(platform_test PRIVATE /std:c++20 /W3)
+target_compile_definitions(platform_test PRIVATE _CRT_SECURE_NO_WARNINGS)

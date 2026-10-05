@@ -1,7 +1,11 @@
-// Checks src/platform/wchar16.cpp against the MSVC C library it stands in for (wchar_t is 16-bit there).
-//   cmake --build build/cxx --config Release --target wchar16_test && build\cxx\Release\wchar16_test.exe
+// Checks the portable platform pieces against the Windows originals they stand in for: src/platform/wchar16.cpp
+// against the MSVC C library (wchar_t is 16-bit there), SHA-1 against known digests, and Windows-1252 conversion
+// against MultiByteToWideChar / WideCharToMultiByte.
+//   cmake --build build/cxx --config Release --target platform_test && build\cxx\Release\platform_test.exe
 #include "halo/platform/wchar16.h"
+#include "system_portable.hpp"
 
+#include <windows.h>
 #include <stdio.h>
 #include <string.h>
 #include <wchar.h>
@@ -81,12 +85,58 @@ int main()
     check_format(L"100%% %d%%", 7);
     check_format(L"%*d|%-*d|%.*s", 6, 12, 4, 3, 2, L"abcdef");
     {
-        wchar_t small[8];
-        int ours = halo_swprintf(small, 8, L"%s", L"far too long");
+        wchar_t tiny[8];
+        int ours = halo_swprintf(tiny, 8, L"%s", L"far too long");
 
         CHECK(ours < 0);
-        CHECK(small[7] == 0);
+        CHECK(tiny[7] == 0);
     }
-    printf(failures == 0 ? "wchar16: all checks passed\n" : "wchar16: %d failures\n", failures);
+    {
+        // SHA-1: FIPS 180 test vectors, plus one input that needs a second padding block
+        static const struct { const char *text; const char *digest; } vectors[] = {
+            {"abc", "a9993e364706816aba3e25717850c26c9cd0d89d"},
+            {"", "da39a3ee5e6b4b0d3255bfef95601890afd80709"},
+            {"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq", "84983e441c3bd26ebaae4aa1f95129e5e54670f1"},
+            {"The quick brown fox jumps over the lazy dog", "2fd4e1c67a2d28fced849ee1bb76e7391b93eb12"},
+        };
+
+        for (const auto &v : vectors) {
+            uint8_t digest[20];
+            char hex[41];
+
+            halo::platform::portable::sha1(reinterpret_cast<const uint8_t *>(v.text), static_cast<uint32_t>(strlen(v.text)), digest);
+            for (int i = 0; i < 20; i++) sprintf(hex + i * 2, "%02x", digest[i]);
+            if (strcmp(hex, v.digest) != 0) {
+                printf("FAIL sha1(\"%s\") = %s\n", v.text, hex);
+                failures++;
+            }
+        }
+    }
+    {
+        // Windows-1252 against the Windows conversions, every byte value
+        char bytes[256];
+        uint16_t ours[256];
+        wchar_t theirs[256];
+        char back_ours[256];
+        char back_theirs[256];
+
+        for (int i = 0; i < 255; i++) bytes[i] = static_cast<char>(i + 1);
+        bytes[255] = 0;
+        CHECK(halo::platform::portable::ansi_to_wide(bytes, -1, ours, 256) == MultiByteToWideChar(1252, 0, bytes, -1, theirs, 256));
+        CHECK(memcmp(ours, theirs, sizeof(ours)) == 0);
+        CHECK(halo::platform::portable::ansi_to_wide(bytes, -1, nullptr, 0) == 256);
+        CHECK(halo::platform::portable::wide_to_ansi(ours, -1, back_ours, 256) ==
+              WideCharToMultiByte(1252, 0, theirs, -1, back_theirs, 256, nullptr, nullptr));
+        CHECK(memcmp(back_ours, back_theirs, sizeof(back_ours)) == 0);
+        {
+            const uint16_t unmappable[3] = {0x4e2d, 0x0041, 0};  // a CJK character has no Windows-1252 byte
+            char a[3], b[3];
+
+            halo::platform::portable::wide_to_ansi(unmappable, -1, a, 3);
+            WideCharToMultiByte(1252, 0, reinterpret_cast<const wchar_t *>(unmappable), -1, b, 3, nullptr, nullptr);
+            CHECK(memcmp(a, b, 3) == 0);
+        }
+    }
+    printf(failures == 0 ? "platform_test: all checks passed\n" : "platform_test: %d failures\n", failures);
     return failures != 0;
 }
