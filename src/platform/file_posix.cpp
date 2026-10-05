@@ -238,6 +238,7 @@ file_handle file_open(const char *path, uint32_t access_mode, uint32_t share, ui
     }
     fd = open(native, open_flags, 0644);
     if (fd < 0) {
+        if (errno != ENOENT) fprintf(stderr, "file: open %s failed: %s\n", native, strerror(errno));
         set_last_error_from_errno();
         return invalid_handle();
     }
@@ -345,6 +346,7 @@ bool file_truncate(file_handle file)
         return false;
     }
     if (ftruncate(object->fd, lseek(object->fd, 0, SEEK_CUR)) != 0) {
+        fprintf(stderr, "file: truncate failed: %s\n", strerror(errno));
         set_last_error_from_errno();
         return false;
     }
@@ -519,6 +521,7 @@ bool directory_create(const char *path)
     if (mkdir(native, 0755) != 0) {
         set_last_error_from_errno();
         if (errno == EEXIST) t_last_error = k_error_already_exists;
+        else fprintf(stderr, "file: mkdir %s failed: %s\n", native, strerror(errno));
         return false;
     }
     return true;

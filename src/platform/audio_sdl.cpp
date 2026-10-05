@@ -239,8 +239,12 @@ uint32_t __stdcall device_add_ref(void *) { return (uint32_t)++g_device_refs; }
 uint32_t __stdcall device_release(void *)
 {
     if (--g_device_refs == 0) {
+#if !defined(__EMSCRIPTEN__)
+        // In the browser the device stays open: closing it from the game's worker frees the stream the page thread's
+        // callback is mixing into. The next audio_device_create reuses it.
         SDL_CloseAudioDevice(g_device);
         g_device = 0;
+#endif
     }
     return (uint32_t)g_device_refs;
 }
