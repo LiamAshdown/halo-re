@@ -25,6 +25,11 @@ Still Windows-only, from a survey at commit e3038f5c:
 - The GL backend uses MojoShader's GLSL 1.10 profile and desktop GL entry points.
 - The main loop blocks (`MainLoop::loop`), so the browser can never get control back.
 
+Browser bring-up (later on 2026-10-05, branch browser-port):
+- The web build boots in Chrome at -O3, streams the maps from `tools/serve_web.py` and runs the main loop.
+- At -O1 and above, an empty spin in `structure_bsp_loader::load` hung forever. It was found with `-DHALO_WEB_O0_SOURCES="dir/*.cpp;..."`, which compiles the listed files at -O0 for bisecting.
+- Not yet checked by eye: menu rendering, input, audio and save persistence.
+
 ## Milestones
 
 Do them in order. Each one leaves the Windows build working, gets the user's boot test (they run it and report), and is
