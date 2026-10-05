@@ -137,3 +137,9 @@ target_link_libraries(map_inspect PRIVATE stb_vorbis)
 target_compile_options(map_inspect PRIVATE /std:c++20 /EHsc /W3)
 target_compile_definitions(map_inspect PRIVATE _CRT_SECURE_NO_WARNINGS)
 
+
+# ---- check of the 16-bit wide string functions (src/platform/wchar16.cpp) against the MSVC C library
+add_executable(wchar16_test tools/wchar16_test.cpp src/platform/wchar16.cpp)
+target_include_directories(wchar16_test PRIVATE "${CMAKE_SOURCE_DIR}/include")
+target_compile_options(wchar16_test PRIVATE /std:c++20 /W3)
+target_compile_definitions(wchar16_test PRIVATE _CRT_SECURE_NO_WARNINGS)
