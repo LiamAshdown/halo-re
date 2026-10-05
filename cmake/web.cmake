@@ -90,8 +90,9 @@ target_link_options(halo PRIVATE
     "SHELL:-sASSERTIONS=1"
     "--profiling-funcs"                         # function names in stack traces
     "SHELL:-Wl,--Map=${CMAKE_BINARY_DIR}/halo.map"
-    "--shell-file" "${CMAKE_SOURCE_DIR}/web/shell.html")
-set_property(TARGET halo APPEND PROPERTY LINK_DEPENDS "${CMAKE_SOURCE_DIR}/web/shell.html")  # relink when the page changes
+    "--shell-file" "${CMAKE_SOURCE_DIR}/web/shell.html"
+    "--pre-js" "${CMAKE_SOURCE_DIR}/web/pre.js")             # caches the game's file downloads, reports loading progress
+set_property(TARGET halo APPEND PROPERTY LINK_DEPENDS "${CMAKE_SOURCE_DIR}/web/shell.html;${CMAKE_SOURCE_DIR}/web/pre.js")  # relink when the page changes
 # debug builds trap null and out-of-range loads and stores where they happen (SAFE_HEAP)
 target_link_options(halo PRIVATE $<$<CONFIG:Debug>:SHELL:-sSAFE_HEAP=2>)  # 2: no alignment checks; the engine reads packed records unaligned, as x86 allows
 # bisecting optimizer-sensitive code: src/ globs listed here (e.g. "cache/*.cpp") compile at -O0 (a debugging aid, empty normally)

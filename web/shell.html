@@ -12,6 +12,12 @@
   #start { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; }
   #start button { font: inherit; padding: 10px 28px; background: #234; color: #def; border: 1px solid #456; border-radius: 4px; cursor: pointer; }
   #status { min-height: 1.4em; }
+  #loading { position: fixed; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 10px; pointer-events: none; }
+  #loading.active { display: flex; }
+  #loading.corner { inset: auto 16px 16px auto; align-items: flex-end; background: #000a; padding: 8px 12px; border-radius: 4px; }
+  #loading .bar { width: min(420px, 80vw); height: 6px; background: #234; border-radius: 3px; overflow: hidden; }
+  #loading.corner .bar { width: 160px; }
+  #loading .fill { height: 100%; width: 0; background: #6ad; transition: width 0.2s; }
 </style>
 </head>
 <body>
@@ -20,6 +26,7 @@
   <div id="status">Halo files are served by tools/serve_web.py from your own install.</div>
   <button id="play" disabled>Play</button>
 </div>
+<div id="loading"><div id="loading-text"></div><div class="bar"><div class="fill"></div></div></div>
 <script>
   // The module starts on a click: browsers only allow sound and pointer lock after one.
   const status = document.getElementById('status');
@@ -47,8 +54,38 @@
     const alphabet = 'BCDFGHJKMPQRTVWXY2346789';
     return Array.from(crypto.getRandomValues(new Uint8Array(25)), (byte) => alphabet[byte % alphabet.length]).join('');
   };
+  // Loading bar, fed by web/pre.js. The first load's size isn't known up front, so the bar measures against
+  // the last completed startup (remembered per browser) or a typical first load.
+  const loading = document.getElementById('loading');
+  const loadingText = document.getElementById('loading-text');
+  const loadingFill = loading.querySelector('.fill');
+  const mb = (bytes) => (bytes / 1048576).toFixed(0);
+  const storedTotal = () => { try { return Number(localStorage.getItem('halo-startup-bytes')) || 0; } catch { return 0; } };
+  let expected = storedTotal() || 70 * 1048576;
+  let downloaded = 0, cached = 0, firstLoad = true, idleTimer = 0;
+  new BroadcastChannel('halo-progress').onmessage = ({ data }) => {
+    downloaded += data.downloaded || 0;
+    cached += data.cached || 0;
+    const total = downloaded + cached;
+    loading.classList.add('active');
+    loadingText.textContent = (downloaded ? 'Downloading game data' : 'Loading game data') +
+      (firstLoad ? ` (${mb(total)} / ~${mb(expected)} MB)` : ` (${mb(total)} MB)`);
+    loadingFill.style.width = firstLoad ? Math.min(99, total / expected * 100) + '%' : '100%';
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(() => {  // quiet for 2 s: this load is done
+      if (firstLoad) {
+        try { localStorage.setItem('halo-startup-bytes', String(total)); } catch {}
+        firstLoad = false;
+        loading.classList.add('corner');
+      }
+      loading.classList.remove('active');
+      downloaded = cached = 0;
+    }, 2000);
+  };
   play.addEventListener('click', () => {
     Module.haloCdKey = playerKey();
+    loading.classList.add('active');
+    loadingText.textContent = 'Starting...';
     document.getElementById('start').remove();
     Module.canvas.focus();
     Module.callMain([]);
