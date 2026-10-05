@@ -59,6 +59,41 @@ def regroup(texts):
     return {source: '\n'.join(lines[source]) for source in texts}
 
 
+DEFINITION = re.compile(r'^(?P<decl>(?!extern\b|typedef\b|static\b|struct\b|#)[A-Za-z_][^;/=]*?)\s*(?P<init>=[^;]*)?;'
+                        r'(?P<rest>\s*(?://|/\*)\s*(?P<addr>0x[0-9a-fA-F]{8})\b.*)$')
+NAME = re.compile(r'(\w+)\s*(\[[^\]]*\]\s*)*$')
+
+
+def lay_out(text, tag):
+    """Places the one-line definitions that carry their original address (`... ; // 0x006b3830`) as the original image
+    did: each aligned to what its address implies (at most 16, which may be less than clang's preferred alignment for
+    large arrays), with the gaps between them filled (sized from sizeof the previous definition, so a wrong address
+    fails to compile), and the run started at its address modulo 16. Code that runs from one global into the next then
+    finds what it found in the original. Definitions spanning lines end a run."""
+    out = []
+    previous = None  # (address, name) of the last definition laid out
+    for line in text.split('\n'):
+        m = DEFINITION.match(line)
+        name = NAME.search(m.group('decl')) if m else None
+        if m is None or name is None or 'align' in line:
+            if line.strip() and not line.strip().startswith(('//', '/*', '*')):
+                previous = None  # anything but a comment or a blank line ends the run
+            out.append(line)
+            continue
+        address = int(m.group('addr'), 16)
+        alignment = min(16, address & -address)
+        if previous is None or address <= previous[0]:
+            out.append('__attribute__((used, retain, aligned(16))) uint8_t web_lead_%s_%08x[%d];' % (tag, address, address % 16))
+        else:
+            # a declaration larger than the room before the next global overlaps it in the original (a few buffers
+            # do), which C++ cannot express: the next global then follows it directly
+            out.append('__attribute__((used, retain, aligned(1))) uint8_t web_gap_%s_%08x[sizeof(%s) < 0x%x ? 0x%x - sizeof(%s) : 0];' % (
+                tag, address, previous[1], address - previous[0], address - previous[0], previous[1]))
+        out.append('__attribute__((used, retain, aligned(%d))) %s' % (alignment, line))
+        previous = (address, name.group(1))
+    return '\n'.join(out)
+
+
 def main():
     out_dir, sources = sys.argv[1], sys.argv[2:]
     texts = regroup({source: open(source, encoding='utf-8').read() for source in sources})
@@ -68,6 +103,8 @@ def main():
     for source, text in texts.items():
         # the image keeps its layout: nothing references the pads (and some globals), and wasm-ld drops unreferenced data
         text = ALLOCATE.sub('__attribute__((used, retain)) ', text)
+        if os.path.basename(source).startswith('slice'):
+            text = lay_out(text, os.path.splitext(os.path.basename(source))[0])
         text = SECTION.sub('', text)
         text = ALIAS.sub('', text)
         extra = []

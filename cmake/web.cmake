@@ -13,6 +13,7 @@
 set(WEB_COMPILE_OPTIONS
     -std=c++20 -fno-exceptions -fno-rtti
     -fshort-wchar                     # wchar_t is a UTF-16 unit, as on Windows (halo/platform/wchar16.h)
+    -fno-builtin-wcslen               # or clang turns 16-bit counting loops (halo_wcslen too) into the C library's 32-bit wcslen
     -fms-extensions -fdeclspec        # __declspec(align(n)) and the like
     -fno-strict-aliasing -fwrapv      # the reconstructed code type-puns and relies on wrapping arithmetic, as MSVC allows
     -pthread
@@ -66,7 +67,7 @@ target_compile_options(stb_vorbis PRIVATE -w -pthread)
 # ---- the page
 add_executable(halo ${GAME_SOURCES} ${GAMESPY_SOURCES} ${WEB_DATA_SOURCES} "${CMAKE_SOURCE_DIR}/standalone/web_main.cpp")
 set_target_properties(halo PROPERTIES SUFFIX ".html")
-set_source_files_properties(${GAMESPY_SOURCES} PROPERTIES LANGUAGE C COMPILE_OPTIONS "-w;-pthread;-fshort-wchar;-fms-extensions;-fdeclspec;-iquote;${CMAKE_SOURCE_DIR}/types")
+set_source_files_properties(${GAMESPY_SOURCES} PROPERTIES LANGUAGE C COMPILE_OPTIONS "-w;-pthread;-fshort-wchar;-fno-builtin-wcslen;-fms-extensions;-fdeclspec;-iquote;${CMAKE_SOURCE_DIR}/types")
 target_compile_options(halo PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${WEB_COMPILE_OPTIONS}> ${WEB_QUOTE_INCLUDES} "SHELL:-sUSE_SDL=2")
 target_compile_definitions(halo PRIVATE ${WEB_DEFINITIONS})
 target_include_directories(halo PRIVATE ${WEB_INCLUDES})
@@ -80,7 +81,7 @@ target_link_options(halo PRIVATE
     "SHELL:-sPROXY_TO_PTHREAD=1"                # main() runs on a worker: the file backends block, which the page thread may not
     "SHELL:-sOFFSCREENCANVAS_SUPPORT=1"         # that worker draws: the canvas goes to it as an OffscreenCanvas
     "SHELL:-sOFFSCREENCANVASES_TO_PTHREAD=#canvas"
-    "SHELL:-sINITIAL_MEMORY=1536MB"             # map memory sits at 0x40000000 (+27 MB); the heap grows past it
+    "SHELL:-sINITIAL_MEMORY=2048MB"             # map memory sits at 0x40000000 (+27 MB); the heap grows past it
     "SHELL:-sSTACK_SIZE=8MB" "SHELL:-sDEFAULT_PTHREAD_STACK_SIZE=1MB" "SHELL:-sPTHREAD_POOL_SIZE=8"
     "SHELL:-sEXPORTED_RUNTIME_METHODS=callMain,stringToNewUTF8"
     "SHELL:-sEXPORTED_FUNCTIONS=_main,_malloc,_free"  # malloc/free: the page thread hands network messages to net_web.cpp
@@ -98,3 +99,12 @@ foreach(pattern ${HALO_WEB_O0_SOURCES})
     file(GLOB o0_sources "${CMAKE_SOURCE_DIR}/src/${pattern}")
     set_property(SOURCE ${o0_sources} APPEND PROPERTY COMPILE_OPTIONS -O0)
 endforeach()
+
+# AddressSanitizer for finding heap overruns; the data image stays uninstrumented, since redzones between its globals
+# would break the original layout the engine runs across
+option(HALO_WEB_ASAN "build with AddressSanitizer" OFF)
+if(HALO_WEB_ASAN)
+    target_compile_options(halo PRIVATE -fsanitize=address)
+    target_link_options(halo PRIVATE -fsanitize=address "SHELL:-sBINARYEN_EXTRA_PASSES=--pass-arg=max-func-params@24")  # the sanitizer has 17-parameter functions; fpcast-emu allows 16 by default
+    set_property(SOURCE ${WEB_DATA_SOURCES} APPEND PROPERTY COMPILE_OPTIONS -fno-sanitize=address)
+endif()

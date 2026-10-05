@@ -12,6 +12,7 @@
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
 #if defined(__EMSCRIPTEN__)
+#include <emscripten/em_asm.h>
 #include <emscripten/html5.h>
 #endif
 #include <SDL_syswm.h>
@@ -533,6 +534,15 @@ bool gl_context_create(window_handle window, bool es)
 
 void desktop_size(uint32_t *width, uint32_t *height)
 {
+#if defined(__EMSCRIPTEN__)
+    // no desktop in a browser, and SDL on the game's worker cannot see the screen: the page's screen in CSS pixels,
+    // clamped to the display modes the game knows (gl_direct3d.cpp), stands in for it
+    int w = MAIN_THREAD_EM_ASM_INT({ return screen.width | 0; });
+    int h = MAIN_THREAD_EM_ASM_INT({ return screen.height | 0; });
+
+    *width = static_cast<uint32_t>(w < 640 ? 640 : w > 3840 ? 3840 : w);
+    *height = static_cast<uint32_t>(h < 480 ? 480 : h > 2160 ? 2160 : h);
+#else
     SDL_DisplayMode mode;
 
     *width = 0;
@@ -542,6 +552,7 @@ void desktop_size(uint32_t *width, uint32_t *height)
         *width = (uint32_t)mode.w;
         *height = (uint32_t)mode.h;
     }
+#endif
 }
 
 #if !defined(__EMSCRIPTEN__)
