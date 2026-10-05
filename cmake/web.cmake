@@ -83,6 +83,7 @@ target_link_options(halo PRIVATE
     "SHELL:-sINITIAL_MEMORY=1536MB"             # map memory sits at 0x40000000 (+27 MB); the heap grows past it
     "SHELL:-sSTACK_SIZE=8MB" "SHELL:-sDEFAULT_PTHREAD_STACK_SIZE=1MB" "SHELL:-sPTHREAD_POOL_SIZE=8"
     "SHELL:-sEXPORTED_RUNTIME_METHODS=callMain,stringToNewUTF8"
+    "SHELL:-sEXPORTED_FUNCTIONS=_main,_malloc,_free"  # malloc/free: the page thread hands network messages to net_web.cpp
     "SHELL:-sEMULATE_FUNCTION_POINTER_CASTS=1"  # the engine calls through tables whose entries have other signatures, as x86 allows
     "SHELL:-sENVIRONMENT=web,worker"
     "SHELL:-sASSERTIONS=1"

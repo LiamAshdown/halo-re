@@ -11,11 +11,20 @@ browser has no registry), read from this machine's registry and only ever sent t
 --fx serves a converted shader file (tools/convert_fx.py) as shaders/fx.bin, in place of the install's 2003 one,
 as the Windows loader's file override does.
 
+/net is the game's network: a WebSocket per page, routing datagrams between the pages connected to this server as one
+virtual LAN (10.66.x.y addresses, broadcasts included). Nothing is sent outside it (src/platform/net_web.cpp is the
+page side and describes the messages).
+
 Every response carries the cross-origin isolation headers browsers require before a page may use threads
 (SharedArrayBuffer). The server listens on 127.0.0.1 only.
 """
 import argparse
+import base64
+import hashlib
 import json
+import struct
+import threading
+import time
 import mimetypes
 import os
 import posixpath
@@ -85,6 +94,163 @@ def build_manifest(halo_root, fx_override, product_id):
     return json.dumps({'files': files}).encode()
 
 
+MSG_BIND, MSG_SENDTO, MSG_CLOSE = 1, 3, 6
+MSG_HELLO, MSG_DATA, MSG_BOUND = 100, 101, 102
+LAN_PREFIX = bytes([10, 66])
+BROADCASTS = (bytes([255, 255, 255, 255]), LAN_PREFIX + bytes([255, 255]))
+LOOPBACKS = (bytes([127, 0, 0, 1]), bytes([0, 0, 0, 0]))
+MAX_SOCKETS = 64          # per page
+MAX_PAYLOAD = 8192        # bytes per datagram
+RATE_PACKETS = 3000       # per page per second
+RATE_BYTES = 4 << 20      # per page per second
+
+
+class Page:
+    """One connected page: its virtual address, its sockets (id -> port) and its outgoing WebSocket."""
+
+    def __init__(self, address, wfile):
+        self.address = address
+        self.wfile = wfile
+        self.sockets = {}
+        self.send_lock = threading.Lock()
+        self.window = time.monotonic()
+        self.packets = 0
+        self.bytes = 0
+
+    def send(self, payload):
+        header = bytes([0x82])  # final frame, binary
+        size = len(payload)
+        if size < 126:
+            header += bytes([size])
+        elif size < 65536:
+            header += bytes([126]) + struct.pack('>H', size)
+        else:
+            header += bytes([127]) + struct.pack('>Q', size)
+        with self.send_lock:
+            try:
+                self.wfile.write(header + payload)
+                self.wfile.flush()
+            except OSError:
+                pass
+
+    def allow(self, size):
+        """Rate limit: False once this second's packet or byte budget is spent."""
+        now = time.monotonic()
+        if now - self.window >= 1.0:
+            self.window, self.packets, self.bytes = now, 0, 0
+        self.packets += 1
+        self.bytes += size
+        return self.packets <= RATE_PACKETS and self.bytes <= RATE_BYTES
+
+
+class Router:
+    """The virtual LAN: (address, port) -> (page, socket id)."""
+
+    def __init__(self):
+        self.lock = threading.Lock()
+        self.pages = {}
+        self.ports = {}
+        self.next_host = 1
+
+    def join(self, wfile):
+        with self.lock:
+            for _ in range(65534):
+                host = self.next_host
+                self.next_host = self.next_host % 65533 + 1
+                address = LAN_PREFIX + struct.pack('>H', host)
+                if address not in self.pages and address not in BROADCASTS:
+                    page = Page(address, wfile)
+                    self.pages[address] = page
+                    return page
+        return None
+
+    def leave(self, page):
+        with self.lock:
+            for port in page.sockets.values():
+                self.ports.pop((page.address, port), None)
+            self.pages.pop(page.address, None)
+
+    def bind(self, page, socket_id, port):
+        """Binds (to any free port when port is 0); returns the port, 0 when it is taken."""
+        with self.lock:
+            if socket_id not in page.sockets and len(page.sockets) >= MAX_SOCKETS:
+                return 0
+            old = page.sockets.get(socket_id)
+            if old and (port == 0 or old == port):
+                return old
+            if port == 0:
+                port = next((p for p in range(49152, 65536) if (page.address, p) not in self.ports), 0)
+            if port == 0 or (page.address, port) in self.ports:
+                return 0
+            if old:
+                self.ports.pop((page.address, old), None)
+            page.sockets[socket_id] = port
+            self.ports[(page.address, port)] = (page, socket_id)
+            return port
+
+    def close(self, page, socket_id):
+        with self.lock:
+            port = page.sockets.pop(socket_id, None)
+            if port:
+                self.ports.pop((page.address, port), None)
+
+    def targets(self, page, address, port):
+        with self.lock:
+            if address in LOOPBACKS:
+                address = page.address
+            if address in BROADCASTS:
+                return [entry for (a, p), entry in self.ports.items() if p == port]
+            entry = self.ports.get((address, port))
+            return [entry] if entry else []
+
+    def message(self, page, data):
+        if len(data) < 5:
+            return
+        kind, socket_id = data[0], struct.unpack_from('<I', data, 1)[0]
+        if kind == MSG_BIND and len(data) >= 7:
+            port = self.bind(page, socket_id, struct.unpack_from('<H', data, 5)[0])
+            page.send(struct.pack('<BIH', MSG_BOUND, socket_id, port))
+        elif kind == MSG_SENDTO and len(data) >= 11:
+            payload = data[11:]
+            if len(payload) > MAX_PAYLOAD or not page.allow(len(payload)):
+                return
+            if socket_id not in page.sockets:  # sending first binds an ephemeral port, as on a real socket
+                port = self.bind(page, socket_id, 0)
+                page.send(struct.pack('<BIH', MSG_BOUND, socket_id, port))
+                if port == 0:
+                    return
+            source = struct.pack('<4sH', page.address, page.sockets[socket_id])
+            target, port = data[5:9], struct.unpack_from('<H', data, 9)[0]
+            for receiver, receiver_socket in self.targets(page, target, port):
+                receiver.send(struct.pack('<BI', MSG_DATA, receiver_socket) + source + payload)
+        elif kind == MSG_CLOSE:
+            self.close(page, socket_id)
+
+
+ROUTER = Router()
+
+
+def read_frame(rfile):
+    """(opcode, payload) of the next client frame (always masked), or (None, None) at the end."""
+    head = rfile.read(2)
+    if len(head) < 2:
+        return None, None
+    opcode, size = head[0] & 0x0f, head[1] & 0x7f
+    if size == 126:
+        size = struct.unpack('>H', rfile.read(2))[0]
+    elif size == 127:
+        size = struct.unpack('>Q', rfile.read(8))[0]
+    if size > MAX_PAYLOAD + 64:
+        return None, None
+    mask = rfile.read(4)
+    payload = bytearray(rfile.read(size))
+    if len(mask) < 4 or len(payload) < size:
+        return None, None
+    for i in range(size):
+        payload[i] ^= mask[i & 3]
+    return opcode, bytes(payload)
+
+
 class Handler(SimpleHTTPRequestHandler):
     protocol_version = 'HTTP/1.1'  # keep-alive: the game streams a map as many small range requests
     web_root = '.'
@@ -124,7 +290,43 @@ class Handler(SimpleHTTPRequestHandler):
         self.respond(send_body=False)
 
     def do_GET(self):
-        self.respond(send_body=True)
+        if urllib.parse.urlsplit(self.path).path == '/net':
+            self.network()
+        else:
+            self.respond(send_body=True)
+
+    def network(self):
+        """The page's end of the virtual LAN: a WebSocket from a page this server served."""
+        key = self.headers.get('Sec-WebSocket-Key')
+        origin = urllib.parse.urlsplit(self.headers.get('Origin', '')).netloc
+        if self.headers.get('Upgrade', '').lower() != 'websocket' or not key or origin != self.headers.get('Host'):
+            self.send_error(403)
+            return
+        accept = base64.b64encode(hashlib.sha1((key + '258EAFA5-E914-47DA-95CA-C5AB0DC85B11').encode()).digest()).decode()
+        self.send_response_only(101)
+        self.send_header('Upgrade', 'websocket')
+        self.send_header('Connection', 'Upgrade')
+        self.send_header('Sec-WebSocket-Accept', accept)
+        super().end_headers()  # no isolation or cache headers on the upgrade
+        page = ROUTER.join(self.wfile)
+        self.close_connection = True
+        if page is None:
+            return
+        page.send(bytes([MSG_HELLO]) + page.address)
+        try:
+            while True:
+                opcode, payload = read_frame(self.rfile)
+                if opcode is None or opcode == 8:
+                    break
+                if opcode == 9:
+                    with page.send_lock:
+                        self.wfile.write(bytes([0x8a, len(payload)]) + payload)
+                elif opcode == 2:
+                    ROUTER.message(page, payload)
+        except OSError:
+            pass
+        finally:
+            ROUTER.leave(page)
 
     def respond(self, send_body):
         path, kind = self.target()

@@ -82,6 +82,27 @@ static inline int WSAGetLastError(void)
     }
 }
 
+#if defined(__EMSCRIPTEN__)
+/* The browser's sockets live on the page server's virtual LAN (src/platform/net_web.cpp). */
+#ifdef __cplusplus
+extern "C" {
+#endif
+int halo_net_close(int s);
+int halo_net_ioctl(int s, long command, unsigned long *argument);
+#ifdef __cplusplus
+}
+#endif
+
+static inline int closesocket(SOCKET s)
+{
+    return halo_net_close(s);
+}
+
+static inline int ioctlsocket(SOCKET s, long command, u_long *argument)
+{
+    return halo_net_ioctl(s, command, argument);
+}
+#else
 static inline int closesocket(SOCKET s)
 {
     return close(s);
@@ -93,6 +114,7 @@ static inline int ioctlsocket(SOCKET s, long command, u_long *argument)
 
     return ioctl(s, (unsigned long)command, &value);
 }
+#endif
 
 #endif
 
