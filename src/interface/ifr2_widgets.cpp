@@ -290,6 +290,36 @@ void WidgetList::column_list_sync_selected()
     }
 }
 
+#if defined(__EMSCRIPTEN__)
+/**
+ * The browser build has one network, the page server's virtual LAN, and its Internet server list already searches
+ * it, so the multiplayer menu's LAN entries only duplicate the Internet ones, and Direct IP would need a virtual
+ * 10.66.x.y address players never see. Disables them the way the host setup screen disables a row: hidden (skipped by focus and clicks) and drawn
+ * dimmed. They are the children whose click runs ui_server_type_option_selected, at its positions (sibling index - 1)
+ * 1 join LAN, 2 join direct IP and 5 create LAN (multiplayer_type_select_list in ui.map).
+ */
+static void disable_lan_server_type_options(widget_instance *parent)
+{
+    int32_t index = 0;
+
+    for (widget_instance *child = parent->first_child; child != nullptr; child = child->next_sibling, index++) {
+        UIWidgetDefinition *definition = tag_data<UIWidgetDefinition>(child->definition);
+        EventHandlerReference *handlers = reflexive_elements<EventHandlerReference>(definition->event_handlers);
+
+        for (int32_t i = 0; i < (int32_t)definition->event_handlers.count; i++) {
+            uint16_t function = (uint16_t)handlers[i].function;
+
+            if (function < 0xbe && ui_event_function_table[function] == (void *)&ui_server_type_option_selected &&
+                (index - 1 == 1 || index - 1 == 2 || index - 1 == 5)) {
+                child->hidden = 1;
+                child->scale = 0.333f;
+                break;
+            }
+        }
+    }
+}
+#endif
+
 /**
  * blam-cc: stack -> tag, ESI -> widget Instantiates and links in all of a widget's static child widgets: once
  * per string when the tag draws its list items from a string list (each such "child" reuses this widget's own
@@ -386,6 +416,10 @@ uint8_t WidgetLifecycle::create_children_from_tag(UIWidgetDefinition *tag)
             desc->parent = (widget_instance *)0;
         }
     }
+
+#if defined(__EMSCRIPTEN__)
+    disable_lan_server_type_options(widget);
+#endif
 
     if ((int8_t)tag->flags >= 0) {
         if (widget->widget_type == uiwidgettype_spinner_list || widget->widget_type == uiwidgettype_column_list) {
