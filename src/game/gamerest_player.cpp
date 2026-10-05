@@ -1865,11 +1865,13 @@ uint8_t LocalPlayerUnit::get_current_weapon_autoaim_cone(int16_t require_zoomed,
 /**
  * If `obj`'s cached position differs from new_position by more than 1.1 world units, snaps its
  * velocity to zero and marks it at-rest (_object_at_rest_bit) so downstream physics doesn't try
- * to interpolate the jump. Then always calls object_set_position_and_recalculate.
+ * to interpolate the jump. Then always moves the object to new_position: retail calls
+ * object_set_position_and_recalculate with ESI = new_position and EDI = the stack argument, the
+ * object's own datum (both callers push player->unit).
  *
  * @address 0x4772e0
  */
-void ObjectView::snap_position_if_far(real_point3d *new_position)
+void ObjectView::snap_position_if_far(real_point3d *new_position, datum_index object_index)
 {
     float dx = new_position->x - obj->position.x;
     float dy = new_position->y - obj->position.y;
@@ -1879,7 +1881,7 @@ void ObjectView::snap_position_if_far(real_point3d *new_position)
         obj->velocity = reinterpret_cast<real_vector3d &>(halo::math::globals().global_origin3d);
         obj->flags = obj->flags | _object_at_rest_bit;
     }
-    halo::objects::object_set_position_and_recalculate((real_point3d *)obj, 0);
+    halo::objects::object_set_position_and_recalculate(new_position, object_index);
 }
 
 /**
@@ -3358,15 +3360,14 @@ uint8_t unit_get_current_weapon_autoaim_cone(datum_index unit_index, int16_t req
 
 /**
  * C entry point for halo::game::ObjectView::snap_position_if_far; forwards to the C++ implementation.
- * register convention: EAX -> new_position, ECX -> obj.
- * // blam-cc: EAX -> new_position, ECX -> obj
- * blam-cc: EAX -> new_position, ECX -> obj
+ * register convention: EAX -> new_position, ECX -> obj, stack -> object_index (obj's datum).
+ * blam-cc: EAX -> new_position, ECX -> obj, stack -> object_index
  *
  * @address 0x4772e0
  */
-void unit_snap_position_if_far(real_point3d *new_position, object *obj)
+void unit_snap_position_if_far(real_point3d *new_position, object *obj, datum_index object_index)
 {
-    halo::game::ObjectView(obj).snap_position_if_far(new_position);
+    halo::game::ObjectView(obj).snap_position_if_far(new_position, object_index);
 }
 
 /**

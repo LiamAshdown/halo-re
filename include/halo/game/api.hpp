@@ -542,7 +542,7 @@ uint8_t unit_has_must_be_readied_weapon(uint32_t player_index);
 void unit_invalidate_local_player_zoom_level(datum_index unit);
 void unit_reset_gauge_if_flagged(uint32_t player_index);
 void unit_set_local_player_weapon_index(datum_index unit, int16_t weapon_index);
-void unit_snap_position_if_far(real_point3d *new_position, object *obj);
+void unit_snap_position_if_far(real_point3d *new_position, object *obj, datum_index object_index);
 void unit_update_active_camouflage_depower(datum_index player_handle);
 void update_client_advance_read_cursor(int32_t target_tick, const uint32_t *record);
 void update_client_dispose(void);

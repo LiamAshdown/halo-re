@@ -98,7 +98,7 @@ public:
 
     explicit constexpr ObjectView(object * obj_) : obj(obj_) {}
 
-    void snap_position_if_far(real_point3d *new_position);
+    void snap_position_if_far(real_point3d *new_position, datum_index object_index);
 };
 
 /**

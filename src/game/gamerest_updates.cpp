@@ -635,7 +635,7 @@ void PlayerNetworkState::apply_remote_position_update(object *unit_obj)
         *(float *)&plr->position_update_error_total = dist + *(float *)&plr->position_update_error_total;
 
         if (unit_obj->parent_object == k_datum_index_none && unit_obj->network_role == 1) {
-            halo::game::unit_snap_position_if_far(&queued, unit_obj);
+            halo::game::unit_snap_position_if_far(&queued, unit_obj, plr->unit);
         }
     } else {
         circular_queue *queue = &plr->position_updates;

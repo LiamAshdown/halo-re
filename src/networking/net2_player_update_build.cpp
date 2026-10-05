@@ -593,7 +593,7 @@ void PlayerUpdateBuilder::handle_remote_player_action_update(remote_player_actio
         control_source->yaw = (float)halo::libm::atan2(y, x);
         control_source->pitch = (float)halo::libm::atan2(z, halo::libm::sqrt(x * x + y * y));
 
-        control_source->unknown_20 = (uint16_t)stride_offset;
+        control_source->unknown_20 = 0xffff;  // retail stores AX, still -1 from the last_update_id test (0x4e61b0)
         halo::networking::player_update_history_log_printf_filtered(candidate, 2, "Received action [%d]", action_index);
 
         if (candidate->last_update_id != -1) {

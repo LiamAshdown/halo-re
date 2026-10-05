@@ -361,7 +361,7 @@ void PlayerUpdateClient::remote_player_position_update_from_network(datum_index 
                             halo::networking::player_update_history_log_printf_filtered(target, 1,
                                 "Apply immediately dist: [%f] (%f)",
                                 (double)snap_distance, 1.0);
-                            halo::game::unit_snap_position_if_far(&new_position, unit);
+                            halo::game::unit_snap_position_if_far(&new_position, unit, target->unit);
                         }
                     }
                 }
