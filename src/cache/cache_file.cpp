@@ -196,7 +196,7 @@ uint8_t cache_files::exists(char *name, cache_file_header *header_out)
 {
     char path[256];
     void *file;
-    uint32_t bytes_read;
+    uint32_t bytes_read = 0;
     uint8_t valid;
 
     valid = 0;

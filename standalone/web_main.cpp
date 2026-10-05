@@ -99,7 +99,11 @@ void make_parents(const char *path)
     }
 }
 
-/** Creates /halo/<path> for every "path" in the manifest; returns how many. */
+/**
+ * Creates every "path" in the manifest as a fetch-backed file under /.server and links /halo/<path> to it; returns how
+ * many. The /halo folders are ordinary memory folders, so a file the game creates there (logs, dumps) is a writable
+ * memory file rather than a fetch file, which cannot be written.
+ */
 int build_halo_tree(const char *manifest)
 {
     const char *cursor = manifest;
@@ -107,6 +111,7 @@ int build_halo_tree(const char *manifest)
 
     while ((cursor = strstr(cursor, "\"path\": \"")) != nullptr) {
         char path[1024];
+        char link[1024];
         const char *start = cursor + 9;
         const char *end = strchr(start, '"');
         int fd;
@@ -114,12 +119,16 @@ int build_halo_tree(const char *manifest)
         if (end == nullptr || end - start > 900) {
             break;
         }
-        snprintf(path, sizeof(path), "/halo/%.*s", static_cast<int>(end - start), start);
+        snprintf(path, sizeof(path), "/.server/%.*s", static_cast<int>(end - start), start);
+        snprintf(link, sizeof(link), "/halo/%.*s", static_cast<int>(end - start), start);
         make_parents(path);
+        make_parents(link);
         fd = open(path, O_CREAT | O_WRONLY, 0444);  // a fetch-backed file: its contents come from the server on first read
         if (fd >= 0) {
             close(fd);
-            count++;
+            if (symlink(path, link) == 0) {
+                count++;
+            }
         }
         cursor = end;
     }
@@ -172,7 +181,8 @@ int main()
         snprintf(text, sizeof(text), "%d", fps);
         setenv("HALO_WEB_FPS", text, 1);  // read by MainLoop::loop
     }
-    wasmfs_create_directory("/halo", 0777, server);
+    wasmfs_create_directory("/.server", 0777, server);
+    mkdir("/halo", 0777);
     files = build_halo_tree(manifest);
     printf("halo: %d game files from the server\n", files);
     free(manifest);

@@ -38,6 +38,19 @@ void error_log::write(char *message, uint8_t with_timestamp)
     if (globals().debug_log_level < k_error_file_minimum_level) {
         return;
     }
+#if defined(__EMSCRIPTEN__)
+    // the game folder is read-only in the browser (served by tools/serve_web.py): debug.txt goes to the console
+    (void)formatted;
+    (void)file;
+    (void)path;
+    (void)time_value;
+    (void)local_time;
+    (void)with_timestamp;
+    if (globals().error_file_enabled != 0) {
+        fprintf(stderr, "debug.txt: %s", message);
+    }
+    return;
+#endif
 
     if (globals().error_file_needs_header != 0) {
         globals().error_file_needs_header = 0;
