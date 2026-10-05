@@ -5,7 +5,13 @@
 
 #include "halo/core/x87.hpp"
 
+#if !(defined(_M_IX86) && defined(_MSC_VER))
+#include <math.h>
+#endif
+
 namespace halo::x87 {
+
+#if defined(_M_IX86) && defined(_MSC_VER)
 
 /** FSIN on the 80-bit unit. */
 double fsin(double x)
@@ -76,6 +82,47 @@ int32_t fistp_round(float x)
     __asm { fistp r }
     return r;
 }
+
+#else
+
+/* no x87 unit (WebAssembly): the C library's double-precision functions; results can differ in the last bits */
+
+double fsin(double x)
+{
+    return ::sin(x);
+}
+
+double fcos(double x)
+{
+    return ::cos(x);
+}
+
+double ftan(double x)
+{
+    return ::tan(x);
+}
+
+double fpatan(double y, double x)
+{
+    return ::atan2(y, x);
+}
+
+float fabsf(float x)
+{
+    return x < 0.0f ? -x : x;
+}
+
+int32_t ROUND(float x)
+{
+    return static_cast<int32_t>(::lrintf(x));  // round to nearest even, the x87 default mode
+}
+
+int32_t fistp_round(float x)
+{
+    return static_cast<int32_t>(::lrintf(x));
+}
+
+#endif
 
 /** Chops toward zero and keeps the low dword (the original runtime helper takes its input on the x87 stack). */
 int32_t __ftol(double x)

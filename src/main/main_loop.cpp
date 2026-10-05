@@ -66,6 +66,7 @@
 #include "halo/platform/memory.hpp"
 #include "halo/platform/system.hpp"
 #include "halo/platform/window.hpp"
+#include "halo/platform/cpu.hpp"
 
 
 static auto &main_globals_data = halo::link::ref<main_globals>(halo::main::vars().main_globals_data);
@@ -644,7 +645,6 @@ bool MainLoop::loop_frame(void)
 {
     int64_t counter;
     uint32_t frame_average;
-    uint16_t fpu_control;
     int16_t previous_frames;
     int16_t connection;
     float progress;
@@ -654,13 +654,7 @@ bool MainLoop::loop_frame(void)
 
     frame_average = halo::main::game_frame_rate_average_update();
     if (checkfpu != 0) {
-        fpu_control = k_x87_control_word;
-#if defined(_MSC_VER)
-        __asm { finit }
-        __asm { fldcw fpu_control }
-#else
-        __asm__ __volatile__("finit\n\tfldcw %0" : : "m"(fpu_control));
-#endif
+        halo::platform::fpu_reset(k_x87_control_word);
     }
 
     if (main_globals_data.switch_structure_bsp_index != -1) {

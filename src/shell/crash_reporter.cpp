@@ -9,6 +9,7 @@
 #include "halo/shell/vars.hpp"
 #include "halo/shell/api.hpp"
 #include "halo/platform/file.hpp"
+#include "halo/platform/cpu.hpp"
 
 static auto &shell_stack_guard_page = halo::link::ref<void *>(halo::shell::vars().shell_stack_guard_page);
 static auto &shell_stack_guard_old_protect = halo::link::ref<uint32_t>(halo::shell::vars().shell_stack_guard_old_protect);
@@ -79,11 +80,7 @@ constexpr WatsonCrashReporter k_watson_crash_reporter{};
  */
 void WatsonCrashReporter::reset_fpu()
 {
-    uint16_t control_word = k_default_fpu_control_word;
-    __asm {
-        finit
-        fldcw control_word
-    }
+    halo::platform::fpu_reset(k_default_fpu_control_word);
 }
 
 /**

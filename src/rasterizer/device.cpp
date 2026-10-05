@@ -43,6 +43,7 @@ constexpr uint32_t k_pixel_shader_none = 0xffffffffu;
 #include "halo/platform/memory.hpp"
 #include "halo/platform/system.hpp"
 #include "halo/platform/window.hpp"
+#include "halo/platform/cpu.hpp"
 
 
 
@@ -701,12 +702,7 @@ static int command_line_has_switch(const char *name)
 
 static void rasterizer_fpu_reset_control_word(uint16_t control_word)
 {
-#if defined(__GNUC__)
-    __asm__ volatile ("finit\n\tfldcw %0" : : "m" (control_word));
-#else
-    __asm { finit }
-    __asm { fldcw control_word }
-#endif
+    halo::platform::fpu_reset(control_word);
 }
 
 /**

@@ -8,6 +8,7 @@
 #include "halo/shell/api.hpp"
 #include "halo/platform/time.hpp"
 #include "halo/platform/thread.hpp"
+#include "halo/platform/cpu.hpp"
 
 static auto &physical_memory = halo::link::ref<uint32_t>(halo::shell::vars().physical_memory);
 static auto &cpu_speed = halo::link::ref<uint32_t>(halo::shell::vars().cpu_speed);
@@ -36,14 +37,10 @@ namespace {
 
 void read_time_stamp_counter(large_integer *result)
 {
-    uint32_t tsc_low, tsc_high;
-    __asm {
-        rdtsc
-        mov tsc_low, eax
-        mov tsc_high, edx
-    }
-    result->parts.low_part = tsc_low;
-    result->parts.high_part = (int32_t)tsc_high;
+    uint64_t tsc = halo::platform::time_stamp_counter();
+
+    result->parts.low_part = (uint32_t)tsc;
+    result->parts.high_part = (int32_t)(tsc >> 32);
 }
 
 /**

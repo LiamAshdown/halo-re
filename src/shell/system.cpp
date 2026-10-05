@@ -12,6 +12,7 @@
 #include "halo/platform/memory.hpp"
 #include "halo/platform/system.hpp"
 #include "halo/platform/window.hpp"
+#include "halo/platform/cpu.hpp"
 
 static auto &shell_argv = halo::link::ref<char **>(halo::shell::vars().shell_argv);
 static auto &shell_argc = halo::link::ref<int32_t>(halo::shell::vars().shell_argc);
@@ -80,16 +81,10 @@ uint8_t bytes_equal(const uint8_t *a, const uint8_t *b, uint32_t length)
 
 void execute_cpuid(uint32_t leaf, uint32_t *out_eax, uint32_t *out_ebx, uint32_t *out_ecx, uint32_t *out_edx)
 {
-    uint32_t a, b, c, d;
-    __asm {
-        mov eax, leaf
-        cpuid
-        mov a, eax
-        mov b, ebx
-        mov c, ecx
-        mov d, edx
-    }
-    *out_eax = a; *out_ebx = b; *out_ecx = c; *out_edx = d;
+    uint32_t registers[4] = {0, 0, 0, 0};
+
+    halo::platform::cpuid(leaf, registers);
+    *out_eax = registers[0]; *out_ebx = registers[1]; *out_ecx = registers[2]; *out_edx = registers[3];
 }
 
 }
@@ -425,27 +420,12 @@ char *ProductId::build_string()
  */
 int32_t Cpu::query_identification()
 {
-    uint32_t original_flags;
-    uint32_t readback_flags;
+    uint32_t registers[4];
     uint32_t eax, ebx, ecx, edx;
     uint32_t max_extended_leaf;
 
-    __asm {
-        pushfd
-        pop eax
-        mov original_flags, eax
-        xor eax, 0x200000
-        push eax
-        popfd
-        pushfd
-        pop eax
-        mov readback_flags, eax
-        push original_flags
-        popfd
-    }
-
-    if ((readback_flags ^ original_flags) == 0) {
-        return -1;
+    if (!halo::platform::cpuid(0, registers)) {
+        return -1;  // no CPUID (the EFLAGS.ID bit cannot be toggled, or not an x86 processor)
     }
 
     execute_cpuid(0, &eax, &ebx, &ecx, &edx);
