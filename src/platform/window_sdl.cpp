@@ -7,6 +7,7 @@
  */
 
 #include "halo/platform/window.hpp"
+#include "sdl_events.hpp"
 
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
@@ -408,6 +409,7 @@ void pump_messages()
     SDL_Event event;
 
     while (SDL_PollEvent(&event) != 0) {
+        sdl_input_event(event);
         dispatch(event);
     }
     if (g_window != nullptr) {
@@ -433,15 +435,6 @@ void cursor_position(int32_t *x, int32_t *y)
     SDL_GetGlobalMouseState(&global_x, &global_y);
     *x = global_x;
     *y = global_y;
-}
-
-bool mouse_buttons_swapped()
-{
-#ifdef _WIN32
-    return GetSystemMetrics(SM_SWAPBUTTON) != 0;  // DirectInput reports the physical buttons
-#else
-    return false;
-#endif
 }
 
 bool gamma_ramp_get(window_handle window, void *ramp)

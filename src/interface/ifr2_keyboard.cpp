@@ -20,6 +20,7 @@
 #include "halo/interface/vars.hpp"
 #include "halo/interface/wide_text.hpp"
 #include "halo/interface/com_object.hpp"
+#include "halo/input/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -155,13 +156,7 @@ uint8_t VirtualKeyboard::close()
 
     controls_input_capture_flags &= 0xfb;
 
-    if (keyboard_device != 0) {
-        int32_t minus_one = -1;
-        void **vtable = halo::interface::com_vtable(keyboard_device);
-        ((directinput_set_property_fn)vtable[0x28 / 4])(keyboard_device, 0x14, 0, &minus_one, 0);
-        memset(key_release_pending, 0, sizeof(key_release_pending));
-        memset(key_frames, 0, sizeof(key_frames));
-    }
+    halo::input::keyboard_flush();
     return 1;
 }
 
@@ -359,13 +354,7 @@ void VirtualKeyboard::process_input()
             halo::interface::widget_play_sound_effect(3);
             controls_input_capture_flags &= 0xfb;
             virtual_keyboard.active = 0;
-            if (keyboard_device != 0) {
-                int32_t minus_one = -1;
-                void **vtable = halo::interface::com_vtable(keyboard_device);
-                ((directinput_set_property_fn)vtable[0x28 / 4])(keyboard_device, 0x14, 0, &minus_one, 0);
-                memset(key_release_pending, 0, sizeof(key_release_pending));
-                memset(key_frames, 0, sizeof(key_frames));
-            }
+            halo::input::keyboard_flush();
             continue;
         }
 

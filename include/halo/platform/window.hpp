@@ -88,8 +88,6 @@ void wait_for_messages(uint32_t milliseconds);
 /** Shows or hides the cursor; returns the new state (1 shown, 0 hidden). */
 int32_t cursor_show(bool show);
 void cursor_position(int32_t *x, int32_t *y);
-/** Whether the primary and secondary mouse buttons are swapped in the system settings. */
-bool mouse_buttons_swapped();
 
 /** The display's gamma ramp (3 x 256 16-bit entries) for the window's screen. */
 bool gamma_ramp_get(window_handle window, void *ramp);

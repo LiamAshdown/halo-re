@@ -11,7 +11,7 @@
 #include "halo/main/api.hpp"
 #include "halo/input/binding_names.hpp"
 #include "halo/input/bindings.hpp"
-#include "halo/input/directinput.hpp"
+#include "halo/input/devices.hpp"
 #include "halo/input/game_actions.hpp"
 #include "halo/input/system.hpp"
 #include "halo/input/ui_events.hpp"
@@ -54,7 +54,7 @@ void GameWindow::suspend_focus()
         } else {
             halo::sound::sound_pause();
         }
-        halo::input::DirectInput::directinput_unacquire_devices();
+        halo::input::InputDevices::unacquire();
         halo::input::GameActions::reset_state_and_axis_configs();
         if (shell_window != 0 && halo::rasterizer::globals().fullscreen != 0 && halo::rasterizer::globals().device != 0) {
             halo::platform::window_show(shell_window, halo::platform::k_window_minimize);
@@ -73,7 +73,7 @@ void GameWindow::resume_focus()
         return;
     }
     shell_application_inactive = 0;
-    halo::input::DirectInput::directinput_acquire_devices();
+    halo::input::InputDevices::acquire();
     halo::input::GameActions::reset_state_and_axis_configs();
     if (shell_window != 0) {
         halo::platform::window_show(shell_window, halo::platform::k_window_restore);
@@ -108,18 +108,18 @@ bool key_message(uint32_t message, uint32_t key)
         if (key == halo::platform::k_key_return) {
             if (halo::interface::globals().chat_dialog_open != 0) {
                 halo::interface::chat_submit_input();
-                halo::input::DirectInput::key_block_timer_set(0x38, 200);
-                halo::input::DirectInput::key_block_timer_set(0x66, 200);
+                halo::input::InputDevices::key_block_timer_set(0x38, 200);
+                halo::input::InputDevices::key_block_timer_set(0x66, 200);
                 return true;
             }
         } else if (key == halo::platform::k_key_escape) {
             if (halo::interface::globals().chat_dialog_open != 0) {
-                halo::input::DirectInput::key_block_timer_set(0, 0xfa);
+                halo::input::InputDevices::key_block_timer_set(0, 0xfa);
             }
             halo::interface::chat_close();
         }
     }
-    halo::input::DirectInput::record_windows_key_message(key, message);
+    halo::input::InputDevices::record_windows_key_message(key, message);
     return consumed;
 }
 
@@ -224,7 +224,7 @@ void GameWindow::handle_activate_app(uint8_t inactive)
     shell_application_inactive = inactive;
 
     if (inactive == 0) {
-        halo::input::DirectInput::directinput_acquire_devices();
+        halo::input::InputDevices::acquire();
     } else {
         if (shell_window_proc_bypass == 0) {
             if (halo::rasterizer::globals().fullscreen != 0 && halo::rasterizer::globals().device != 0) {
@@ -236,7 +236,7 @@ void GameWindow::handle_activate_app(uint8_t inactive)
                 }
             }
         }
-        halo::input::DirectInput::directinput_unacquire_devices();
+        halo::input::InputDevices::unacquire();
     }
     halo::input::GameActions::reset_state_and_axis_configs();
 

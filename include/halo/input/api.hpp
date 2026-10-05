@@ -62,8 +62,8 @@ void test_input_device_defaults_find(char *device_id_ansi);
 void control_binding_table_register_single(int32_t target, int32_t selector, int32_t raw_id, uint32_t raw_value);
 void hs_bind_control(const char *device_class_name, const char *input_name, const char *action_name);
 void hs_unbind_control(const char *device_class_name, const char *input_name);
-int32_t __stdcall input_enumerate_gamepad_callback(const di_device_instance *instance, void *reference);
-int32_t __stdcall input_enumerate_gamepad_object_callback(const di_device_object_instance *object, void *reference);
 uint8_t input_get_key_state(int16_t key_index);
+/** Drops the queued key events and clears the key press/hold state (InputDevices::keyboard_flush). */
+void keyboard_flush(void);
 
 }

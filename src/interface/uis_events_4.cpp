@@ -26,7 +26,7 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/input/binding_names.hpp"
 #include "halo/input/bindings.hpp"
-#include "halo/input/directinput.hpp"
+#include "halo/input/devices.hpp"
 #include "halo/input/game_actions.hpp"
 #include "halo/input/system.hpp"
 #include "halo/input/ui_events.hpp"

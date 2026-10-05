@@ -25,7 +25,7 @@
 #include "halo/core/tag_groups.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/input/binding_names.hpp"
-#include "halo/input/directinput.hpp"
+#include "halo/input/devices.hpp"
 #include "halo/input/game_actions.hpp"
 #include "halo/input/system.hpp"
 #include "halo/input/ui_events.hpp"
@@ -1240,7 +1240,7 @@ void Bindings::test_input_device_defaults_find(char *device_id_ansi)
     uint8_t saved_profile[k_saved_player_profile_size];
     int32_t tag_id;
 
-    halo::input::DirectInput::guid_parse_ansi(&guid, device_id_ansi);
+    halo::input::InputDevices::guid_parse_ansi(&guid, device_id_ansi);
     tag_id = (int32_t)halo::input::input_device_default_profile_tag_find(guid, saved_profile);
     if (tag_id == -1) {
         halo::interface::console_printf_verbose((ColorARGB *)0, "deviceid %s has no default", device_id_ansi);

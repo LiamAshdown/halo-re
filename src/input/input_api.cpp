@@ -24,7 +24,7 @@
 #include "halo/input/binding_names.hpp"
 #include "halo/input/bindings.hpp"
 #include "halo/input/game_actions.hpp"
-#include "halo/input/directinput.hpp"
+#include "halo/input/devices.hpp"
 #include "halo/input/ui_events.hpp"
 #include "halo/input/system.hpp"
 #include "halo/input/api.hpp"
@@ -108,19 +108,14 @@ void hs_unbind_control(const char *device_class_name, const char *input_name)
     halo::input::Bindings::hs_unbind_control(device_class_name, input_name);
 }
 
-int32_t __stdcall input_enumerate_gamepad_callback(const di_device_instance *instance, void *reference)
-{
-    return halo::input::DirectInput::enumerate_gamepad_callback(instance, reference);
-}
-
-int32_t __stdcall input_enumerate_gamepad_object_callback(const di_device_object_instance *object, void *reference)
-{
-    return halo::input::DirectInput::enumerate_gamepad_object_callback(object, reference);
-}
-
 uint8_t input_get_key_state(int16_t key_index)
 {
-    return halo::input::DirectInput::get_key_state(key_index);
+    return halo::input::InputDevices::get_key_state(key_index);
+}
+
+void keyboard_flush(void)
+{
+    halo::input::InputDevices::keyboard_flush();
 }
 
 }

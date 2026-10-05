@@ -20,7 +20,7 @@
 #include "halo/input/directinput_constants.hpp"
 #include "halo/input/binding_names.hpp"
 #include "halo/input/bindings.hpp"
-#include "halo/input/directinput.hpp"
+#include "halo/input/devices.hpp"
 #include "halo/input/game_actions.hpp"
 #include "halo/input/ui_events.hpp"
 #include "halo/platform/time.hpp"
@@ -95,8 +95,7 @@ uint32_t InputSystem::system_initialize(void)
     }
 
     if (input_state().nojoystick == 0) {
-        ((idirectinput8_enumdevices_proc)(*(void ***)input_state().direct_input)[4])(input_state().direct_input, 4,
-            (void *)halo::input::input_enumerate_gamepad_callback, (void *)0, 1);
+        halo::input::InputDevices::enumerate_joysticks();
     }
 
     memset(&input_state().joystick_neutral_state, 0, sizeof(input_state().joystick_neutral_state));
@@ -154,7 +153,7 @@ void InputSystem::update_tick(void)
     now_ms = (uint32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 
     input_state().input_globals.idle = 1;
-    halo::input::DirectInput::key_block_timers_expire();
+    halo::input::InputDevices::key_block_timers_expire();
 
     for (i = 0; i < k_input_system_key_count; i++) {
         input_state().input_globals.system_key_states[i] = halo::input::input_get_key_state(input_state().system_keys[i]);

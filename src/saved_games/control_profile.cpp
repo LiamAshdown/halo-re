@@ -14,7 +14,7 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/input/binding_names.hpp"
 #include "halo/input/bindings.hpp"
-#include "halo/input/directinput.hpp"
+#include "halo/input/devices.hpp"
 #include "halo/input/game_actions.hpp"
 #include "halo/input/system.hpp"
 #include "halo/input/ui_events.hpp"
@@ -76,7 +76,7 @@ void halo::saved_games::ControlBinding::clear_binding() const
             int32_t index = binding->input_index;
             int32_t device = binding->device_index;
 
-            if (index < halo::input::DirectInput::device_get_axis_count(device)) {
+            if (index < halo::input::InputDevices::device_get_axis_count(device)) {
                 if (binding->direction != 1) {
                     control_gamepad_axis_scan_table[device][index][1] = (int16_t)k_control_binding_unbound;
                 } else {
@@ -87,7 +87,7 @@ void halo::saved_games::ControlBinding::clear_binding() const
             int32_t index = binding->input_index;
             int32_t device = binding->device_index;
 
-            if (index < halo::input::DirectInput::device_get_pov_count(device)) {
+            if (index < halo::input::InputDevices::device_get_pov_count(device)) {
                 control_gamepad_pov_scan_table[device][index][binding->direction] = (int16_t)k_control_binding_unbound;
             }
         } else {
@@ -186,9 +186,9 @@ uint8_t halo::saved_games::ControlBinding::find_binding_for_action(const char *a
             return 0;
         }
 
-        button_count = halo::input::DirectInput::device_get_button_count(device);
-        axis_count = halo::input::DirectInput::device_get_axis_count(device);
-        pov_count = halo::input::DirectInput::device_get_pov_count(device);
+        button_count = halo::input::InputDevices::device_get_button_count(device);
+        axis_count = halo::input::InputDevices::device_get_axis_count(device);
+        pov_count = halo::input::InputDevices::device_get_pov_count(device);
 
         if (action_index == 8) {
             if (control_gamepad_action_scan_buttons[device][0] == -1) {
@@ -409,7 +409,7 @@ uint8_t halo::saved_games::ControlBinding::set_binding(int16_t value) const
         if (binding->input_kind == _control_input_axis) {
             int32_t index = binding->input_index;
 
-            if (index < halo::input::DirectInput::device_get_axis_count(device)) {
+            if (index < halo::input::InputDevices::device_get_axis_count(device)) {
                 if (binding->direction != 1) {
                     profile->gamepad_axis_bindings[device][index][1] = value;
                 } else {
@@ -420,14 +420,14 @@ uint8_t halo::saved_games::ControlBinding::set_binding(int16_t value) const
         } else if (binding->input_kind == _control_input_pov) {
             int32_t index = binding->input_index;
 
-            if (index < halo::input::DirectInput::device_get_pov_count(device)) {
+            if (index < halo::input::InputDevices::device_get_pov_count(device)) {
                 profile->gamepad_pov_bindings[device][index][binding->direction] = value;
                 return 1;
             }
         } else {
             int32_t index = binding->input_index;
 
-            if (index < halo::input::DirectInput::device_get_button_count(device)) {
+            if (index < halo::input::InputDevices::device_get_button_count(device)) {
                 if (value == 8) {
                     profile->gamepad_action_buttons[device][0] = (int16_t)index;
                     if (profile->gamepad_action_buttons[device][1] == (int16_t)index) {
@@ -473,7 +473,7 @@ void clear_device_slot_mappings(saved_player_profile *profile)
     count = (int16_t)input_device_count;
     entry = (uint8_t *)&profile->gamepads[0];
     while (0 < count) {
-        device_index = halo::input::DirectInput::device_find_index_by_guid((controls_gamepad_record *)entry);
+        device_index = halo::input::InputDevices::device_find_index_by_guid((controls_gamepad_record *)entry);
         if (device_index != -1 && device_index < input_device_count ) {
             slot = input_device_to_slot[device_index * k_input_device_stride_dwords];
             if (slot != -1) {
@@ -691,7 +691,7 @@ void reestablish_device_slot_mappings(saved_player_profile *profile)
 
     for (slot = 0; slot < k_control_gamepad_count; slot = slot + 1) {
         if (profile->gamepads[slot].name[0] != 0) {
-            device_index = halo::input::DirectInput::device_find_index_by_guid(&profile->gamepads[slot]);
+            device_index = halo::input::InputDevices::device_find_index_by_guid(&profile->gamepads[slot]);
             if (device_index != -1 && device_index < input_device_count  &&
                 input_device_to_slot[device_index * k_input_device_stride_dwords] == -1 &&
                 halo::input::globals().joystick_slot_devices[slot] == -1) {

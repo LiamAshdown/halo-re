@@ -20,7 +20,7 @@
 #include "halo/cseries/cseries.hpp"
 #include "halo/input/binding_names.hpp"
 #include "halo/input/bindings.hpp"
-#include "halo/input/directinput.hpp"
+#include "halo/input/devices.hpp"
 #include "halo/input/game_actions.hpp"
 #include "halo/input/system.hpp"
 #include "halo/input/ui_events.hpp"
@@ -61,8 +61,6 @@ static auto &d3d9_module = halo::link::ref<void *>(halo::shell::vars().d3d9_modu
 static auto &direct3d_create9 = halo::link::ref<void *>(halo::shell::vars().direct3d_create9);
 static auto &dsound_module = halo::link::ref<void *>(halo::shell::vars().dsound_module);
 static auto &direct_sound_create8 = halo::link::ref<void *>(halo::shell::vars().direct_sound_create8);
-static auto &dinput8_module = halo::link::ref<void *>(halo::shell::vars().dinput8_module);
-static auto &direct_input8_create = halo::link::ref<void *>(halo::shell::vars().direct_input8_create);
 static auto &shfolder_module = halo::link::ref<void *>(halo::shell::vars().shfolder_module);
 static auto &sh_get_folder_path = halo::link::ref<void *>(halo::shell::vars().sh_get_folder_path);
 static auto &screenshots = halo::link::ref<int32_t>(halo::main::vars().screenshots);
@@ -145,9 +143,6 @@ uint8_t EngineLifecycle::initialize()
             direct_sound_create8 = 0;
         }
 
-        dinput8_module = halo::platform::library_open("dinput8.dll");
-        direct_input8_create = halo::platform::library_symbol(dinput8_module, "DirectInput8Create");
-
         shfolder_module = halo::platform::library_open("shfolder.dll");
         sh_get_folder_path = halo::platform::library_symbol(shfolder_module, "SHGetFolderPathA");
     }
@@ -167,7 +162,7 @@ uint8_t EngineLifecycle::initialize()
 
     startup_ok = halo::render::render_initialize();
     if ((uint8_t)startup_ok != 0) {
-        halo::input::DirectInput::directinput_initialize();
+        halo::input::InputDevices::initialize();
         halo::sound::globals().disabled = (uint8_t)shell_nosound;
         halo::sound::sound_initialize();
         return 1;
@@ -193,7 +188,7 @@ void EngineLifecycle::shutdown()
     global_collision_bsp = 0;
     global_globals = 0;
 
-    halo::input::DirectInput::directinput_release_devices();
+    halo::input::InputDevices::release();
     halo::rasterizer::rasterizer_shutdown();
     halo::platform::heap_free(halo::math::globals().sphere_point_table);
     halo::math::periodic_function_tables_free();
@@ -360,11 +355,6 @@ void Application::load_audio_input_libraries()
         if (dsound_module == 0 || direct_sound_create8 == 0) {
             FatalError::show(k_string_dsound_missing, k_help_file_directx, 1);
         }
-    }
-    dinput8_module = halo::platform::library_open("dinput8.dll");
-    direct_input8_create = halo::platform::library_symbol(dinput8_module, "DirectInput8Create");
-    if (dinput8_module == 0 || direct_input8_create == 0) {
-        FatalError::show(k_string_dinput8_missing, k_help_file_directx, 1);
     }
     shfolder_module = halo::platform::library_open("shfolder.dll");
     sh_get_folder_path = halo::platform::library_symbol(shfolder_module, "SHGetFolderPathA");

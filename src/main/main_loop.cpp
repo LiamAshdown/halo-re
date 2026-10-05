@@ -44,7 +44,7 @@
 #include "halo/hs/api.hpp"
 #include "halo/input/binding_names.hpp"
 #include "halo/input/bindings.hpp"
-#include "halo/input/directinput.hpp"
+#include "halo/input/devices.hpp"
 #include "halo/input/game_actions.hpp"
 #include "halo/input/system.hpp"
 #include "halo/input/ui_events.hpp"
@@ -749,7 +749,7 @@ void MainLoop::loop(void)
         }
 
         connection = main_globals_data.game_connection;
-        halo::input::DirectInput::directinput_poll_devices();
+        halo::input::InputDevices::poll();
         if (halo::game::globals().time_force_single_tick == 0) {
             halo::input::InputSystem::update_tick();
         }

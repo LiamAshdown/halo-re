@@ -30,7 +30,7 @@
 #include "halo/hs/api.hpp"
 #include "halo/input/binding_names.hpp"
 #include "halo/input/bindings.hpp"
-#include "halo/input/directinput.hpp"
+#include "halo/input/devices.hpp"
 #include "halo/input/game_actions.hpp"
 #include "halo/input/system.hpp"
 #include "halo/input/ui_events.hpp"
@@ -272,19 +272,11 @@ namespace halo::main {
  */
 void Console::deactivate(void)
 {
-    uint32_t flush_all;
-
     if (console_globals_data.active != 0 && console_globals_data.enabled != 0) {
         halo::interface::console_close(&console_globals_data.terminal);
         input_globals.mode_flags = input_globals.mode_flags & (uint8_t)~_input_mode_keyboard_capture_bit;
         console_globals_data.active = 0;
-        if (keyboard_device != 0) {
-            flush_all = k_dword_none;
-            ((idirectinputdevice8_getdevicedata_proc)(*(void ***)keyboard_device)[k_directinput_get_device_data_slot])
-                (keyboard_device, sizeof(di_device_object_data), (di_device_object_data *)0, &flush_all, 0);
-            memset(key_release_pending, 0, sizeof(key_release_pending));
-            memset(key_frames, 0, sizeof(key_frames));
-        }
+        halo::input::InputDevices::keyboard_flush();
     }
 }
 
@@ -561,7 +553,7 @@ uint8_t Console::process_key_events(void)
             return console_globals_data.active;
         }
         if (console_globals_data.active != 0) {
-            if (halo::input::DirectInput::get_mouse_button_state(2) == 1) {
+            if (halo::input::InputDevices::get_mouse_button_state(2) == 1) {
                 halo::main::console_paste_clipboard_text();
             }
             for (i = 0; i < console_globals_data.terminal.key_event_count; i++) {
@@ -651,7 +643,7 @@ void Console::toggle(void)
     if (console_globals_data.enabled != 0 && virtual_keyboard == 0) {
         console_globals_data.terminal.input[0] = 0;
         console_globals_data.active = halo::interface::console_open(&console_globals_data.terminal);
-        halo::input::DirectInput::keyboard_set_capture_mode(1);
+        halo::input::InputDevices::keyboard_set_capture_mode(1);
     }
 }
 

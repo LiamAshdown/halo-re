@@ -14,7 +14,7 @@
 #include "halo/objects/api.hpp"
 #include "halo/input/binding_names.hpp"
 #include "halo/input/bindings.hpp"
-#include "halo/input/directinput.hpp"
+#include "halo/input/devices.hpp"
 #include "halo/input/game_actions.hpp"
 #include "halo/input/system.hpp"
 #include "halo/input/ui_events.hpp"
@@ -214,7 +214,7 @@ void ChatDialog::open(int32_t chat_scope)
     chat_gui_active = 1;
     ChatGui::get().open_edit(static_cast<const wchar_t *>(prompt_text));
     chat_dialog_open = 1;
-    halo::input::DirectInput::keyboard_set_capture_mode(1);
+    halo::input::InputDevices::keyboard_set_capture_mode(1);
 }
 
 }

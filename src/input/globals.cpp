@@ -26,7 +26,7 @@
 #include "halo/saved_games/api.hpp"
 #include "win32.h"
 #include <stdarg.h>
-#include "halo/input/directinput.hpp"
+#include "halo/input/devices.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/shell/api.hpp"
 #include "objects.h"
