@@ -12,6 +12,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "sound.h"
 #include <wchar.h>
 #include "cache.h"
 #include "objects.h"
@@ -709,9 +710,12 @@ void UiLists::widget_list_item_activate(widget_instance *widget, UIWidgetDefinit
             handled = 1;
         }
         if (halo::interface::tag_handle(handler->sound_effect.tag_id) != halo::k_dword_none) {
-            float position[3] = {0.0f, 1.0f, 1.0f};
+            sound_location location = {};  // the original sets only these on a stack sound_location (0x49a729)
 
-            halo::sound::sound_play_new(halo::interface::tag_handle(handler->sound_effect.tag_id), (sound_location *)position, -1, 0, 0, 0, 0);
+            location.type = 0;
+            location.scale = 1.0f;
+            location.gain = 1.0f;
+            halo::sound::sound_play_new(halo::interface::tag_handle(handler->sound_effect.tag_id), &location, -1, 0, 0, 0, 0);
         }
         if (close_all == 0) {
             widget_instance *target = widget;

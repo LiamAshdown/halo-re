@@ -53,15 +53,15 @@ void HudUnitSounds::play(uint32_t active_mask, const TagReflexive *sounds, int32
                     handles[i] = (int32_t)handle;
                 }
             } else if (handles[i] == -1 || (*playing & (1u << i)) == 0) {
-                hud_sound_start_parameters parameters;
+                sound_location parameters = {};  // sound_play_new copies a whole sound_location (0x40 bytes); the original reads its stack past the three set fields
 
                 if (handles[i] != -1) {
                     halo::sound::sound_impulse_fade_out(handles[i]);
                 }
-                parameters.unknown_00 = 0;
+                parameters.type = 0;
                 parameters.scale = sound->scale;
                 parameters.gain = 1.0f;
-                handles[i] = halo::sound::sound_play_new(*(const datum_index *)&sound->sound.tag_id, (sound_location *)&parameters, -1, 0, 0, 0, 0);
+                handles[i] = halo::sound::sound_play_new(*(const datum_index *)&sound->sound.tag_id, &parameters, -1, 0, 0, 0, 0);
             }
             *playing |= (uint16_t)(1u << i);
         } else if (handles[i] != -1) {

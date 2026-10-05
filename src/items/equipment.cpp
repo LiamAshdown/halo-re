@@ -318,16 +318,16 @@ void equipment_ref::definition_play_pickup_sound(uint32_t equipment_tag_id)
 {
     Equipment *tag;
     int32_t pickup_sound_tag_id;
-    uint8_t parameters[16];
+    sound_location parameters = {};  // sound_play_new copies a whole sound_location (0x40 bytes); the original reads its stack past the three set fields
 
     tag = (Equipment *)halo::cache::globals().tag_instances[equipment_tag_id & halo::k_slot_mask].data;
     pickup_sound_tag_id = halo::objects::tag_handle(tag->pickup_sound);
 
     if (pickup_sound_tag_id != -1) {
-        ((sound_location *)parameters)->type = 0;
-        ((sound_location *)parameters)->scale = 1.0f;
-        ((sound_location *)parameters)->gain = 1.0f;
-        halo::sound::sound_play_new((uint32_t)pickup_sound_tag_id, (sound_location *)parameters, k_datum_index_none, 0, 0, 0, 0);
+        parameters.type = 0;
+        parameters.scale = 1.0f;
+        parameters.gain = 1.0f;
+        halo::sound::sound_play_new((uint32_t)pickup_sound_tag_id, &parameters, k_datum_index_none, 0, 0, 0, 0);
     }
 }
 
@@ -444,7 +444,7 @@ void equipment_ref::pickup_play_sound()
     item_data *item;
     Equipment *tag;
     int32_t pickup_sound_tag_id;
-    uint8_t parameters[16];
+    sound_location parameters = {};  // sound_play_new copies a whole sound_location (0x40 bytes); the original reads its stack past the three set fields
 
     obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data;
     tag = (Equipment *)halo::cache::globals().tag_instances[obj->definition_tag & halo::k_slot_mask].data;
@@ -454,10 +454,10 @@ void equipment_ref::pickup_play_sound()
 
     pickup_sound_tag_id = halo::objects::tag_handle(tag->pickup_sound);
     if (pickup_sound_tag_id != -1) {
-        ((sound_location *)parameters)->type = 0;
-        ((sound_location *)parameters)->scale = 1.0f;
-        ((sound_location *)parameters)->gain = 1.0f;
-        halo::sound::sound_play_new((uint32_t)pickup_sound_tag_id, (sound_location *)parameters, k_datum_index_none, 0, 0, 0, 0);
+        parameters.type = 0;
+        parameters.scale = 1.0f;
+        parameters.gain = 1.0f;
+        halo::sound::sound_play_new((uint32_t)pickup_sound_tag_id, &parameters, k_datum_index_none, 0, 0, 0, 0);
     }
 }
 

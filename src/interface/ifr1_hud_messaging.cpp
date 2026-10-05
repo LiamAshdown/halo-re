@@ -25,6 +25,7 @@
 #include "halo/units/vars.hpp"
 #include "halo/units/api.hpp"
 #include "halo/platform/time.hpp"
+#include "sound.h"
 
 
 static auto &hud_messaging = halo::link::ref<hud_messaging_globals *>(halo::ui::vars().hud_messaging);
@@ -137,12 +138,12 @@ void HudMessaging::display_checkpoint_message(uint8_t is_begin)
     if (is_begin) {
         int32_t sound_tag_id = halo::interface::tag_handle(hud_globals->checkpoint_sound.tag_id);
         if (sound_tag_id != -1) {
-            hud_sound_start_parameters parameters;
+            sound_location parameters = {};  // sound_play_new copies a whole sound_location (0x40 bytes); the original reads its stack past the three set fields
 
-            parameters.unknown_00 = 0;
+            parameters.type = 0;
             parameters.scale = 1.0f;
             parameters.gain = 1.0f;
-            halo::sound::sound_play_new((datum_index)sound_tag_id, (sound_location *)&parameters, -1, 0, 0, 0, 0);
+            halo::sound::sound_play_new((datum_index)sound_tag_id, &parameters, -1, 0, 0, 0, 0);
         }
     }
 
