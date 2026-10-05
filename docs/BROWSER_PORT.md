@@ -36,16 +36,29 @@ committed on its own.
    - Cover the registry, clipboard, message boxes, CPU and hardware queries, and the crash reporter.
    - Add a `HALO_PLATFORM_NO_WIN32` guard and keep Win32-only diagnostics (crash dialog, diagnostics dialog) behind it.
    - Exit: outside src/platform/*_win32.cpp and the D3D9 backend, nothing includes `<windows.h>`.
+   - 2026-10-05 (branch browser-port): 92 files no longer include win32.h; date/time text, file version, code page,
+     double-click time, mapped file name, file size and ipv4 text moved to halo::platform; the GL backend has no
+     windows.h. Left: Winsock (net1_runtime, net1_client_2, main/network, gamespy, application's inet_addr), the Win32
+     console (ifr1_console_terminal), autopatch (wininet), and the Windows-only shell (application, system,
+     diagnostics, crash_reporter, hardware probe).
 2. **Portable compiler surface.**
    - Replace the x87 asm (`finit/fldcw`) with a platform `fpu_reset()` that does nothing on wasm.
    - Replace SEH with platform crash hooks.
    - Make `__stdcall` and `__thiscall` empty macros on non-MSVC targets.
    - Check every `#pragma pack` struct and every pointer-size assumption (wasm32 is 32-bit like the original, so layouts hold).
    - Exit: a clang-cl or MinGW-clang build of the game with GL only compiles and boots.
+   - 2026-10-05: inline assembly only in src/platform/cpu.cpp (fpu_reset, cpuid, time_stamp_counter; portable
+     fallbacks) and src/math/x87.cpp (x87 trig kept on MSVC x86 for identical simulation, C library elsewhere);
+     SEH behind HALO_TRY / HALO_EXCEPT (include/halo/platform/fault.hpp). Left: __stdcall/__thiscall macros, MSVC
+     CRT names (_stricmp etc., ~60 files), 16-bit wchar_t (125 files use wcs*/swprintf/L"" as UTF-16: needs
+     -fshort-wchar plus our own 16-bit wcs*/swprintf with MSVC %s semantics), types/*.h shadowing system headers
+     (math.h, memory.h: use -iquote for types/).
 3. **D3D9 out of the GL path.**
    - The GL build must not need d3d9.h, d3dx9 or the DXSDK. Move the D3D9 types the engine reads into the repo's own
      headers (types/), and keep the D3D9 backend as a Windows-only, optional source set.
    - Exit: a CMake option `HALO_RENDERER_D3D9=OFF` builds and boots in GL.
+   - 2026-10-05: done as `-DHALO_D3D9=OFF` (build/gl-only): no DirectX SDK; D3DX stand-ins in d3dx_sdk.cpp;
+     gl_direct3d.cpp answers the IDirect3D9 adapter/mode/format/caps queries. Renders the same frames.
 4. **GLES 3.0 / WebGL2 renderer.**
    - Generate shaders with a GLSL ES 3.00 profile: patch the vendored MojoShader and record the change in README.halo.md
      and halo.patch.
@@ -53,14 +66,22 @@ committed on its own.
      sampler/texture formats WebGL lacks (BGRA, A8/L8 to R8 plus swizzle), DXT through EXT_texture_compression_s3tc
      with a decompress fallback, and glReadPixels formats.
    - Exit: native build with `SDL_GL_CONTEXT_PROFILE_ES` 3.0 (ANGLE) renders the same as today.
+   - 2026-10-05: done. gl_essl.cpp rewrites MojoShader's GLSL 1.10 and the fixed-function stages as GLSL ES 3.00
+     (one code path; desktop drivers take it through ARB_ES3_compatibility); D3DCOLOR attributes swizzled in the
+     shader; no BGRA uploads/read-backs; glClearDepthf/glDepthRangef; polygon mode and border clamp desktop-only;
+     ANY_SAMPLES_PASSED queries on ES. `HALO_GL_ES=1` runs on a real ES context (NVIDIA ES 3.2): frames match.
+     Still to check under WebGL 2 proper: DXT needs WEBGL_compressed_texture_s3tc (add a CPU decompress fallback),
+     float render targets need EXT_color_buffer_float.
 5. **Emscripten build.**
    - Add an emscripten CMake toolchain path with SDL2 (`-sUSE_SDL=2`) and `-sMAX_WEBGL_VERSION=2`.
    - Size `-sINITIAL_MEMORY` so 0x40000000 + 0x1b40000 fits, or reserve map memory via the platform memory layer.
    - Threads: use `-pthread` with COOP/COEP headers, or make the async file reads synchronous.
    - Main loop: have `MainLoop::loop` run one frame per `emscripten_set_main_loop` callback. If that is too invasive at
-     first, ship with `-sASYNCIFY` and replace it later.
-   - Files: maps are fetched or `--preload-file`d from a user-supplied folder, never bundled (copyrighted). Saves and
-     profiles go to IDBFS, synced after each write.
+     first, ship with `-sASYNCIFY` and replace it later. (2026-10-05: split into loop_begin / loop_frame / shutdown.)
+   - Files: the game is for local use only, so a small local web server serves the user's Halo folder (maps, shaders,
+     fx.bin override) and the browser streams files from it as the game opens them (HTTP range requests for the
+     big .map files), never bundled. Saves and profiles go to IDBFS, synced after each write.
+   - Needs the Emscripten SDK (a large download: ask the user first).
    - Exit: boots to the main menu in Chrome.
 6. **Playable campaign in the browser.**
    - Load times: stream maps lazily instead of preloading hundreds of MB.
@@ -87,3 +108,10 @@ committed on its own.
 - The user boots and tests; find bugs from the code, not by repeated boots.
 - Commit trailer: `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
 - Record progress here with a dated line under each milestone as it lands.
+
+## Checking frames without a screen capture
+
+`HALO_GL_SNAPSHOT=30000,45000` writes the GL back buffer to gl_snapshot_<ms>.ppm beside the exe at those times after
+the first frame; with the scripted start (`HALO_STANDALONE_KEYS=25000:ENTER,3000:ENTER,3000:ENTER,3000:ENTER`,
+`-window -novideo`) the 45 s frame lands at the same spot of b30 every run, so renderer changes compare
+pixel-for-pixel. `HALO_GL_ES=1` asks for an OpenGL ES 3.0 context.
