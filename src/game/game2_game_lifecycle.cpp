@@ -31,6 +31,7 @@
 #include "halo/game/vars.hpp"
 #include "halo/physics/vars.hpp"
 #include "halo/saved_games/vars.hpp"
+#include "halo/platform/cpu.hpp"
 
 static auto &game_state_cursor = halo::link::ref<int32_t>(halo::saved_games::vars().game_state_cursor);
 static auto &game_state_base = halo::link::ref<uint8_t *>(halo::saved_games::vars().game_state_base);
@@ -96,7 +97,7 @@ void GameLifecycle::initialize(void)
         cursor = cursor + 1;
     }
 
-    _control87(0x9001f, 0xfffff);
+    halo::platform::fpu_control(0x9001f, 0xfffff);
     halo::game::game_engine_allocate_tick_record();
     halo::game::game_engine_load_from_variant(&game_engine_active_variant);
     halo::game::team_pair_table_allocate();

@@ -111,13 +111,19 @@ int halo_wcsncmp(const wchar_t *a, const wchar_t *b, size_t count)
 
 int halo_wcsicmp(const wchar_t *a, const wchar_t *b)
 {
-    for (size_t i = 0;; i++) {
+    return halo_wcsnicmp(a, b, SIZE_MAX);
+}
+
+int halo_wcsnicmp(const wchar_t *a, const wchar_t *b, size_t count)
+{
+    for (size_t i = 0; i < count; i++) {
         uint16_t x = static_cast<uint16_t>(lower(a[i]));
         uint16_t y = static_cast<uint16_t>(lower(b[i]));
 
         if (x != y) return static_cast<int>(x) - static_cast<int>(y);
         if (x == 0) return 0;
     }
+    return 0;
 }
 
 wchar_t *halo_wcschr(const wchar_t *text, wchar_t character)

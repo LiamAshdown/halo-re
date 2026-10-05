@@ -59,6 +59,8 @@ int main()
     CHECK(sign(halo_wcsncmp(L"abcx", L"abcy", 3)) == sign(wcsncmp(L"abcx", L"abcy", 3)));
     CHECK(sign(halo_wcsicmp(L"Blood", L"bLOOD")) == sign(_wcsicmp(L"Blood", L"bLOOD")));
     CHECK(sign(halo_wcsicmp(L"Alpha", L"beta")) == sign(_wcsicmp(L"Alpha", L"beta")));
+    CHECK(sign(halo_wcsnicmp(L"PROMPT_a", L"prompt_b", 7)) == sign(_wcsnicmp(L"PROMPT_a", L"prompt_b", 7)));
+    CHECK(sign(halo_wcsnicmp(L"PROMPT_a", L"prompt_b", 8)) == sign(_wcsnicmp(L"PROMPT_a", L"prompt_b", 8)));
     CHECK(halo_wcschr(text, L'G') == wcschr(text, L'G'));
     CHECK(halo_wcschr(text, L'Q') == nullptr);
     CHECK(halo_wcschr(text, 0) == text + wcslen(text));

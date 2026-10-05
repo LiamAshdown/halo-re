@@ -112,8 +112,17 @@ void HostSession::qr2_server_key(int32_t key_id, void *buffer, void *user_data)
         return;
     case 5: {
         char name[0x100];
+        const char *base = server->session.server_name;
+        char *dot;
 
-        _splitpath(server->session.server_name, 0, 0, name, 0);
+        // the file name part without its extension (_splitpath's fname)
+        for (const char *c = base; *c != '\0'; c++) {
+            if (*c == '\\' || *c == '/' || *c == ':') base = c + 1;
+        }
+        strncpy(name, base, sizeof(name) - 1);
+        name[sizeof(name) - 1] = '\0';
+        dot = strrchr(name, '.');
+        if (dot != nullptr) *dot = '\0';
         qr2_buffer_add(buffer, name);
         return;
     }

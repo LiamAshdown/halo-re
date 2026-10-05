@@ -31,6 +31,7 @@
 #include "halo/units/vars.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/platform/cpu.hpp"
 
 typedef struct ai_update_stagger_state { int16_t threshold; int16_t highest; uint8_t claimed; } ai_update_stagger_state;
 
@@ -83,7 +84,7 @@ namespace halo::game {
 void GameLifecycle::simulate_tick(uint32_t predict_pass)
 {
     fields::simulation_tick_in_progress = 1;
-    _control87(0x9001f, 0xfffff);
+    halo::platform::fpu_control(0x9001f, 0xfffff);
     halo::game::game_engine_flag_local_player_units();
     halo::game::team_pair_overrides_tick();
 
@@ -166,7 +167,7 @@ void GameLifecycle::start_new_map(void)
     }
 
     halo::game::game_engine_load_from_variant(&game_engine_active_variant);
-    _control87(0x9001f, 0xfffff);
+    halo::platform::fpu_control(0x9001f, 0xfffff);
     halo::rasterizer::decal_and_font_system_reset();
     halo::saved_games::game_state_build_header();
 

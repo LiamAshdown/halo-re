@@ -25,6 +25,7 @@ wchar_t *halo_wcsncat(wchar_t *destination, const wchar_t *source, size_t count)
 int halo_wcscmp(const wchar_t *a, const wchar_t *b);
 int halo_wcsncmp(const wchar_t *a, const wchar_t *b, size_t count);
 int halo_wcsicmp(const wchar_t *a, const wchar_t *b);
+int halo_wcsnicmp(const wchar_t *a, const wchar_t *b, size_t count);
 wchar_t *halo_wcschr(const wchar_t *text, wchar_t character);
 wchar_t *halo_wcsstr(const wchar_t *text, const wchar_t *pattern);
 /** MSVC swprintf / vswprintf: at most count units including the terminator; -1 (and a truncated string) when it does not fit. */
@@ -46,6 +47,7 @@ int halo_wprintf(const wchar_t *format, ...);
 #define wcscmp halo_wcscmp
 #define wcsncmp halo_wcsncmp
 #define _wcsicmp halo_wcsicmp
+#define _wcsnicmp halo_wcsnicmp
 #define wcschr halo_wcschr
 #define wcsstr halo_wcsstr
 #define swprintf halo_swprintf

@@ -6,6 +6,9 @@
 
 #include "halo/platform/cpu.hpp"
 
+#if defined(_M_IX86) && defined(_MSC_VER)
+#include <float.h>
+#endif
 #if !defined(_M_IX86) && !defined(__i386__)
 #include <chrono>
 #endif
@@ -18,6 +21,11 @@ void fpu_reset(uint16_t control_word)
 {
     __asm { finit }
     __asm { fldcw control_word }
+}
+
+void fpu_control(uint32_t value, uint32_t mask)
+{
+    _control87(value, mask);
 }
 
 bool cpuid(uint32_t leaf, uint32_t registers[4])
@@ -77,6 +85,12 @@ void fpu_reset(uint16_t control_word)
     __asm__ __volatile__("finit\n\tfldcw %0" : : "m"(control_word));
 }
 
+void fpu_control(uint32_t value, uint32_t mask)
+{
+    (void)value;  // ponytail: GCC x86 builds keep the default control word; add the fnstcw/fldcw mapping if one ships
+    (void)mask;
+}
+
 bool cpuid(uint32_t leaf, uint32_t registers[4])
 {
     __asm__ __volatile__("cpuid" : "=a"(registers[0]), "=b"(registers[1]), "=c"(registers[2]), "=d"(registers[3]) : "a"(leaf), "c"(0));
@@ -96,6 +110,12 @@ uint64_t time_stamp_counter()
 void fpu_reset(uint16_t control_word)
 {
     (void)control_word;
+}
+
+void fpu_control(uint32_t value, uint32_t mask)
+{
+    (void)value;
+    (void)mask;
 }
 
 bool cpuid(uint32_t leaf, uint32_t registers[4])

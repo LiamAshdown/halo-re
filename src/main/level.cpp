@@ -45,6 +45,7 @@
 #include <io.h>
 #include "halo/networking/api.hpp"
 #include "halo/platform/time.hpp"
+#include "halo/platform/file.hpp"
 
 
 static auto &main_globals_data = halo::link::ref<main_globals>(halo::main::vars().main_globals_data);
@@ -385,7 +386,7 @@ void LevelControl::level_transition_update(void)
         name = (slash == 0) ? basename : slash + 1;
 
         sprintf(map_path, "%s%s%s.map", map_path_prefix, "maps\\", name);
-        if (_access(map_path, 0) != 0) {
+        if (halo::platform::file_attributes(map_path) == 0xffffffff) {
             main_globals_data.level_transition = 0;
             return;
         }
