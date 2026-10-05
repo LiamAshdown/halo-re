@@ -29,6 +29,7 @@
 #include "halo/networking/vars.hpp"
 #include "../gamespy/gamespy_calls.hpp"
 #include "saved_games.h"
+#include "halo/saved_games/layout.hpp"
 #include "halo/platform/time.hpp"
 #include "halo/platform/memory.hpp"
 
@@ -132,7 +133,9 @@ uint32_t ClientView::begin_connect(wchar_t *player_name, s_network_address *targ
     }
     memcpy(scratch.config_template, profile_globals_block,
         0x7ff * 4);
-    network_client->connection_rate_index = ((const saved_player_profile *)profile_globals_block)->connection_type;
+    network_client->connection_rate_index = halo::saved_games::k_connection_type_locked
+        ? halo::saved_games::k_connection_type_t1_lan
+        : ((const saved_player_profile *)profile_globals_block)->connection_type;
     if (network_client->state == 0 && target_address->ipv4 != 0 && target_address->port != 0) {
         wcsncpy((wchar_t *)scratch.name, (const wchar_t *)player_name, 8);
         scratch.name_terminator = 0;

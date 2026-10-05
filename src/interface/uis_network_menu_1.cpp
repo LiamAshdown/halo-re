@@ -22,6 +22,7 @@
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
 #include "saved_games.h"
+#include "halo/saved_games/layout.hpp"
 #include "halo/interface/widget_pool.hpp"
 #include "halo/interface/wide_text.hpp"
 #include "halo/core/link.hpp"
@@ -176,6 +177,11 @@ uint8_t UiNetworkMenu::network_game_options_populate(widget_instance *widget, co
     }
     value = options_record->connection_type;
     control->selection_index = (value < 5) ? value : 4;
+    if (halo::saved_games::k_connection_type_locked) {  // shown fixed and dimmed, as Create Game's LAN row
+        control->selection_index = halo::saved_games::k_connection_type_t1_lan;
+        control->hidden = 1;
+        control->scale = 0.333f;
+    }
     network_game_option_a_00719210 = options_record->server_port;
     network_game_option_b_00719214 = options_record->client_port;
     return 1;

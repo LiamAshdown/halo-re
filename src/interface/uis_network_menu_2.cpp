@@ -10,6 +10,7 @@
 #include "networking.h"
 #include "interface.h"
 #include "saved_games.h"
+#include "halo/saved_games/layout.hpp"
 #include <string.h>
 #include "objects.h"
 #include "units.h"
@@ -94,6 +95,9 @@ uint8_t UiNetworkMenu::network_host_setup_defaults_init(widget_instance *widget)
     wcscpy((wchar_t *)network_host_subname_007191f0, (const wchar_t *)profile.server_password);
 
     choice = (profile.connection_type > 4) ? 4 : profile.connection_type;
+    if (halo::saved_games::k_connection_type_locked) {
+        choice = halo::saved_games::k_connection_type_t1_lan;
+    }
     last_row = resolution_row_count_table_0065bfb4[choice] - 1;
     if ((int32_t)profile.server_maximum_players_index > last_row) {
         profile.server_maximum_players_index = (uint8_t)last_row;
@@ -110,7 +114,7 @@ uint8_t UiNetworkMenu::network_host_setup_defaults_init(widget_instance *widget)
 
     row1 = widget->first_child->next_sibling->next_sibling;
     control = row1->first_child->next_sibling;
-    if (network_game_info_packet_flag != 0) {
+    if (network_game_info_packet_flag != 0 && !halo::saved_games::k_connection_type_locked) {
         row1->scale = 1.0f;
         row1->hidden = 0;
         control->selection_index = (int16_t)choice;

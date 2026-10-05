@@ -70,10 +70,14 @@ inline constexpr int16_t k_default_refresh_rate = 60;
 inline constexpr uint16_t k_default_server_port = 2302;
 inline constexpr uint16_t k_default_client_port = 2303;
 /** Connection type (0 56k .. 4 T1/LAN): sent when joining and caps the host's send rate to us. Retail defaults to
-    DSL/cable low (140 kbit/s); the browser build's games run through a server relay, so it starts at T1/LAN. */
+    DSL/cable low (140 kbit/s); the browser build's games run through a server relay, so it is locked at T1/LAN
+    (the menus show it dimmed) whatever a profile has saved. */
+inline constexpr uint8_t k_connection_type_t1_lan = 4;
 #if defined(__EMSCRIPTEN__)
-inline constexpr uint8_t k_default_connection_type = 4;
+inline constexpr bool k_connection_type_locked = true;
+inline constexpr uint8_t k_default_connection_type = k_connection_type_t1_lan;
 #else
+inline constexpr bool k_connection_type_locked = false;
 inline constexpr uint8_t k_default_connection_type = 1;
 #endif
 
