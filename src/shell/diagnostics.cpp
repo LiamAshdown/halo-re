@@ -209,13 +209,14 @@ int32_t __stdcall DialogCentering::procedure(void *hwnd, uint32_t message, uint3
         return 0;
     }
 
-    halo::platform::window_bounds(hwnd, reinterpret_cast<halo::platform::window_rect *>(&window_rect));
-    halo::platform::desktop_client_area(reinterpret_cast<halo::platform::window_rect *>(&desktop_rect));
-    halo::platform::window_move(hwnd,
+    GetWindowRect((HWND)hwnd, &window_rect);
+    GetClientRect(GetDesktopWindow(), &desktop_rect);
+    MoveWindow((HWND)hwnd,
                (desktop_rect.right - desktop_rect.left) / 2 - (window_rect.right - window_rect.left) / 2,
                (desktop_rect.bottom - desktop_rect.top) / 2 - (window_rect.bottom - window_rect.top) / 2,
                window_rect.right - window_rect.left,
-               window_rect.bottom - window_rect.top);
+               window_rect.bottom - window_rect.top,
+               1);
     return 1;
 }
 

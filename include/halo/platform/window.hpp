@@ -5,7 +5,7 @@
  * The engine creates the window with a table of handlers (window_events); the platform's window procedure turns
  * native window messages into those calls and does the native default handling itself. Show commands keep the Win32
  * SW_ values and key messages the Win32 WM_ ids and virtual keys, the encoding the engine already uses.
- * src/platform/window_win32.cpp implements this with exactly the Win32 calls the engine made directly.
+ * src/platform/window_sdl.cpp implements this on SDL2.
  */
 #pragma once
 
@@ -45,8 +45,7 @@ enum class window_paint : uint8_t {
  * The engine's reactions to window messages. Every member must be set.
  */
 struct window_events {
-    bool (*bypass)();                       // true: only the native default handling
-    bool (*exclusive_fullscreen)();         // true: the window cannot be moved or sized (no hit testing)
+    bool (*bypass)();                       // true: the engine ignores window events
     void (*closed)();                       // the window was closed or destroyed
     void (*minimized)();
     void (*maximized)();
@@ -58,10 +57,6 @@ struct window_events {
     bool (*splash_cursor)();                // true while the loading screen shows: no cursor over it when in front
     bool (*windows_key)();                  // a Windows key went down; true: hand the desktop the focus
     bool (*key_message)(uint32_t message, uint32_t key);  // keyboard / IME message (WM_ id, virtual key); true: consumed
-    void (*suspend)();                      // a modal size, move or system-menu loop starts
-    void (*resume)();                       // the size or move loop ended
-    void (*power)(bool resume);             // the system is suspending, or resumed from suspend
-    void (*display_changed)(uint32_t bits_per_pixel);
 };
 
 /**
@@ -78,16 +73,11 @@ void window_show(window_handle window, uint32_t command);
 void window_set_fullscreen_style(window_handle window);
 /** Centres the window on the desktop with a width by height client area, moving it only when that changes it. */
 void window_center(window_handle window, int32_t width, int32_t height);
-void window_bounds(window_handle window, window_rect *rect);
-void window_move(window_handle window, int32_t x, int32_t y, int32_t width, int32_t height);
-/** Hands the input focus to the desktop. */
-void window_focus_desktop();
 /** Brings forward (restoring when minimised) a running window of the given class and title; false when there is none. */
 bool window_activate_existing(const char *class_name, const char *title);
 
-/** The desktop's bounds, and its client area (the same on Windows apart from the API). */
+/** The bounds of the display the window is on. */
 void desktop_bounds(window_rect *rect);
-void desktop_client_area(window_rect *rect);
 uint32_t desktop_bits_per_pixel();
 
 /** Runs the window procedure for every waiting message. */
@@ -95,7 +85,7 @@ void pump_messages();
 /** Waits up to the given time for a window message or input. */
 void wait_for_messages(uint32_t milliseconds);
 
-/** Adjusts the cursor's show count (ShowCursor); returns the new count. */
+/** Shows or hides the cursor; returns the new state (1 shown, 0 hidden). */
 int32_t cursor_show(bool show);
 void cursor_position(int32_t *x, int32_t *y);
 /** Whether the primary and secondary mouse buttons are swapped in the system settings. */

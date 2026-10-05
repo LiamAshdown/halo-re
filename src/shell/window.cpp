@@ -94,11 +94,6 @@ void GameWindow::resume_focus()
 
 namespace {
 
-bool exclusive_fullscreen()
-{
-    return halo::rasterizer::globals().fullscreen != 0 && halo::rasterizer::globals().device != 0;
-}
-
 bool loading_screen_showing()
 {
     return halo::render::render_device_is_ready() == 0 && halo::rasterizer::globals().window_requested == 0;
@@ -131,9 +126,10 @@ bool key_message(uint32_t message, uint32_t key)
 }  // namespace
 
 /**
- * The engine's reactions to the game window's messages (the original window procedure at 0x541b30, minus the native
- * default handling the platform does): suspend and resume around focus loss, quitting on close, the loading screen
- * before the device exists, the Windows key chord and chat keyboard routing.
+ * The engine's reactions to the game window's events (the original window procedure at 0x541b30, minus what only
+ * Win32 had: hit testing, the system menu, size/move loops, power and display-depth messages): suspend and resume
+ * around focus loss, quitting on close, the loading screen before the device exists, the Windows key chord and chat
+ * keyboard routing.
  *
  * @address 0x541b30
  */
@@ -141,7 +137,6 @@ const halo::platform::window_events &GameWindow::events()
 {
     static const halo::platform::window_events table = {
         []() { return shell_window_proc_bypass != 0; },
-        exclusive_fullscreen,
         []() {
             halo::main::globals().main_globals.return_to_main_menu = 0;
             halo::main::globals().main_globals.quit = 1;
@@ -208,25 +203,6 @@ const halo::platform::window_events &GameWindow::events()
             return true;
         },
         key_message,
-        []() {
-            if (shell_application_inactive != 1) {
-                suspend_focus();
-            }
-        },
-        resume_focus,
-        [](bool resume) {
-            if (resume) {
-                halo::sound::sound_resume();
-            } else {
-                halo::sound::sound_pause();
-            }
-        },
-        [](uint32_t bits_per_pixel) {
-            if (shell_window != 0 && bits_per_pixel != 32) {
-                suspend_focus();
-                halo::platform::window_show(shell_window, halo::platform::k_window_minimize);
-            }
-        },
     };
 
     return table;

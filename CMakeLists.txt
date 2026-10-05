@@ -51,7 +51,7 @@ set(CXX_GAME_SOURCES ${GAME_SOURCES})
 list(FILTER CXX_GAME_SOURCES EXCLUDE REGEX "/src/gamespy/")   # GameSpy stays vendored C
 set_source_files_properties(${CXX_GAME_SOURCES} PROPERTIES LANGUAGE CXX)
 target_link_libraries(halo_game PRIVATE mojoshader)
-target_include_directories(halo_game PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/third_party" "${CMAKE_SOURCE_DIR}/standalone/data" "${CMAKE_SOURCE_DIR}/types" "${DXSDK_DIR}/Include")
+target_include_directories(halo_game PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/third_party" "${CMAKE_SOURCE_DIR}/third_party/SDL2/include" "${CMAKE_SOURCE_DIR}/standalone/data" "${CMAKE_SOURCE_DIR}/types" "${DXSDK_DIR}/Include")
 target_compile_options(halo_game PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/std:c++20> $<$<COMPILE_LANGUAGE:CXX>:/permissive-> $<$<COMPILE_LANGUAGE:CXX>:/GR-> /W3 /Od /GS- /Oy- /Gy /wd4996
     "/FI${CMAKE_SOURCE_DIR}/include/halo/msvc_compat.h")
 
@@ -99,7 +99,10 @@ target_link_directories(halo_rebuilt PRIVATE "${DXSDK_DIR}/Lib/x86")
 target_link_libraries(halo_rebuilt PRIVATE
     kernel32 user32 gdi32 advapi32 ole32 oleaut32 winmm ws2_32 shell32 version shlwapi comdlg32
     dsound dinput8 dxguid d3d9 d3dx9 opengl32 legacy_stdio_definitions wininet
-    stb_vorbis mojoshader)
+    stb_vorbis mojoshader "${CMAKE_SOURCE_DIR}/third_party/SDL2/lib/x86/SDL2.lib")
+# ---- SDL2 (zlib, third_party/SDL2, see its README.halo.md): window, events and input for halo::platform
+add_custom_command(TARGET halo_rebuilt POST_BUILD
+    COMMAND "${CMAKE_COMMAND}" -E copy_if_different "${CMAKE_SOURCE_DIR}/third_party/SDL2/lib/x86/SDL2.dll" "$<TARGET_FILE_DIR:halo_rebuilt>" VERBATIM)
 # the data image is ordinary relocatable C++ data, so the exe loads anywhere (only map memory stays at 0x40000000)
 target_link_options(halo_rebuilt PRIVATE /SAFESEH:NO /OPT:NOREF /OPT:NOICF
     /LARGEADDRESSAWARE:NO /NODEFAULTLIB:msvcrt.lib /NODEFAULTLIB:libcpmt.lib /MAP)
