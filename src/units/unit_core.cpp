@@ -122,7 +122,7 @@ void UnitView::check_fell_off_level()
  *
  * @address 0x56dcd0
  */
-void halo::units::unit_dispatch_scripted_event_1b(uint8_t event_byte, uint32_t unit_index)
+void unit_dispatch_scripted_event_1b(uint8_t event_byte, uint32_t unit_index)
 {
     int32_t unit_hash = 0;
     if (unit_index != k_datum_index_none) {
@@ -236,7 +236,7 @@ uint32_t UnitView::get_biped_specific_value()
  *
  * @address 0x55a2e0
  */
-void halo::units::unit_get_crouch_height_offset(real_point3d *object_position, uint32_t object_index, float *pill_height, float *pill_radius_out)
+void unit_get_crouch_height_offset(real_point3d *object_position, uint32_t object_index, float *pill_height, float *pill_radius_out)
 {
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     Biped *tag = (Biped *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
@@ -282,7 +282,7 @@ uint32_t UnitView::get_flag_bit6()
  *
  * @address 0x560c70
  */
-TagID halo::units::unit_get_hud_interface_tag_id(Unit *unit_tag, uint8_t use_second)
+TagID unit_get_hud_interface_tag_id(Unit *unit_tag, uint8_t use_second)
 {
     int32_t index = (int32_t)unit_tag->new_hud_interfaces.count - 1;
     if (index > (use_second != 0)) {
@@ -358,7 +358,7 @@ uint8_t UnitView::has_child_of_type5()
  *
  * @address 0x575c50
  */
-uint8_t halo::units::unit_is_area_clear_of_fast_objects(void)
+uint8_t unit_is_area_clear_of_fast_objects(void)
 {
     real_point3d tracked_positions[k_max_tracked_units];
     int32_t tracked_count = 0;
@@ -417,7 +417,7 @@ uint8_t halo::units::unit_is_area_clear_of_fast_objects(void)
  *
  * @address 0x56bc80
  */
-uint8_t halo::units::unit_point_in_front_and_asleep(real_point3d *world_point, uint32_t unit_index)
+uint8_t unit_point_in_front_and_asleep(real_point3d *world_point, uint32_t unit_index)
 {
     unit_object *obj = reinterpret_cast<unit_object *>(halo::objects::object_try_and_get(unit_index, 3));
     float dot;

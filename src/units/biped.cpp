@@ -593,7 +593,7 @@ uint8_t BipedView::update()
  *
  * @address 0x55eaa0
  */
-void halo::units::biped_update_animation_frame_trigger(float threshold, const Biped *timing_table, object *object_base)
+void biped_update_animation_frame_trigger(float threshold, const Biped *timing_table, object *object_base)
 {
     biped_object *biped = reinterpret_cast<biped_object *>(object_base);
     float t0 = timing_table->minimum_soft_landing_velocity * halo::math::k_seconds_per_tick;
@@ -716,7 +716,7 @@ void BipedView::update_scale_function_inputs()
  *
  * @address 0x55e0a0
  */
-void halo::units::biped_update_target_lock_timer(datum_index target, uint32_t object_index)
+void biped_update_target_lock_timer(datum_index target, uint32_t object_index)
 {
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     biped_data *biped = halo::units::biped_data_of(obj);

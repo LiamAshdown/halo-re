@@ -6,7 +6,11 @@
  */
 #pragma once
 
-#include <corecrt_math.h>
+#if defined(_MSC_VER)
+#include <corecrt_math.h>  // MSVC: <math.h> would find types/math.h, which is on the include path
+#else
+#include <math.h>          // other compilers put types/ on the quote-only include path (-iquote)
+#endif
 
 #include <cmath>
 #include <cstdio>

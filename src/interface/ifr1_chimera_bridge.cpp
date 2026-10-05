@@ -262,7 +262,7 @@ void ChimeraBridge::load_main_menu(void)
  *
  * @address 0x497a70
  */
-widget_instance * ChimeraBridge::load_ui_widget(const const char *tag_path, datum_index tag_index, widget_instance *parent, uint16_t controller_index, datum_index history_definition, datum_index history_list_definition, int16_t history_selection)
+widget_instance * ChimeraBridge::load_ui_widget(const char *tag_path, datum_index tag_index, widget_instance *parent, uint16_t controller_index, datum_index history_definition, datum_index history_list_definition, int16_t history_selection)
 {
     widget_instance *widget = (widget_instance *)0;
     int16_t slot = (controller_index == halo::k_word_none) ? 0 : (int16_t)controller_index;

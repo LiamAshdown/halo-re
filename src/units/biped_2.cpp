@@ -888,7 +888,7 @@ void BipedView::integrate_movement_with_collision(int8_t *state)
  *
  * @address 0x55efd0
  */
-void halo::units::biped_movement_solve(biped_movement_solver_data *solve)
+void biped_movement_solve(biped_movement_solver_data *solve)
 {
     uint16_t flags = (uint16_t)solve->flags;
     uint8_t &result_flags = solve->result_flags;

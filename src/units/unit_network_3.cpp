@@ -56,7 +56,7 @@ typedef struct biped_network_create_message {
  *
  * @address 0x55b110
  */
-void halo::units::unit_network_create_update_apply(void *incoming_record)
+void unit_network_create_update_apply(void *incoming_record)
 {
     using namespace unit_network_create_update_apply_local;
     biped_network_create_message message;

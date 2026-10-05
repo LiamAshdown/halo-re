@@ -282,11 +282,11 @@ void ChannelFactory::open_all()
 
     if (network_game_socket == 0) {
         result = gt2CreateSocket(&network_game_socket, game_address_buf, 0, 0,
-                                     halo::networking::network_channel_gap_441060);
+                                     (void *)halo::networking::network_channel_gap_441060);
         if (result == 0) {
-            gt2SetSendDump(network_game_socket, halo::networking::network_channel_gap_441020);
-            gt2SetReceiveDump(network_game_socket, halo::networking::network_channel_gap_441040);
-            gt2SetUnrecognizedMessageCallback(network_game_socket, halo::networking::network_channel_gap_4410b0);
+            gt2SetSendDump(network_game_socket, (void *)halo::networking::network_channel_gap_441020);
+            gt2SetReceiveDump(network_game_socket, (void *)halo::networking::network_channel_gap_441040);
+            gt2SetUnrecognizedMessageCallback(network_game_socket, (void *)halo::networking::network_channel_gap_4410b0);
         } else {
             network_channels_open_ok = 0;
         }
@@ -294,20 +294,20 @@ void ChannelFactory::open_all()
 
     if (network_query_socket == 0 && network_channels_open_ok == 1) {
         result = gt2CreateSocket(&network_query_socket, query_address_buf, 0, 0,
-                                     halo::networking::network_channel_gap_441060);
+                                     (void *)halo::networking::network_channel_gap_441060);
         if (result != 0) {
             game_cport = 0;
             gt2AddressToString(swapped_address, 0, query_address_buf);
             result = gt2CreateSocket(&network_query_socket, query_address_buf, 0, 0,
-                                         halo::networking::network_channel_gap_441060);
+                                         (void *)halo::networking::network_channel_gap_441060);
             if (result != 0) {
                 network_channels_open_ok = 0;
                 return;
             }
         }
-        gt2SetSendDump(network_query_socket, halo::networking::network_channel_gap_441020);
-        gt2SetReceiveDump(network_query_socket, halo::networking::network_channel_gap_441040);
-        gt2SetUnrecognizedMessageCallback(network_query_socket, halo::networking::network_channel_gap_441200);
+        gt2SetSendDump(network_query_socket, (void *)halo::networking::network_channel_gap_441020);
+        gt2SetReceiveDump(network_query_socket, (void *)halo::networking::network_channel_gap_441040);
+        gt2SetUnrecognizedMessageCallback(network_query_socket, (void *)halo::networking::network_channel_gap_441200);
     }
 }
 

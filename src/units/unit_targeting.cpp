@@ -15,12 +15,12 @@ namespace halo::units {
  *
  * @address 0x56bee0
  */
-int32_t halo::units::object_find_nearest_biped(int32_t reference_object_index)
+int32_t object_find_nearest_biped(int32_t reference_object_index)
 {
     int32_t best_index = -1;
     float best_distance = 3.4028235e+38f;
 
-    object_iterator iter = { _object_mask_biped, 0, 0, 0, k_datum_index_none };
+    object_iterator iter = { _object_mask_biped, 0, 0, 0, (datum_index)k_datum_index_none };
     object *obj = halo::objects::object_iterator_next(&iter);
     while (obj != nullptr) {
         int32_t this_handle = (int32_t)iter.handle;
@@ -53,11 +53,11 @@ int32_t halo::units::object_find_nearest_biped(int32_t reference_object_index)
  *
  * @address 0x56bdc0
  */
-int32_t halo::units::object_find_next_untargeted(int32_t starting_object_index)
+int32_t object_find_next_untargeted(int32_t starting_object_index)
 {
     int32_t result = -1;
     if (starting_object_index != -1) {
-        object_iterator iter = { _object_mask_unit, 0, 0, 0, k_datum_index_none };
+        object_iterator iter = { _object_mask_unit, 0, 0, 0, (datum_index)k_datum_index_none };
         object *obj = halo::objects::object_iterator_next(&iter);
         while ((obj != nullptr) && ((int32_t)iter.handle != starting_object_index)) {
             obj = halo::objects::object_iterator_next(&iter);
@@ -78,7 +78,7 @@ int32_t halo::units::object_find_next_untargeted(int32_t starting_object_index)
     }
 
     {
-        object_iterator iter = { _object_mask_unit, 0, 0, 0, k_datum_index_none };
+        object_iterator iter = { _object_mask_unit, 0, 0, 0, (datum_index)k_datum_index_none };
         object *obj = halo::objects::object_iterator_next(&iter);
         while (obj != nullptr) {
             unit_data *unit = halo::units::unit_data_of(obj);

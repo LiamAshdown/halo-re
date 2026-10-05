@@ -911,7 +911,7 @@ uint8_t UnitView::has_weapon_of_type(int32_t weapon_group_tag)
  *
  * @address 0x56d070
  */
-void halo::units::unit_inventory_get_weapon(void)
+void unit_inventory_get_weapon(void)
 {
     return;
 }
@@ -924,7 +924,7 @@ void halo::units::unit_inventory_get_weapon(void)
  *
  * @address 0x56da80
  */
-uint8_t halo::units::unit_lacks_weapon_type_of(uint32_t reference_object_index, uint32_t unit_index)
+uint8_t unit_lacks_weapon_type_of(uint32_t reference_object_index, uint32_t unit_index)
 {
     object *reference_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(reference_object_index)].data;
     object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
@@ -947,7 +947,7 @@ uint8_t halo::units::unit_lacks_weapon_type_of(uint32_t reference_object_index, 
  *
  * @address 0x565b00
  */
-uint8_t halo::units::unit_local_player_weapon_flag_check(void)
+uint8_t unit_local_player_weapon_flag_check(void)
 {
     if (local_player_globals->local_player_count == 1) {
         int32_t slot = -1;
@@ -1023,7 +1023,7 @@ void UnitView::pick_and_ready_next_weapon()
  *
  * @address 0x56d400
  */
-uint8_t halo::units::unit_pickup_weapon(int16_t pickup_mode, uint32_t weapon_index, uint32_t unit_index)
+uint8_t unit_pickup_weapon(int16_t pickup_mode, uint32_t weapon_index, uint32_t unit_index)
 {
     object *unit_obj = halo::objects::object_try_and_get(unit_index, _object_mask_unit);
     object *weapon_obj = halo::objects::object_try_and_get(weapon_index, _object_mask_weapon);
@@ -1353,7 +1353,7 @@ typedef struct unit_set_or_drop_weapon_message {
  *
  * @address 0x56ddb0
  */
-void halo::units::unit_scripting_set_or_drop_weapon(message_delta_context *context)
+void unit_scripting_set_or_drop_weapon(message_delta_context *context)
 {
     using namespace unit_scripting_set_or_drop_weapon_local;
     unit_set_or_drop_weapon_message decoded;
@@ -1500,7 +1500,7 @@ void UnitView::throw_grenade_move_to_hand()
  *
  * @address 0x571b40
  */
-void halo::units::unit_throw_grenade_release(void)
+void unit_throw_grenade_release(void)
 {
 }
 
@@ -1512,7 +1512,7 @@ void halo::units::unit_throw_grenade_release(void)
  *
  * @address 0x56d080
  */
-uint8_t halo::units::unit_try_give_grenade(uint32_t tag_source_index, uint32_t unit_index)
+uint8_t unit_try_give_grenade(uint32_t tag_source_index, uint32_t unit_index)
 {
     Equipment *tag_data = halo::objects::tag_as<Equipment>(((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(tag_source_index)].data->definition_tag);
     int16_t grenade_type = tag_data->grenade_type;
@@ -1680,7 +1680,7 @@ uint8_t UnitView::try_select_equipment(uint32_t new_equipment_object_index, int1
  *
  * @address 0x56dae0
  */
-uint8_t halo::units::unit_weapon_is_best_of_type(uint32_t reference_weapon_index, uint32_t unit_index)
+uint8_t unit_weapon_is_best_of_type(uint32_t reference_weapon_index, uint32_t unit_index)
 {
     object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
     unit_data *unit = halo::units::unit_data_of(unit_obj);

@@ -31,7 +31,12 @@ namespace {
     StdString(&message).assign_n(text, count);
     ParseException(&exception).construct(&message);
     exception.vtable = (uint32_t)vtable_address;
+#if defined(_MSC_VER)
     _CxxThrowException(&exception, (_ThrowInfo *)throw_info);
+#else
+    (void)throw_info;  // no MSVC exception runtime: the C++ library's length / range errors end the program
+    __builtin_trap();
+#endif
 }
 
 }

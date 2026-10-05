@@ -18,7 +18,7 @@
 #include "halo/hs/vars.hpp"
 #include "halo/interface/vars.hpp"
 
-static auto &director_camera_mode = halo::link::ref<int16_t>(halo::hs::vars().director_camera_mode);
+static auto &director_camera_mode_value = halo::link::ref<int16_t>(halo::hs::vars().director_camera_mode);
 static auto &director_camera_target = halo::link::ref<datum_index>(halo::hs::vars().director_camera_target);
 static auto &camera_script_time_remaining = halo::link::ref<float>(halo::hs::vars().camera_script_time_remaining);
 static auto &split_screen_quit_prompt_string = halo::link::ref<uint16_t>(halo::ui::vars().split_screen_quit_prompt_string);
@@ -90,7 +90,7 @@ void CameraCommands::camera_set_dead(int16_t function_index, uint32_t thread_ind
 
     if (arguments != 0) {
         if ((uint32_t)arguments[0] != halo::k_dword_none) {
-            director_camera_mode = 3;
+            director_camera_mode_value = 3;
             halo::hs::fields::director_camera_target_changed = 1;
             director_camera_target = (datum_index)arguments[0];
         }
@@ -111,7 +111,7 @@ void CameraCommands::camera_set_first_person(int16_t function_index, uint32_t th
 
     if (arguments != 0) {
         if ((uint32_t)arguments[0] != halo::k_dword_none) {
-            director_camera_mode = 2;
+            director_camera_mode_value = 2;
             halo::hs::fields::director_camera_target_changed = 1;
             director_camera_target = (datum_index)arguments[0];
         }

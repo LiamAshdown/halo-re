@@ -31,7 +31,7 @@ namespace halo::units {
  *
  * @address 0x56f210
  */
-void halo::units::unit_trigger_material_hit_effect(int16_t material_index, datum_index unit_tag_id, datum_index object_index)
+void unit_trigger_material_hit_effect(int16_t material_index, datum_index unit_tag_id, datum_index object_index)
 {
     uint8_t *material_record;
 

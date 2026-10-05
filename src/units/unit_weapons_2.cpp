@@ -43,7 +43,7 @@ typedef struct vehicle_network_create_message {
  *
  * @address 0x572110
  */
-void halo::units::unit_spawn_with_starting_weapons(void *command_record)
+void unit_spawn_with_starting_weapons(void *command_record)
 {
     using namespace unit_spawn_with_starting_weapons_local;
     vehicle_network_create_message message;

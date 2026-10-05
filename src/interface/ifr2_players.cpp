@@ -394,7 +394,7 @@ void PlayerProfiles::one_wide_list_update(widget_instance *widget)
         {
             int32_t count = widget->item_count;
             int32_t valid = 0;
-            qsort(ids, (uint32_t)count, 4, (_CoreCrtNonSecureSearchSortCompareFunction)(halo::interface::ui_carousel_slot_compare_valid_first));
+            qsort(ids, (uint32_t)count, 4, (int (*)(const void *, const void *))(halo::interface::ui_carousel_slot_compare_valid_first));
             while (valid < count && ids[valid] != -1) {
                 valid++;
             }

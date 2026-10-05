@@ -11,7 +11,11 @@
 #pragma once
 
 // types/ shadows <math.h> on the include path, so the CRT declarations <cmath> expects must already be present.
+#if defined(_MSC_VER)
 #include <corecrt_math.h>
+#else
+#include <math.h>  // other compilers put types/ on the quote-only include path (-iquote)
+#endif
 
 #ifndef GLM_FORCE_PURE
 #define GLM_FORCE_PURE

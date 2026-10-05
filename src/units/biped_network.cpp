@@ -14,7 +14,7 @@ namespace halo::units {
  *
  * @address 0x55e9ff
  */
-void halo::units::biped_build_update_delta_unit_grenade_count_mod1(uint32_t flags, object *object_base, float magnitude, float dir_x, float dir_y, float dir_z, char already_idle, uint8_t *state_out)
+void biped_build_update_delta_unit_grenade_count_mod1(uint32_t flags, object *object_base, float magnitude, float dir_x, float dir_y, float dir_z, char already_idle, uint8_t *state_out)
 {
     unit_data *unit = halo::units::unit_data_of(object_base);
 

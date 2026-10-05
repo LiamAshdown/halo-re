@@ -51,7 +51,7 @@ namespace halo::units {
  *
  * @address 0x56c370
  */
-void halo::units::unit_dispatch_scripted_event_9(uint8_t event_byte, int32_t hash_key)
+void unit_dispatch_scripted_event_9(uint8_t event_byte, int32_t hash_key)
 {
     int32_t looked_up = 0;
     if (hash_key != -1) {

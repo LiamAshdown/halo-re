@@ -574,7 +574,7 @@ void UnitView::melee_lunge_damage_tick()
  *
  * @address 0x56ff40
  */
-void halo::units::unit_process_melee_special_interaction(uint32_t attacker_index, uint32_t target_index, uint32_t node_pair, uint32_t region_pair, uint32_t material, real_point3d *contact_point, real_plane3d *contact_plane, bsp_leaf_reference *contact_leaf)
+void unit_process_melee_special_interaction(uint32_t attacker_index, uint32_t target_index, uint32_t node_pair, uint32_t region_pair, uint32_t material, real_point3d *contact_point, real_plane3d *contact_plane, bsp_leaf_reference *contact_leaf)
 {
     unit_object *attacker = reinterpret_cast<unit_object *>(halo::objects::object_record_bytes(attacker_index));
     uint32_t unit_flags = halo::objects::tag_as<Unit>(*(datum_index *)attacker)->unit_flags;

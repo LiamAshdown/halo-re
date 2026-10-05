@@ -17,7 +17,7 @@ namespace halo::units {
  *
  * @address 0x56ec10
  */
-uint16_t halo::units::unit_reset_light_effect(animation_state *state, uint32_t animation_graph_tag_index, datum_index object_index)
+uint16_t unit_reset_light_effect(animation_state *state, uint32_t animation_graph_tag_index, datum_index object_index)
 {
     int32_t sound_tag_id;
     uint16_t result = halo::models::animation_state_advance(animation_graph_tag_index, state, &sound_tag_id, _animation_random_global);

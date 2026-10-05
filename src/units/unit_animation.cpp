@@ -85,7 +85,7 @@ namespace halo::units {
  *
  * @address 0x561fe0
  */
-void halo::units::unit_ai_update_stagger_allocate(void)
+void unit_ai_update_stagger_allocate(void)
 {
     uint8_t *block = halo::saved_games::globals().game_state_base + halo::saved_games::globals().game_state_cursor;
     int32_t size = 8;
@@ -101,7 +101,7 @@ void halo::units::unit_ai_update_stagger_allocate(void)
  *
  * @address 0x562020
  */
-void halo::units::unit_ai_update_stagger_reset(void)
+void unit_ai_update_stagger_reset(void)
 {
     ai_update_stagger->threshold = 0;
     ai_update_stagger->highest = 0;
@@ -190,7 +190,7 @@ int32_t UnitView::animation_change_priority_check(uint8_t follow_fallback, int16
  *
  * @address 0x569450
  */
-void halo::units::unit_animation_set_state(void)
+void unit_animation_set_state(void)
 {
     return;
 }
@@ -200,7 +200,7 @@ void halo::units::unit_animation_set_state(void)
  *
  * @address 0x565d60
  */
-uint8_t halo::units::unit_animation_state_allows_parent_ik(const unit_data &unit)
+uint8_t unit_animation_state_allows_parent_ik(const unit_data &unit)
 {
     int32_t state = (int32_t)unit.animation_state;
 
@@ -219,7 +219,7 @@ uint8_t halo::units::unit_animation_state_allows_parent_ik(const unit_data &unit
  *
  * @address 0x565d00
  */
-uint8_t halo::units::unit_animation_state_allows_weapon_ik(const unit_data &unit)
+uint8_t unit_animation_state_allows_weapon_ik(const unit_data &unit)
 {
     uint8_t result = unit.overlays[2].animation_index == -1;
     int32_t state = (int32_t)unit.animation_state;
@@ -246,7 +246,7 @@ uint8_t halo::units::unit_animation_state_allows_weapon_ik(const unit_data &unit
  *
  * @address 0x565da0
  */
-int32_t halo::units::unit_animation_state_from_seat_type(int16_t animation_state)
+int32_t unit_animation_state_from_seat_type(int16_t animation_state)
 {
     switch (animation_state_id(animation_state)) {
     case unit_animation_state_id::idle:
@@ -287,7 +287,7 @@ int32_t halo::units::unit_animation_state_from_seat_type(int16_t animation_state
  *
  * @address 0x565be0
  */
-uint8_t halo::units::unit_animation_state_is_compatible(const unit_data &unit, int16_t requested_state)
+uint8_t unit_animation_state_is_compatible(const unit_data &unit, int16_t requested_state)
 {
     switch (animation_state_id(unit.animation_state)) {
     case unit_animation_state_id::turn_in_place_a:
@@ -323,7 +323,7 @@ uint8_t halo::units::unit_animation_state_is_compatible(const unit_data &unit, i
  *
  * @address 0x56eb90
  */
-int16_t halo::units::unit_base_animation_state_from_name(const char *name)
+int16_t unit_base_animation_state_from_name(const char *name)
 {
     int16_t index;
 
@@ -672,7 +672,7 @@ uint8_t UnitView::is_in_busy_animation_state()
  *
  * @address 0x5692b0
  */
-int32_t halo::units::unit_map_action_command_to_animation_state(int16_t command, int16_t *out_priority)
+int32_t unit_map_action_command_to_animation_state(int16_t command, int16_t *out_priority)
 {
     int32_t state = -1;
     switch (command) {
@@ -1021,7 +1021,7 @@ uint8_t UnitView::start_user_animation(datum_index graph_tag, const char *animat
  *
  * @address 0x565c60
  */
-uint8_t halo::units::unit_state_is_scripted_animation(unit_data *unit)
+uint8_t unit_state_is_scripted_animation(unit_data *unit)
 {
     if (is_scripted_animation_state(animation_state_id(unit->animation_state))) {
         return 1;
@@ -1180,7 +1180,7 @@ uint8_t UnitView::try_start_scripted_action_animation(int16_t command, const rea
  *
  * @address 0x56c470
  */
-uint8_t halo::units::unit_try_start_seat_exit_animation(uint8_t force_flag, uint32_t unit_index)
+uint8_t unit_try_start_seat_exit_animation(uint8_t force_flag, uint32_t unit_index)
 {
     unit_object *self = reinterpret_cast<unit_object *>(halo::objects::object_try_and_get(unit_index, 3));
     datum_index vehicle_index;
