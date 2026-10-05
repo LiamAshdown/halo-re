@@ -18,6 +18,16 @@
   #loading .bar { width: min(420px, 80vw); height: 6px; background: #234; border-radius: 3px; overflow: hidden; }
   #loading.corner .bar { width: 160px; }
   #loading .fill { height: 100%; width: 0; background: #6ad; transition: width 0.2s; }
+  #fullscreen { position: fixed; top: 12px; right: 12px; display: none; font: inherit; font-size: 12px; padding: 6px 10px; background: #000a; color: #9ab; border: 1px solid #345; border-radius: 4px; cursor: pointer; opacity: 0.6; }
+  #fullscreen:hover { opacity: 1; }
+  #fullscreen.shown { display: block; }
+  :fullscreen #fullscreen { display: none; }
+  #notice { position: fixed; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background: #000d; text-align: center; padding: 16px; }
+  #notice.shown { display: flex; }
+  #notice h2 { margin: 0; color: #def; font-weight: 500; }
+  #notice p { margin: 0; max-width: 520px; }
+  #notice small { color: #567; max-width: 520px; overflow-wrap: anywhere; }
+  #notice button { font: inherit; padding: 10px 28px; background: #234; color: #def; border: 1px solid #456; border-radius: 4px; cursor: pointer; }
 </style>
 </head>
 <body>
@@ -27,19 +37,76 @@
   <button id="play" disabled>Play</button>
 </div>
 <div id="loading"><div id="loading-text"></div><div class="bar"><div class="fill"></div></div></div>
+<button id="fullscreen" title="Fullscreen also lets the game use Esc and Ctrl (Chrome/Edge)">Fullscreen</button>
+<div id="notice"><h2 id="notice-title"></h2><p id="notice-text"></p><small id="notice-detail"></small><button id="notice-reload">Reload</button></div>
 <script>
+  // Something the visitor can act on instead of a black screen: an unsupported browser, or the game stopping.
+  const confirmLeave = (event) => { event.preventDefault(); event.returnValue = ''; };
+  const notice = (title, text, detail = '', reload = true) => {
+    if (document.getElementById('notice').classList.contains('shown')) return;
+    document.getElementById('notice-title').textContent = title;
+    document.getElementById('notice-text').textContent = text;
+    document.getElementById('notice-detail').textContent = detail;
+    document.getElementById('notice-reload').style.display = reload ? '' : 'none';
+    document.getElementById('notice').classList.add('shown');
+    window.removeEventListener('beforeunload', confirmLeave);
+    if (document.pointerLockElement) document.exitPointerLock();
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  };
+  document.getElementById('notice-reload').addEventListener('click', () => location.reload());
+  const crashed = (detail) => notice('The game stopped unexpectedly', 'Reload the page to start again.', String(detail || '').slice(0, 300));
+  const isCrash = (text) => /^Aborted\(|RuntimeError|unreachable executed|memory access out of bounds/.test(String(text));
+  window.addEventListener('error', (event) => {
+    if (/requires (Chrome|Firefox|Safari)/.test(event.message)) {  // emscripten's own browser version check
+      notice('This browser is too old', 'Use a current version of Chrome, Edge or Firefox.', event.message, false);
+    } else if (isCrash(event.message) || event.error instanceof WebAssembly.RuntimeError) {
+      crashed(event.message);
+    }
+  });
+  const unsupported = () => {
+    if (/Android|iPhone|iPad|iPod|Mobi/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 0 && !matchMedia('(pointer: fine)').matches)) {
+      return 'Halo needs a keyboard and mouse: open this page on a desktop or laptop.';
+    }
+    if (!window.crossOriginIsolated || typeof SharedArrayBuffer === 'undefined' || !('transferControlToOffscreen' in HTMLCanvasElement.prototype)) {
+      return 'This browser lacks features the game needs (threads and offscreen rendering). Use a current Chrome, Edge or Firefox.';
+    }
+    if (!document.createElement('canvas').getContext('webgl2')) {
+      return 'WebGL 2 is unavailable: turn on hardware acceleration in your browser settings, or update your graphics drivers.';
+    }
+    return '';
+  };
   // The module starts on a click: browsers only allow sound and pointer lock after one.
   const status = document.getElementById('status');
   const play = document.getElementById('play');
+  const problem = unsupported();
+  const gameStopped = (message) => {
+    if (/profile files/.test(message)) {
+      notice("Halo couldn't open its save files",
+        'It is probably already open in another tab or window: close it there, then reload. Private or incognito windows ' +
+        "can't store save files either.", message);
+    } else {
+      notice('The game stopped', 'Reload the page to start again.', message);
+    }
+  };
   var Module = {
     canvas: document.getElementById('canvas'),
     noInitialRun: true,  // main() runs on the click, once the manifest is in
     print: (text) => console.log(text),
-    printErr: (text) => console.warn(text),
+    printErr: (text) => {  // workers' aborts and the game's fatal error messages arrive here
+      console.warn(text);
+      const fatal = /^\[Halo - Fatal Error\] (.*)/.exec(text);
+      if (fatal) gameStopped(fatal[1]);  // the game exits right after; its runtime stays up, so onExit may not run
+      if (isCrash(text)) crashed(text);
+    },
+    onAbort: (what) => crashed(what),
+    onExit: (code) => { if (code !== 0) gameStopped(`Exit code ${code}`); },
     setStatus: (text) => { if (text) status.textContent = text; },
   };
+  if (problem) {
+    notice('Can\'t run here', problem, '', false);
+  }
   let ready = 0;  // 1 runtime initialised, 2 manifest loaded: Play needs both
-  const enable = () => { if (++ready === 2) { status.textContent = 'Ready.'; play.disabled = false; } };
+  const enable = () => { if (++ready === 2 && !problem) { status.textContent = 'Ready.'; play.disabled = false; } };
   Module.onRuntimeInitialized = enable;
   fetch('halo/manifest.json')
     .then((response) => { if (!response.ok) throw new Error(response.status); return response.text(); })
@@ -82,11 +149,37 @@
       downloaded = cached = 0;
     }, 2000);
   };
-  play.addEventListener('click', () => {
+  // Fullscreen with the keyboard locked hands Esc and Ctrl+W to the game instead of the browser (Chrome/Edge;
+  // holding Esc still leaves). Elsewhere the leave-page prompt catches an accidental close.
+  const fullscreenButton = document.getElementById('fullscreen');
+  fullscreenButton.addEventListener('click', async () => {
+    try {
+      await document.documentElement.requestFullscreen({ navigationUI: 'hide' });
+      await navigator.keyboard?.lock?.();
+    } catch {}
+    Module.canvas.focus();
+  });
+  document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement) navigator.keyboard?.unlock?.(); });
+  // One game per browser: a second copy can't open the profile and save files (browser storage lets one tab have
+  // them). The held lock also keeps the browser from freezing this tab while hidden, so a host keeps serving players.
+  const takeGameLock = () => new Promise((resolve) => {
+    if (!navigator.locks) return resolve(true);
+    navigator.locks.request('halo-game', { ifAvailable: true }, (lock) => {
+      resolve(lock !== null);
+      return lock ? new Promise(() => {}) : undefined;
+    });
+  });
+  play.addEventListener('click', async () => {
+    if (!await takeGameLock()) {
+      notice('Halo is already open', 'Close Halo in your other tabs or windows, then reload this page.');
+      return;
+    }
     Module.haloCdKey = playerKey();
     loading.classList.add('active');
     loadingText.textContent = 'Starting...';
     document.getElementById('start').remove();
+    fullscreenButton.classList.add('shown');
+    window.addEventListener('beforeunload', confirmLeave);
     Module.canvas.focus();
     Module.callMain([]);
   });
