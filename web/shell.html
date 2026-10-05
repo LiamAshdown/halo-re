@@ -149,15 +149,39 @@
       downloaded = cached = 0;
     }, 2000);
   };
-  // Fullscreen with the keyboard locked hands Esc and Ctrl+W to the game instead of the browser (Chrome/Edge;
-  // holding Esc still leaves). Elsewhere the leave-page prompt catches an accidental close.
+  // Fullscreen locks every key except Esc, so Ctrl+W and friends reach the game (Chrome/Edge) while Esc still frees
+  // the mouse. Elsewhere the leave-page prompt catches an accidental close.
+  const lockedKeys = [
+    ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map((c) => 'Key' + c),
+    ...'0123456789'.split('').map((d) => 'Digit' + d),
+    ...Array.from({ length: 12 }, (_, i) => 'F' + (i + 1)).filter((f) => f !== 'F11'),
+    'Tab', 'Space', 'Enter', 'Backspace', 'Backquote', 'Minus', 'Equal', 'BracketLeft', 'BracketRight', 'Backslash',
+    'Semicolon', 'Quote', 'Comma', 'Period', 'Slash', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
+    'ControlLeft', 'ControlRight', 'AltLeft', 'AltRight', 'ShiftLeft', 'ShiftRight', 'MetaLeft', 'MetaRight',
+  ];
   const fullscreenButton = document.getElementById('fullscreen');
   fullscreenButton.addEventListener('click', async () => {
     try {
       await document.documentElement.requestFullscreen({ navigationUI: 'hide' });
-      await navigator.keyboard?.lock?.();
+      await navigator.keyboard?.lock?.(lockedKeys);
     } catch {}
     Module.canvas.focus();
+  });
+  // Esc (or Alt+Tab) frees the mouse instead of reaching the game, so losing the mouse mid-game presses Esc for it:
+  // the pause menu opens, and a click on the game captures the mouse again. A real Esc the game already saw (a
+  // browser that delivers it as well) is not doubled.
+  let lastRealEscape = 0;
+  window.addEventListener('keydown', (event) => { if (event.isTrusted && event.code === 'Escape') lastRealEscape = performance.now(); }, true);
+  const pressEscape = () => {
+    const key = { key: 'Escape', code: 'Escape', keyCode: 27, which: 27, bubbles: true };
+    window.dispatchEvent(new KeyboardEvent('keydown', key));
+    setTimeout(() => window.dispatchEvent(new KeyboardEvent('keyup', key)), 100);  // held long enough for a game tick
+  };
+  document.addEventListener('pointerlockchange', () => {
+    const playing = !document.getElementById('start') && !document.getElementById('notice').classList.contains('shown');
+    if (!document.pointerLockElement && playing && performance.now() - lastRealEscape > 200) {
+      pressEscape();
+    }
   });
   document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement) navigator.keyboard?.unlock?.(); });
   // One game per browser: a second copy can't open the profile and save files (browser storage lets one tab have
