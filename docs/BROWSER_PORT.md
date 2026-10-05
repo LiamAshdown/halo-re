@@ -28,7 +28,17 @@ Still Windows-only, from a survey at commit e3038f5c:
 Browser bring-up (later on 2026-10-05, branch browser-port):
 - The web build boots in Chrome at -O3, streams the maps from `tools/serve_web.py` and runs the main loop.
 - At -O1 and above, an empty spin in `structure_bsp_loader::load` hung forever. It was found with `-DHALO_WEB_O0_SOURCES="dir/*.cpp;..."`, which compiles the listed files at -O0 for bisecting.
-- Not yet checked by eye: menu rendering, input, audio and save persistence.
+- User-tested in Chrome: the main menu, a new profile and the Campaign start of a10 play, with input, sound and a good frame rate. a10's flashing calibration lights work.
+- Fixes on the way:
+  - the data image keeps MSVC's cross-file section order (main_globals);
+  - the canvas follows the window size;
+  - the audio device stays open;
+  - set_profile_name gets its EBX widget;
+  - /halo is a memory tree of symlinks into the fetch tree at /.server, so files the game creates are writable;
+  - debug.txt goes to the console;
+  - GL occlusion queries begin and end the right way round (this also fixes lens flares in desktop GL).
+- Run it with `python tools/serve_web.py --web build/web --halo "<Halo folder>" --fx build/cxx/Release/override/shaders/fx.bin`, then open http://127.0.0.1:8080/?args=-novideo. Only one tab at a time, since OPFS locks the profile files.
+- Not yet checked: saves surviving a reload, campaign beyond a10's start, and multiplayer.
 
 ## Milestones
 
