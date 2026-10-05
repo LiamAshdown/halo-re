@@ -304,7 +304,7 @@ void halo::saved_games::PlayerProfile::initialize(int32_t local_player_index, ui
     profile->unknown_ebe = 0;
     profile->server_maximum_players_index = 3;
     profile->join_server_address[0] = 0;
-    profile->connection_type = 1;
+    profile->connection_type = k_default_connection_type;
     profile->server_port = k_default_server_port;
     profile->client_port = k_default_client_port;
 
@@ -445,7 +445,7 @@ void halo::saved_games::PlayerProfile::set_default_server_options()
     profile->unknown_ebe = 0;
     profile->server_maximum_players_index = 3;
     profile->join_server_address[0] = 0;
-    profile->connection_type = 1;
+    profile->connection_type = k_default_connection_type;
     profile->server_port = k_default_server_port;
     profile->client_port = k_default_client_port;
 }

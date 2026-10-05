@@ -69,6 +69,13 @@ inline constexpr int16_t k_default_low_screen_height = 480;
 inline constexpr int16_t k_default_refresh_rate = 60;
 inline constexpr uint16_t k_default_server_port = 2302;
 inline constexpr uint16_t k_default_client_port = 2303;
+/** Connection type (0 56k .. 4 T1/LAN): sent when joining and caps the host's send rate to us. Retail defaults to
+    DSL/cable low (140 kbit/s); the browser build's games run through a server relay, so it starts at T1/LAN. */
+#if defined(__EMSCRIPTEN__)
+inline constexpr uint8_t k_default_connection_type = 4;
+#else
+inline constexpr uint8_t k_default_connection_type = 1;
+#endif
 
 /** Byte size of one game state header or pool header block (data_array and memory_pool share it). */
 inline constexpr int32_t k_game_state_block_header_size = 0x38;
