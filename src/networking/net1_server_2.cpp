@@ -471,6 +471,30 @@ char ServerView::service_machines_tick()
     char skip_timeout_check;
 
     ok = 1;
+#if defined(__EMSCRIPTEN__)
+    {
+        // Web diagnostic: every 5 s, each machine's timer / join / channel-idle state.
+        static uint32_t last_report;
+        large_integer counter;
+        uint32_t now;
+
+        halo::platform::read_performance_counter(&counter);
+        now = (uint32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
+        if (now - last_report > 5000) {
+            last_report = now;
+            for (i = 0; i < 16; i = i + 1) {
+                network_machine *m = &server->machines[i];
+
+                if (m->machine_id != -1) {
+                    fprintf(stderr, "web: machine %d id=%d timer=%d joined=%d removed=%d flags=%x channel_idle=%dms channel_flags=%x connected=%d\n", i,
+                        m->machine_id, m->disconnect_timer_active, m->player_joined, m->players_removed_broadcast, m->flags,
+                        m->channel != 0 ? (int)(now - (uint32_t)m->channel->last_activity_ms) : -1, m->channel != 0 ? (unsigned)m->channel->flags : 0u,
+                        m->channel != 0 ? (int)m->channel->connected : -1);
+                }
+            }
+        }
+    }
+#endif
     for (i = 0; i < 16; i = i + 1) {
         network_machine *machine;
 
@@ -499,11 +523,21 @@ char ServerView::service_machines_tick()
                 }
 
                 if (!proceed) {
+#if defined(__EMSCRIPTEN__)
+                    // Web diagnostic: why the server gave up on a machine's channel.
+                    fprintf(stderr, "web: machine %d channel down: flags=%x endpoint=%p endpoint_flags=%x\n", i,
+                        (unsigned)channel->flags, (void *)channel->endpoint, channel->endpoint != 0 ? (unsigned)channel->endpoint->flags : 0u);
+#endif
                     halo::networking::network_machine_timer_start(machine, 0);
                 } else {
                     char drained;
 
                     drained = halo::networking::network_channel_drain_bitstream(server, machine);
+#if defined(__EMSCRIPTEN__)
+                    if (drained == 0) {
+                        fprintf(stderr, "web: machine %d: draining its messages failed\n", i);
+                    }
+#endif
                     if (drained == 0) {
                         halo::networking::network_machine_timer_start(machine, 0);
                     }
@@ -559,10 +593,10 @@ char ServerView::broadcast_to_flagged(int32_t body_bit_count, int32_t status_bit
             (connected != 1 || force != 0) &&
             channel != 0 &&
             (channel->flags & 0x10) == 0) {
-            uint8_t status;
+            uint32_t status;  // a whole dword: bit_stream_write_bits_chunked reads its source a dword at a time
             char sent;
 
-            status = (uint8_t)(status_bit != 0);
+            status = (uint32_t)(status_bit != 0);
             sent = halo::networking::network_channel_queue_message(channel, (uint32_t)data, (uint32_t)&status, 1, (char)immediate,
                                                  (char)flush_after, body_bit_count);
             if (sent == 0) {
@@ -591,12 +625,12 @@ uint8_t ServerView::send_to_machine(int32_t machine_id, uint32_t status_bit, voi
     for (i = 0; i < 16; i = i + 1) {
         if (server->machines[i].machine_id == machine_id) {
             network_channel *channel = server->machines[i].channel;
-            uint8_t status;
+            uint32_t status;  // a whole dword: bit_stream_write_bits_chunked reads its source a dword at a time
 
             if (channel == 0 || (channel->connected == 1 && force == 0)) {
                 return 0;
             }
-            status = (uint8_t)(status_bit != 0);
+            status = (uint32_t)(status_bit != 0);
             return (uint8_t)halo::networking::network_channel_queue_message(channel, (uint32_t)data, (uint32_t)&status, 1,
                                                           (char)reliable, (char)unknown_a, (int32_t)body_bit_count);
         }

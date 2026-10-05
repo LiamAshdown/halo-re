@@ -5,6 +5,7 @@
 #include "halo/core/link.hpp"
 #include "halo/networking/vars.hpp"
 #include "../gamespy/gamespy_calls.hpp"
+#include <stdio.h>
 
 static auto &network_query_socket = halo::link::ref<int32_t>(halo::networking::vars().network_query_socket);
 static auto &network_game_socket = halo::link::ref<int32_t>(halo::networking::vars().network_game_socket);
@@ -54,6 +55,9 @@ int16_t ReceiveQueueView::attempt_connect(s_network_address *address, int32_t un
         connect_result = gt2Connect((void *)socket, (void **)&queue->socket, address_buf,
                                     (const unsigned char *)&unused_param_1, 4, (unsigned long)network_connect_timeout_ms,
                                     callbacks, 0);
+#if defined(__EMSCRIPTEN__)
+        fprintf(stderr, "web: gt2Connect %s query_socket=%d result=%d\n", address_buf, use_query_socket, connect_result);
+#endif
         if (connect_result == 0) {
             queue->connection_failed = 0;
             gt2SetConnectionData((int32_t)queue->socket, queue);

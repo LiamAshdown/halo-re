@@ -39,11 +39,12 @@ namespace halo::game::engine1 {
  */
 void Notifications::notify_object_value_event(uint8_t value_byte, int32_t hash_key, int32_t machine_index, void *subject)
 {
-    struct { uint8_t value_byte; int32_t hash_result; void *subject; } fields;
+    struct { uint8_t value_byte; int32_t hash_key; int32_t hash_result; void *subject; } fields;  // as the decoder reads it
     void *fields_ptr;
     int32_t encoded_bits;
 
     fields.value_byte = value_byte;
+    fields.hash_key = hash_key;
     fields.hash_result = 0;
     if (hash_key != -1) {
         fields.hash_result = halo::objects::hash_table_get(&machine_table->id_to_index, (int32_t)hash_key);
@@ -57,7 +58,7 @@ void Notifications::notify_object_value_event(uint8_t value_byte, int32_t hash_k
     encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, halo::networking::message_id(halo::networking::delta_message::object_value_event), 0, &fields_ptr, 0, 1, 0);
     if (0 < encoded_bits) {
         if (machine_index == -1) {
-            halo::networking::network_session_broadcast_to_flagged(encoded_bits, halo::networking::globals().server, 1, &shared_hud_text_draw_state, 0, 0, 0, 0);
+            halo::networking::network_session_broadcast_to_flagged(encoded_bits, halo::networking::globals().server, 1, &shared_hud_text_draw_state, 1, 0, 0, 3);
             return;
         }
         halo::networking::network_session_send_to_machine(machine_index, halo::networking::globals().server, 1, &shared_hud_text_draw_state, encoded_bits, 1, 0, 0, 3);

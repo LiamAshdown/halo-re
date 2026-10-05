@@ -14,7 +14,7 @@ public:
     explicit equipment_ref(datum_index value) : datum(value) {}
 
     void apply_network_update(uint32_t *update_record);
-    void build_creation_message(uint32_t unused_arg2, uint32_t unused_arg3, uint32_t object_flags);
+    int32_t build_creation_message(uint32_t unused_arg2, uint32_t unused_arg3, uint32_t object_flags);
     int32_t build_network_update(uint32_t unused_arg2, uint32_t unused_arg3, int32_t update_type);
     static void create_from_creation_message(void *incoming_record);
     static void definition_play_pickup_sound(uint32_t equipment_tag_id);
@@ -23,7 +23,7 @@ public:
     uint8_t create();
     void new_from_placement(ScenarioEquipment *placement);
     void pickup_play_sound();
-    void send_creation(uint32_t arg2, uint32_t arg3);
+    int32_t send_creation(uint32_t arg2, uint32_t arg3);
 
     datum_index datum;
 };

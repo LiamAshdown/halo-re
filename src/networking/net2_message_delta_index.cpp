@@ -140,10 +140,12 @@ uint8_t IndexFieldCodec::index_initialize(message_delta_field_type *field_type)
         int32_t *table;
 
         halo::objects::hash_table_initialize((hash_table *)(descriptor + 3), descriptor[1]);
-        table = (int32_t *)halo::platform::heap_allocate(0, descriptor[0] * 4);
+        // One spare slot: the wire field is sized for descriptor[0] + 1 values, so id == descriptor[0]
+        // decodes fine and the unchecked handles[id] readers would overrun (the original reads heap junk).
+        table = (int32_t *)halo::platform::heap_allocate(0, (descriptor[0] + 1) * 4);
         descriptor[10] = (int32_t)table;
         descriptor[9] = 0;
-        memset(table, 0xff, descriptor[0] * 4);
+        memset(table, 0xff, (descriptor[0] + 1) * 4);
         halo::objects::hash_table_set_or_remove((hash_table *)(descriptor + 3), -1, 0);
         *(int32_t *)descriptor[10] = 1;
     }

@@ -211,17 +211,19 @@ int32_t ScalarFieldCodec::integer_decode(message_delta_field_type *field_type, v
 
 int32_t ScalarFieldCodec::integer_encode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream)
 {
+    // Narrow fields are widened into a local first: the original passed the field address as a dword, which reads
+    // past a 16-bit field that ends its message (weapon_magazine_ammo_message is 10 bytes).
     switch (*(int32_t *)field_type->array_descriptor) {
     case 0:
         if (previous != 0 && *(uint8_t *)previous == *(uint8_t *)current) {
             return 0;
         }
-        return halo::memory::bit_stream_write_bits_chunked(stream, (const uint32_t *)current, 8);
+        { uint32_t value = *(uint8_t *)current; return halo::memory::bit_stream_write_bits_chunked(stream, &value, 8); }
     case 1:
         if (previous != 0 && *(uint16_t *)previous == *(uint16_t *)current) {
             return 0;
         }
-        return halo::memory::bit_stream_write_bits_chunked(stream, (const uint32_t *)current, 16);
+        { uint32_t value = *(uint16_t *)current; return halo::memory::bit_stream_write_bits_chunked(stream, &value, 16); }
     case 2:
         if (previous != 0 && *(uint32_t *)previous == *(uint32_t *)current) {
             return 0;
@@ -231,22 +233,22 @@ int32_t ScalarFieldCodec::integer_encode(message_delta_field_type *field_type, v
         if (previous != 0 && *(uint8_t *)previous == *(uint8_t *)current) {
             return 0;
         }
-        return halo::memory::bit_stream_write_bits_chunked(stream, (const uint32_t *)current, 1);
+        { uint32_t value = *(uint8_t *)current; return halo::memory::bit_stream_write_bits_chunked(stream, &value, 1); }
     case 4:
         if (previous != 0 && *(uint8_t *)previous == *(uint8_t *)current) {
             return 0;
         }
-        return halo::memory::bit_stream_write_bits_chunked(stream, (const uint32_t *)current, 3);
+        { uint32_t value = *(uint8_t *)current; return halo::memory::bit_stream_write_bits_chunked(stream, &value, 3); }
     case 5:
         if (previous != 0 && *(uint8_t *)previous == *(uint8_t *)current) {
             return 0;
         }
-        return halo::memory::bit_stream_write_bits_chunked(stream, (const uint32_t *)current, 5);
+        { uint32_t value = *(uint8_t *)current; return halo::memory::bit_stream_write_bits_chunked(stream, &value, 5); }
     case 6:
         if (previous != 0 && *(uint8_t *)previous == *(uint8_t *)current) {
             return 0;
         }
-        return halo::memory::bit_stream_write_bits_chunked(stream, (const uint32_t *)current, 6);
+        { uint32_t value = *(uint8_t *)current; return halo::memory::bit_stream_write_bits_chunked(stream, &value, 6); }
     }
     return 0;
 }

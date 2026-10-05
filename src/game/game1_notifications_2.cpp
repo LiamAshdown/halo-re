@@ -52,6 +52,15 @@ void Notifications::apply_player_join_message(void **envelope)
     uint8_t *identifier_record = table_base + (uint32_t)message.slot_index * 0x20 + 0x1a2;
 
     p = (player *)halo::memory::datum_get((datum_index)message.join_key, player_data);
+#if defined(__EMSCRIPTEN__)
+    {  // web diagnostic: the player-join message that should create (and, for us, localise) a player
+        const int8_t *e = (const int8_t *)identifier_record;  // machine 0x1c, local 0x1d, slot 0x1f
+        fprintf(stderr, "web: player join slot=%d key=%08x team=%d exists=%d entry machine=%d local=%d slot=%d"
+            " our machine=%d\n", message.slot_index, (unsigned)message.join_key, (int)message.team, p != 0,
+            e[0x1c], e[0x1d], e[0x1f],
+            network_client != 0 ? (int)*(int16_t *)network_client : -2);
+    }
+#endif
     if (p == 0) {
         if (halo::networking::network_channel_key_close((network_player_entry *)identifier_record, (datum_index)message.join_key) != 1) {
             return;
@@ -65,6 +74,9 @@ void Notifications::apply_player_join_message(void **envelope)
         }
     }
 
+#if defined(__EMSCRIPTEN__)
+    fprintf(stderr, "web: player join -> local_player_index=%d\n", p->local_player_index);
+#endif
     p->team = (int32_t)message.team;
     p->team_index = (int8_t)message.team;
     if (p->local_player_index != -1) {

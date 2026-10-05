@@ -325,7 +325,7 @@ uint32_t ServerView::broadcast_state_snapshot(const uint32_t *record)
  *
  * @address 0x4dfc90
  */
-void ServerView::handle_client_join(int32_t *object_count_passthrough, network_machine *machine, uint8_t bl_passthrough)
+void ServerView::handle_client_join(int32_t *object_count_passthrough, network_machine *machine, uint8_t)
 {
     network_server_globals *server = self;
     network_player_entry *entry;
@@ -430,7 +430,7 @@ void ServerView::handle_client_join(int32_t *object_count_passthrough, network_m
         }
         if (handled) {
             halo::networking::network_game_server_handoff_object_ownership(object_count_passthrough, server, machine);
-            halo::networking::network_object_release_ownership_claim(bl_passthrough);
+            halo::networking::network_object_release_ownership_claim((uint8_t)entry->slot_index);  // 0x4dfeea: mov bl, [entry+0x1f]
         }
         entry = entry + 1;
         remaining = remaining - 1;
@@ -1246,10 +1246,10 @@ char ServerView::broadcast_to_all(int32_t bit_count, int32_t status_bit, void *d
             (connected != 1 || force != 0) &&
             channel != 0 &&
             (channel->flags & 0x10) == 0) {
-            uint8_t status;
+            uint32_t status;  // a whole dword: bit_stream_write_bits_chunked reads its source a dword at a time
             char sent;
 
-            status = (uint8_t)(status_bit != 0);
+            status = (uint32_t)(status_bit != 0);
             sent = halo::networking::network_channel_queue_message(channel, (uint32_t)(uintptr_t)data, (uint32_t)(uintptr_t)&status, 1, (char)immediate, (char)flush_after, bit_count);
             if (sent == 0) {
                 ok = 0;

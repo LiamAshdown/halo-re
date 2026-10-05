@@ -1,3 +1,4 @@
+#include <stdio.h>
 /**
  * @file src/networking/net2_remote_console.cpp
  * RCON requests, console glue, update server and registry lookups.
@@ -106,7 +107,8 @@ int8_t RemoteConsole::on_connect(const uint32_t *target_address, network_client_
     attempt->elapsed_counter = 0;
     halo::interface::console_printf_verbose((ColorARGB *)0, halo::mutable_literal("Connecting"));
     memset(&client->connection, 0, 10 * sizeof(uint32_t));
-    memcpy(&client->connection.address, target_address, 6 * sizeof(uint32_t));
+    // original copies 0x18 bytes, reading a stack dword past the caller's 0x14-byte address; that dword stays zeroed
+    memcpy(&client->connection.address, target_address, sizeof(s_network_address));
     interface_loading_screen_progress = 0;
     join_ui_state = 5;
     if (client->connection.address.size == k_network_address_size_ipv4) {
@@ -307,7 +309,7 @@ char RemoteConsole::send_update(int32_t tick_count, char frame_time_overflow)
         player_action control;
         data_iterator iterator;
         player *local_player;
-        uint8_t history_byte;
+        uint32_t history_byte;  // a whole dword: the encoder reads its source a dword at a time
         int32_t history_update_id = 0;
 
         position_packet.update_id = network_client->last_update_id & 0x7fffffff;
@@ -393,6 +395,19 @@ char RemoteConsole::send_update(int32_t tick_count, char frame_time_overflow)
         }
     }
 
+#if defined(__EMSCRIPTEN__)
+    if (network_game_mode == halo::networking::k_game_mode_client) {  // web diagnostic: does the client send its control
+        static uint32_t calls, sent;
+        calls++;
+        sent += sent_update;
+        if (calls % 150 == 1) {
+            fprintf(stderr, "web: client send_update calls=%u sent=%u ticks=%d overflow=%d result=%d throttle=(%.2f %.2f)\n",
+                calls, sent, tick_count, (int)frame_time_overflow, (int)result,
+                (double)((player_action *)update_client_staged)->throttle_x,
+                (double)((player_action *)update_client_staged)->throttle_y);
+        }
+    }
+#endif
     if (sent_update == 0) {
         if (update_server_pending_flush == 0) {
             update_server_last_log_ms = halo::cseries::time_query_performance_counter_ms();

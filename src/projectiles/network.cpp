@@ -126,6 +126,7 @@ int32_t ProjectileNetwork::build_update(uint32_t unused_arg2, uint32_t unused_ar
         int32_t is_full_snapshot = (update_type == 1);
         void *items_array[1];
         void *type_offset;
+        void *net_ptr = &proj->network_state;  // read through type_offset by the encode below, so it outlives the branch
         struct {
             real position[3];
             real velocity[3];
@@ -147,8 +148,6 @@ int32_t ProjectileNetwork::build_update(uint32_t unused_arg2, uint32_t unused_ar
             items_array[0] = &proj->network_state;
             type_offset = 0;
         } else {
-            void *net_ptr = &proj->network_state;
-
             snapshot.position[0] = obj->position.x;
             snapshot.position[1] = obj->position.y;
             snapshot.position[2] = obj->position.z;

@@ -205,7 +205,14 @@ void MasterServerConnection::process_pending_requests(void)
                 if (server_list_thread != 0) {
                     halo::platform::mutex_release(server_list_mutex->handle);
                 }
-                if (server_browser_require_valid_entry == 0) {
+#if defined(__EMSCRIPTEN__)
+                // The page's only network is the virtual LAN behind its server (src/platform/net_web.cpp), with no
+                // GameSpy master to ask, so the Internet list searches that LAN the way the LAN list does.
+                const bool lan_search = true;
+#else
+                const bool lan_search = server_browser_require_valid_entry == 0;
+#endif
+                if (lan_search) {
                     last_result = ServerBrowserLANUpdate(master_server_query_engine, 1, network_session_start_game_type,
                                                 (uint16_t)network_session_start_game_type);
                 } else {

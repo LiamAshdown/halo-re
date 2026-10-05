@@ -78,6 +78,11 @@ int32_t ConnectionView::finalize_join(network_client_globals *client)
                 break;
             }
         }
+#if defined(__EMSCRIPTEN__)
+        fprintf(stderr, "web: finalize_join machine=%u found_row=%d slot=%d datum=%08x\n", machine_index, i,
+            i < 16 ? entry->slot_index : -1,
+            i < 16 ? (unsigned)halo::networking::player_data_iterator_advance(entry->slot_index) : 0xffffffffu);
+#endif
         if (i < 16 && halo::networking::network_player_entry_validate(entry) != 0) {
             for (;;) {
                 uint32_t player_handle = (uint32_t)halo::networking::player_data_iterator_advance(entry->slot_index);

@@ -17,6 +17,10 @@
 #endif
 
 static auto &message_delta_field_type_table = halo::link::ref<message_delta_field_type_vtable [28]>(halo::networking::vars().message_delta_field_type_table);
+// Web ASan diagnostic (net2_field_codec.cpp): kinds 5 and 6 of the table above get overwritten at run time, so the
+// ASan build poisons those rows and opens them only around the table's own accesses; the stray write then reports.
+void message_delta_table_guard(bool open);
+
 static auto &message_delta_item_count_bits = halo::link::ref<uint8_t []>(halo::networking::vars().message_delta_item_count_bits);
 
  // 0x4cf8f0

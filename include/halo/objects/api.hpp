@@ -80,7 +80,7 @@ void damage_apply_area_effect(damage_data *dd);
 void object_damage_apply_line_of_sight(damage_data *dd, datum_index target_index, int8_t continue_flag);
 int32_t object_get_controlling_player_index(datum_index object_index);
 void object_throttled_multiplayer_sound_event();
-void object_notify_pickup_or_refresh_probe(uint32_t object_index, datum_index player_index);
+void object_notify_pickup_or_refresh_probe(uint32_t object_index, datum_index player_index, const object_shield_impulse_result *impulse);
 void object_apply_shield_charge_and_notify(void **message);
 void object_apply_damage(damage_data *dd, uint32_t target_object_index, int16_t hit_node_index, int16_t hit_region_index, int16_t hit_material_index, uint32_t hit_plane);
 void object_hash_clear_flag_bit3(uint32_t key);

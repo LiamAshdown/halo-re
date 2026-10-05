@@ -421,7 +421,7 @@ int NetworkRuntime::local_hostent_get(void **out_hostent)
         halo::platform::handle_close(thread_handle);
         if (network_hostname_ready != 0) {
             *out_hostent = gethostbyname(network_local_hostname_buffer);
-            return 1;
+            return *out_hostent != 0;  // a failed lookup (the browser build's LAN unreachable) is a failure, not a crash
         }
     }
     return 0;
@@ -799,7 +799,7 @@ void EventFeed::flush(int32_t *queue)
     force_changed = (char)q->mode != 1;
     type_offset_arg = force_changed ? survivors_extra : 0;
     halo::networking::network_session_broadcast_to_flagged(halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, (uint32_t)force_changed, halo::networking::message_id(halo::networking::delta_message::remote_player_action_apply), (int32_t)survivors_key,
-        survivors_payload, (int32_t)type_offset_arg, survivor_count, force_changed), network_server, 1, 0, (char)q->mode, 0, 0, 2);
+        survivors_payload, (int32_t)type_offset_arg, survivor_count, force_changed), network_server, 1, network_message_scratch, (char)q->mode, 0, 0, 2);
     q->count = 0;
 }
 

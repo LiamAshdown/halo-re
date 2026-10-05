@@ -100,7 +100,7 @@ void equipment_ref::apply_network_update(uint32_t *update_record)
  *
  * @address 0x4bbc90
  */
-void equipment_ref::build_creation_message(uint32_t unused_arg2, uint32_t unused_arg3, uint32_t object_flags)
+int32_t equipment_ref::build_creation_message(uint32_t unused_arg2, uint32_t unused_arg3, uint32_t object_flags)
 {
     uint32_t item_index = datum;
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[item_index & halo::k_slot_mask].data;
@@ -146,7 +146,7 @@ void equipment_ref::build_creation_message(uint32_t unused_arg2, uint32_t unused
     }
 
     item_ptr = &message;
-    halo::networking::message_delta_encode_message((int32_t)unused_arg2, (int32_t)unused_arg3, 0, k_message_equipment_creation, 0, &item_ptr, 0, 1, 0);
+    return halo::networking::message_delta_encode_message((int32_t)unused_arg2, (int32_t)unused_arg3, 0, k_message_equipment_creation, 0, &item_ptr, 0, 1, 0);
 }
 
 /**
@@ -181,6 +181,7 @@ int32_t equipment_ref::build_network_update(uint32_t unused_arg2, uint32_t unuse
         int32_t is_full_snapshot = (update_type == 1);
         void *items_array[1];
         void *type_offset;
+        void *net_ptr = net;  // read through type_offset by the encode below, so it outlives the branch
         real snapshot[9];
 
         header.item_hash = 0;
@@ -198,8 +199,6 @@ int32_t equipment_ref::build_network_update(uint32_t unused_arg2, uint32_t unuse
             items_array[0] = net;
             type_offset = 0;
         } else {
-            void *net_ptr = net;
-
             snapshot[0] = obj->position.x;
             snapshot[1] = obj->position.y;
             snapshot[2] = obj->position.z;
@@ -469,17 +468,16 @@ void equipment_ref::pickup_play_sound()
  *
  * @address 0x4bbc30
  */
-void equipment_ref::send_creation(uint32_t arg2, uint32_t arg3)
+int32_t equipment_ref::send_creation(uint32_t arg2, uint32_t arg3)
 {
     uint32_t item_index = datum;
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[item_index & halo::k_slot_mask].data;
     item_data *id = halo::items::item_data_of(obj);
 
     if ((obj->flags & _object_at_rest_bit) != 0 && (id->flags & _item_at_rest_on_structure_bit) == 0) {
-        halo::items::equipment_build_creation_message(item_index, arg2, arg3, _object_at_rest_bit);
-        return;
+        return halo::items::equipment_build_creation_message(item_index, arg2, arg3, _object_at_rest_bit);
     }
-    halo::items::equipment_build_creation_message(item_index, arg2, arg3, 0);
+    return halo::items::equipment_build_creation_message(item_index, arg2, arg3, 0);
 }
 
 }
@@ -491,9 +489,9 @@ void equipment_apply_network_update(datum_index item_index, uint32_t *update_rec
     halo::items::equipment_ref(item_index).apply_network_update(update_record);
 }
 
-void equipment_build_creation_message(uint32_t item_index, uint32_t unused_arg2, uint32_t unused_arg3, uint32_t object_flags)
+int32_t equipment_build_creation_message(uint32_t item_index, uint32_t unused_arg2, uint32_t unused_arg3, uint32_t object_flags)
 {
-    halo::items::equipment_ref(item_index).build_creation_message(unused_arg2, unused_arg3, object_flags);
+    return halo::items::equipment_ref(item_index).build_creation_message(unused_arg2, unused_arg3, object_flags);
 }
 
 int32_t equipment_build_network_update(uint32_t item_index, uint32_t unused_arg2, uint32_t unused_arg3, int32_t update_type)
@@ -536,9 +534,9 @@ void equipment_pickup_play_sound(uint32_t object_index)
     halo::items::equipment_ref(object_index).pickup_play_sound();
 }
 
-void equipment_send_creation(uint32_t item_index, uint32_t arg2, uint32_t arg3)
+int32_t equipment_send_creation(uint32_t item_index, uint32_t arg2, uint32_t arg3)
 {
-    halo::items::equipment_ref(item_index).send_creation(arg2, arg3);
+    return halo::items::equipment_ref(item_index).send_creation(arg2, arg3);
 }
 
 }

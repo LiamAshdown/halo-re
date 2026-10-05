@@ -42,6 +42,12 @@ static int web_fps()
     return MAIN_THREAD_EM_ASM_INT({ return parseInt(new URLSearchParams(location.search).get("fps") || "0", 10) || 0; });
 }
 
+/** The tab's generated player key (web/shell.html), as 25 key characters ("" when none). */
+static char *web_cd_key()
+{
+    return reinterpret_cast<char *>(MAIN_THREAD_EM_ASM_INT({ return stringToNewUTF8(Module.haloCdKey || ""); }));
+}
+
 /** The game's command line: the page's ?args=... (for example -novideo). */
 static char *web_command_line()
 {
@@ -136,28 +142,61 @@ int build_halo_tree(const char *manifest)
 }
 
 /**
- * The install's DigitalProductID (the product key check reads it from the registry on Windows): the server hands it
- * over as /halo/digital_product_id.bin, and it goes into the settings store the first time.
+ * The DigitalProductID record for the page's generated player key: the key's 25 characters read as a base-24 number (the
+ * product key alphabet) fill the 15 key bytes, which is all the game uses of it (hashed into the CD key string the
+ * host checks for duplicates). The product id digits stay zero: they come from the installer's key check, which the
+ * page does not have; nothing checks a key's authenticity. False when the key is not 25 key characters.
  */
+struct digital_product_id {  // the fields ProductId::build_string reads (types/shell.h has the whole record)
+    uint32_t size;              // 0x00 0xa4
+    uint16_t major_version;     // 0x04 3
+    uint16_t minor_version;     // 0x06 0
+    char product_id[0x18];      // 0x08
+    uint8_t unknown_20[0x18];   // 0x20
+    uint8_t hashed_key[0xf];    // 0x38
+    uint8_t unknown_47[0x5d];   // 0x47
+};
+static_assert(sizeof(digital_product_id) == 0xa4, "DigitalProductID record size");
+
+bool product_id_from_cd_key(const char *key, digital_product_id *data)
+{
+    static const char alphabet[] = "BCDFGHJKMPQRTVWXY2346789";
+    int count = 0;
+
+    memset(data, 0, sizeof(*data));
+    data->size = sizeof(*data);
+    data->major_version = 3;
+    memcpy(data->product_id, "00000-000-0000000-00000", 23);
+    for (; *key != 0; key++) {
+        const char *digit = strchr(alphabet, *key);
+        uint32_t carry;
+
+        if (*key == '-' || *key == ' ') {
+            continue;
+        }
+        if (digit == nullptr || ++count > 25) {
+            return false;
+        }
+        carry = static_cast<uint32_t>(digit - alphabet);
+        for (uint8_t &byte : data->hashed_key) {  // little-endian: key = key * 24 + digit
+            carry += byte * 24u;
+            byte = static_cast<uint8_t>(carry);
+            carry >>= 8;
+        }
+    }
+    return count == 25;
+}
+
 void import_product_id()
 {
-    const halo::shell::SettingsStore &settings = halo::shell::SettingsStore::current();
-    uint8_t value[0x100];
-    uint32_t size = sizeof(value);
-    FILE *file;
+    char *key = web_cd_key();
+    digital_product_id typed;
 
-    if (settings.read_value(halo::shell::SettingsScope::machine, "DigitalProductID", nullptr, value, &size)) {
-        return;
+    if (product_id_from_cd_key(key, &typed)) {
+        halo::shell::SettingsStore::current().write_string(halo::shell::SettingsScope::machine, "DigitalProductID",
+            reinterpret_cast<const char *>(&typed), sizeof(typed));
     }
-    file = fopen("/halo/digital_product_id.bin", "rb");
-    if (file == nullptr) {
-        return;
-    }
-    size = static_cast<uint32_t>(fread(value, 1, sizeof(value), file));
-    fclose(file);
-    if (size != 0) {
-        settings.write_string(halo::shell::SettingsScope::machine, "DigitalProductID", reinterpret_cast<const char *>(value), size);
-    }
+    free(key);
 }
 
 }  // namespace

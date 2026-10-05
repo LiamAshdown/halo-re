@@ -55,11 +55,12 @@ public:
      * Notifies an object that a player picked it up or refreshes its probe.
      *
      * Original register convention: datum_index player_index in EDI (unaff_EDI); the single stack argument is the
-     * object handle (0x4ee415 mov ebx,[esp+0x14] / mov ecx,ebx into object_try_and_get).
+     * object handle (0x4ee415 mov ebx,[esp+0x14] / mov ecx,ebx into object_try_and_get), the first dword of the
+     * caller's 12-byte shield impulse record passed by value; the rest of it is the shield charge payload.
      *
      * @address 0x004ee3c0
      */
-    void notify_pickup_or_refresh_probe(datum_index player_index);
+    void notify_pickup_or_refresh_probe(datum_index player_index, const object_shield_impulse_result *impulse);
 
     /**
      * Zeroes the object's velocities and wakes it from rest.

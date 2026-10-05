@@ -227,7 +227,7 @@ void weapon_ref::apply_network_update(uint32_t *update_record)
  *
  * @address 0x4c5a50
  */
-void weapon_ref::build_creation_message(uint32_t unused_param_2, uint32_t unused_param_3, uint32_t object_flags)
+int32_t weapon_ref::build_creation_message(uint32_t unused_param_2, uint32_t unused_param_3, uint32_t object_flags)
 {
     datum_index item_index = datum;
     object *item_obj;
@@ -278,7 +278,7 @@ void weapon_ref::build_creation_message(uint32_t unused_param_2, uint32_t unused
 
     items[0] = &message;
     items[1] = 0;
-    halo::networking::message_delta_encode_message((int32_t)unused_param_2, (int32_t)unused_param_3, 0, k_message_weapon_creation, 0, items, 0, 1, 0);
+    return halo::networking::message_delta_encode_message((int32_t)unused_param_2, (int32_t)unused_param_3, 0, k_message_weapon_creation, 0, items, 0, 1, 0);
 }
 
 /**
@@ -312,9 +312,11 @@ int32_t weapon_ref::build_network_update(uint32_t unused_arg2, uint32_t unused_a
         int32_t is_full_snapshot = (update_type == 1);
         void *items_array[1];
         void *type_offset;
+        void *net_ptr = &wd->network_state;  // read through type_offset by the encode below, so it outlives the branch
         struct {
             real position[3];
             real velocity[3];
+            real unused[3];  // the original frame leaves 0xc bytes here; the field table reads rounds at +0x24
             int16_t rounds_unloaded[2];
             real age;
         } snapshot;
@@ -334,8 +336,6 @@ int32_t weapon_ref::build_network_update(uint32_t unused_arg2, uint32_t unused_a
             items_array[0] = &wd->network_state;
             type_offset = 0;
         } else {
-            void *net_ptr = &wd->network_state;
-
             snapshot.position[0] = obj->position.x;
             snapshot.position[1] = obj->position.y;
             snapshot.position[2] = obj->position.z;
@@ -522,17 +522,16 @@ void weapon_ref::predict_ammo(void **message_record)
  *
  * @address 0x4c59f0
  */
-void weapon_ref::send_creation(uint32_t arg2, uint32_t arg3)
+int32_t weapon_ref::send_creation(uint32_t arg2, uint32_t arg3)
 {
     uint32_t item_index = datum;
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[item_index & halo::k_slot_mask].data;
     item_data *id = halo::items::item_data_of(obj);
 
     if ((obj->flags & _object_at_rest_bit) != 0 && (id->flags & _item_at_rest_on_structure_bit) == 0) {
-        halo::items::weapon_build_creation_message(item_index, arg2, arg3, _object_at_rest_bit);
-        return;
+        return halo::items::weapon_build_creation_message(item_index, arg2, arg3, _object_at_rest_bit);
     }
-    halo::items::weapon_build_creation_message(item_index, arg2, arg3, 0);
+    return halo::items::weapon_build_creation_message(item_index, arg2, arg3, 0);
 }
 
 }
@@ -559,9 +558,9 @@ void weapon_apply_network_update(datum_index item_index, uint32_t *update_record
     halo::items::weapon_ref(item_index).apply_network_update(update_record);
 }
 
-void weapon_build_creation_message(datum_index item_index, uint32_t unused_param_2, uint32_t unused_param_3, uint32_t object_flags)
+int32_t weapon_build_creation_message(datum_index item_index, uint32_t unused_param_2, uint32_t unused_param_3, uint32_t object_flags)
 {
-    halo::items::weapon_ref(item_index).build_creation_message(unused_param_2, unused_param_3, object_flags);
+    return halo::items::weapon_ref(item_index).build_creation_message(unused_param_2, unused_param_3, object_flags);
 }
 
 int32_t weapon_build_network_update(uint32_t item_index, uint32_t unused_arg2, uint32_t unused_arg3, int32_t update_type)
@@ -584,9 +583,9 @@ void weapon_predict_ammo(void **message_record)
     halo::items::weapon_ref::predict_ammo(message_record);
 }
 
-void weapon_send_creation(uint32_t item_index, uint32_t arg2, uint32_t arg3)
+int32_t weapon_send_creation(uint32_t item_index, uint32_t arg2, uint32_t arg3)
 {
-    halo::items::weapon_ref(item_index).send_creation(arg2, arg3);
+    return halo::items::weapon_ref(item_index).send_creation(arg2, arg3);
 }
 
 }

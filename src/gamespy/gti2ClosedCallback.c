@@ -8,6 +8,9 @@
 #include "gamespy.h"
 
 #include "gt2.h"
+#if defined(__EMSCRIPTEN__)
+#include <stdio.h>
+#endif
 
 int gti2ClosedCallback(GTI2Connection *connection, int reason)
 {
@@ -16,6 +19,11 @@ int gti2ClosedCallback(GTI2Connection *connection, int reason)
     if (connection == 0 || connection->callbacks.closed == 0) {
         return 1;
     }
+#if defined(__EMSCRIPTEN__)
+    // Web diagnostic: which connection closed and why (0 local, 1 remote, 2 communication error, 3 socket error).
+    fprintf(stderr, "web: gt2 closed %u.%u.%u.%u:%u reason=%d\n", connection->ip & 0xff, connection->ip >> 8 & 0xff,
+        connection->ip >> 16 & 0xff, connection->ip >> 24, connection->port, reason);
+#endif
     connection->callbackLevel++;
     connection->socket->callbackLevel++;
     connection->callbacks.closed(connection, reason);

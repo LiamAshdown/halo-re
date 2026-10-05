@@ -96,7 +96,7 @@ void PlayerReports::ping_field_update_and_report(void *decode_context)
     data_iterator iter;
     void *element;
     char team_index;
-    uint8_t fields_byte0;
+    uint32_t fields_byte0;  // a whole dword: the encoder reads its source a dword at a time
     uint8_t fields_byte1;
     uint8_t *fields_ptr;
     int32_t fields_pad;
@@ -137,7 +137,7 @@ void PlayerReports::ping_field_update_and_report(void *decode_context)
             } while (element != 0);
         }
 
-        fields_ptr = &fields_byte0;
+        fields_ptr = (uint8_t *)&fields_byte0;
         fields_pad = 0;
         fields_byte0 = (uint8_t)team_index;
         (void)fields_pad;

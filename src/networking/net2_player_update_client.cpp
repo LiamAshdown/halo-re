@@ -12,6 +12,7 @@
 #include "networking.h"
 #include <stdint.h>
 #include <string.h>
+#include <stdio.h>
 #include "objects.h"
 #include "units.h"
 #include "halo/networking/net2_player_update_client.hpp"
@@ -64,6 +65,16 @@ void PlayerUpdateClient::local_player_update_from_network(message_delta_context 
             return;
         }
     }
+#if defined(__EMSCRIPTEN__)
+    {  // web diagnostic: acks the client gets for its control updates
+        static uint32_t received;
+        if (received++ % 30 == 0) {
+            fprintf(stderr, "web: client ack update=%d baseline=%d our_last=%d in_order=%d n=%u\n", (int)ack.update_id,
+                (int)ack.baseline_id, (int)candidate->last_update_id,
+                (int)halo::networking::is_local_player_update_in_order(candidate->last_update_id, ack.update_id), received);
+        }
+    }
+#endif
     if (halo::networking::is_local_player_update_in_order(candidate->last_update_id, ack.update_id) != 1) {
         return;
     }

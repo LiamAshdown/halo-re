@@ -93,6 +93,10 @@ void gcd_authenticate_user(int game_id, int local_id, unsigned int user_ip, cons
     last->next = node;
     node->prev = last;
     node->next = 0;
+#if defined(__EMSCRIPTEN__)
+    fprintf(stderr, "web: gcd auth local_id=%d response_length=%d result=%s\n", local_id, (int)strlen(response),
+        message != 0 ? message : "sent to keymaster");
+#endif
     if (message != 0) {
         client->message = message;
         client->state = 2;

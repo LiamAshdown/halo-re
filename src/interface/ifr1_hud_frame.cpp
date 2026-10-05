@@ -523,7 +523,7 @@ void HudFrame::render_unit_interface(player *p)
                 if (value_scale == 0) {
                     value_scale = 0xff;
                 }
-                memcpy(&layer_placement, &hud->shield_panel_meter_anchor_offset, 0x68);
+                memcpy(&layer_placement, &hud->shield_panel_meter_anchor_offset, sizeof(layer_placement)); // original copies 0x68; the meter reads only 0x5c
                 for (layer = 0; layer <= hud_overshield_layer_count; layer++) {
                     float actual = hud_fraction_clamp(((struct object *)object)->shield_vitality - (float)layer);
                     float displayed = hud_fraction_clamp(value - (float)layer);
@@ -590,7 +590,7 @@ void HudFrame::render_unit_interface(player *p)
                 if (value_scale == 0) {
                     value_scale = 8;
                 }
-                memcpy(&health_placement, &hud->health_panel_meter_anchor_offset, 0x68);
+                memcpy(&health_placement, &hud->health_panel_meter_anchor_offset, sizeof(health_placement));
                 if (!(health < hud->health_panel_meter_max_color_health_fraction_cutoff)) {
                     health_placement.color_at_meter_minimum = health_placement.color_at_meter_maximum;
                 } else if (health > hud->health_panel_meter_min_color_health_fraction_cutoff) {

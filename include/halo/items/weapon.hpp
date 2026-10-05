@@ -48,7 +48,7 @@ public:
     static void apply_ammo_correction(void **message_record);
     static void apply_ammo_correction_and_resync(void **message_record);
     void apply_network_update(uint32_t *update_record);
-    void build_creation_message(uint32_t unused_param_2, uint32_t unused_param_3, uint32_t object_flags);
+    int32_t build_creation_message(uint32_t unused_param_2, uint32_t unused_param_3, uint32_t object_flags);
     void build_hud_ammo_state(weapon_hud_ammo_state *out);
     int32_t build_network_update(uint32_t unused_arg2, uint32_t unused_arg3, int32_t update_type);
     real clamp_zoom_fov(int16_t zoom_level, real base_fov);
@@ -82,7 +82,7 @@ public:
     void ready();
     void reload_recovery_finish();
     void reset_triggers();
-    void send_creation(uint32_t arg2, uint32_t arg3);
+    int32_t send_creation(uint32_t arg2, uint32_t arg3);
     void set_ammo_counts(int16_t *reserve_counts);
     void set_control_flags(uint16_t control_flags, real primary_trigger);
     void set_loaded_ammo_fraction(real fraction);

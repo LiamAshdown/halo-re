@@ -19,6 +19,7 @@
 #include "halo/objects/vars.hpp"
 #include "halo/render/vars.hpp"
 #include "halo/effects/api.hpp"
+#include <stdio.h>
 
 static auto &camera_forward_x = halo::link::ref<float>(halo::effects::vars().camera_forward_x);
 static auto &camera_forward_y = halo::link::ref<float>(halo::objects::vars().camera_forward_y);
@@ -136,6 +137,26 @@ void halo::objects::LightVolumeSystem::render(uint32_t object_index, datum_index
     }
 
     effect_widget_instance *instance = static_cast<effect_widget_instance *>(datum_try_get(light_volume_instances, light_volume_handle));
+
+    // The original reads through a null instance too (an access violation there). Here an object has been seen with a
+    // light volume widget whose datum is gone (a multiplayer client on its second game), which read a tag through a
+    // garbage tag slot; skip it instead.
+    // A live datum whose definition tag is not the tag in that slot of the loaded map (seen on a host after a client
+    // joined, reading a tag at 0x50000) is skipped the same way. Tag records are 0x20 bytes, tag id at +0xc.
+    if (instance == nullptr ||
+        *(uint32_t *)((uint8_t *)halo::cache::globals().tag_instances + halo::datum_slot(instance->definition_tag) * 0x20 + 0xc) !=
+            (uint32_t)instance->definition_tag) {
+#if defined(__EMSCRIPTEN__)
+        static bool logged;
+        if (!logged) {
+            logged = true;
+            fprintf(stderr, "web: light volume widget of object %08x names a bad light volume %08x (instance=%p tag=%08x"
+                " last_index=%d)\n", object_index, light_volume_handle, (void *)instance,
+                instance != nullptr ? (unsigned)instance->definition_tag : 0xffffffffu, light_volume_instances->last_index);
+        }
+#endif
+        return;
+    }
 
     {
         LightVolume *tag = halo::objects::tag_as<LightVolume>(instance->definition_tag);

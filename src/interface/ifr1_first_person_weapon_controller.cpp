@@ -673,7 +673,13 @@ void FirstPersonWeaponController::update_lighting(void)
     int32_t light_sample;
     uint8_t node_scratch[3332];
 
-    first_person_light_parameters light_params;
+    // render_model copies a full 0x28-byte render_model_effect (rep movsd, ecx = 0xa); the original
+    // only fills 0x20 and lets the last 8 bytes come from its stack, so pad them here with zeros.
+    struct {
+        first_person_light_parameters params;
+        uint32_t unread_tail[2];
+    } light_block = {};
+    first_person_light_parameters &light_params = light_block.params;
 
     if (current_local_player_index == -1) {
         return;
@@ -730,7 +736,7 @@ void FirstPersonWeaponController::update_lighting(void)
                                         fp->weapon_hud_element);
         halo::models::render_model(static_cast<TagID>(model_tag_ref), node_scratch, 0, 0, weapon_obj->change_colors,
                      weapon_obj->function_out_values, reinterpret_cast<render_lighting *>(light_sample), reinterpret_cast<real_point3d *>(&render_camera_global), 0,
-                     reinterpret_cast<render_model_effect *>(&light_params), fp->weapon_index, 0, 8);
+                     reinterpret_cast<render_model_effect *>(&light_block), fp->weapon_index, 0, 8);
     }
     if (fp->device_hud_valid != 0 &&
         halo::interface::tag_handle(((struct GlobalsFirstPersonInterface *)first_person_interface)->first_person_hands.tag_id) != halo::k_dword_none) {
@@ -740,7 +746,7 @@ void FirstPersonWeaponController::update_lighting(void)
                                         fp->device_hud_element);
         halo::models::render_model(static_cast<TagID>(model_tag_ref), node_scratch, 0, 0, unit_obj->change_colors,
                      unit_obj->function_out_values, reinterpret_cast<render_lighting *>(light_sample), reinterpret_cast<real_point3d *>(&render_camera_global), 0,
-                     reinterpret_cast<render_model_effect *>(&light_params), fp->weapon_index, 0, 8);
+                     reinterpret_cast<render_model_effect *>(&light_block), fp->weapon_index, 0, 8);
     }
 }
 

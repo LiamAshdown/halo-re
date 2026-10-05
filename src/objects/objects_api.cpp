@@ -207,9 +207,9 @@ void object_throttled_multiplayer_sound_event()
  *
  * @address 0x004ee3c0
  */
-void object_notify_pickup_or_refresh_probe(uint32_t object_index, datum_index player_index)
+void object_notify_pickup_or_refresh_probe(uint32_t object_index, datum_index player_index, const object_shield_impulse_result *impulse)
 {
-    halo::objects::ObjectRef(object_index).notify_pickup_or_refresh_probe(player_index);
+    halo::objects::ObjectRef(object_index).notify_pickup_or_refresh_probe(player_index, impulse);
 }
 
 /**

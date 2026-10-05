@@ -26,6 +26,7 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/ioctl.h>
@@ -264,6 +265,31 @@ ssize_t sendto(int s, const void *data, size_t size, int flags, const struct soc
     if (g_lost) {
         errno = ENETDOWN;
         return -1;
+    }
+    // loopback stays in the page and arrives from 127.0.0.1, as on a real machine: the host's own client connects to
+    // 127.0.0.1 and GameSpy matches replies by source address, so a reply from the virtual address would be refused
+    if ((ntohl(target->sin_addr.s_addr) >> 24) == 127 && socket->port != 0) {
+        // Web diagnostic: loopback traffic per 5 s (delivered / dropped), to see whether the host's own client stalls.
+        static int delivered, dropped;
+        static auto window = std::chrono::steady_clock::now();
+        bool sent = false;
+
+        for (net_socket &other : g_sockets) {
+            if (other.used && other.udp && other.port == ntohs(target->sin_port) && other.inbox.size() < 256) {
+                other.inbox.push_back({htonl(INADDR_LOOPBACK), socket->port,
+                                       std::vector<uint8_t>(static_cast<const uint8_t *>(data), static_cast<const uint8_t *>(data) + size)});
+                g_changed.notify_all();
+                sent = true;
+                break;
+            }
+        }
+        (sent ? delivered : dropped)++;
+        if (std::chrono::steady_clock::now() - window > std::chrono::seconds(5)) {
+            fprintf(stderr, "web: loopback %d delivered, %d dropped in 5 s\n", delivered, dropped);
+            delivered = dropped = 0;
+            window = std::chrono::steady_clock::now();
+        }
+        return static_cast<ssize_t>(size);
     }
     put32(message, static_cast<uint32_t>(s));
     message.insert(message.end(), reinterpret_cast<const uint8_t *>(&target->sin_addr), reinterpret_cast<const uint8_t *>(&target->sin_addr) + 4);

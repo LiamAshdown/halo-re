@@ -545,6 +545,18 @@ bool update_and_render_frame(int16_t connection, uint32_t frame_average)
 
     frame_track_idle_time();
 
+#if defined(__EMSCRIPTEN__)
+    {  // web diagnostic: is game time running (pregame branch below draws nothing)
+        static uint32_t frames;
+        if (frames++ % 150 == 0) {
+            fprintf(stderr, "web: frame connection=%d game_time init=%d active=%d paused=%d time=%d time_is_running=%d\n",
+                connection, halo::game::globals().game_time->initialized, halo::game::globals().game_time->active,
+                halo::game::globals().game_time->paused, (int)halo::game::globals().game_time->game_time,
+                main_globals_data.time_is_running);
+        }
+    }
+#endif
+
     if (halo::game::globals().game_time->initialized == 0 || (halo::game::globals().game_time->active == 0 && halo::game::globals().game_time->paused == 0)) {
         if (halo::game::globals().time_force_single_tick == 0 && shell_application_inactive == 0) {
             halo::main::render_pregame_view_initialize();
@@ -590,12 +602,42 @@ namespace halo::main {
  *
  * @address 0x4c7610
  */
+#if defined(__EMSCRIPTEN__)
+/** Switches how the browser schedules loop_frame (called from the background watchdog below). */
+extern "C" EMSCRIPTEN_KEEPALIVE void web_main_loop_timing(int mode, int value)
+{
+    emscripten_set_main_loop_timing(mode, value);
+}
+#endif
+
 void MainLoop::loop(void)
 {
     loop_begin();
 #if defined(__EMSCRIPTEN__)
+    int fps = getenv("HALO_WEB_FPS") != nullptr ? atoi(getenv("HALO_WEB_FPS")) : 0;
+
+    if (fps == 0) {
+        // A hidden tab gets no animation frames, which would stop a host serving the other players. When frames stop
+        // for 250 ms the loop moves to a 16 ms timer (worker timers keep running), and back once a frame arrives again.
+        EM_ASM({
+            var background = false;
+            Module['haloLastFrame'] = performance.now();
+            setInterval(function() {
+                if (background || performance.now() - Module['haloLastFrame'] < 250) {
+                    return;
+                }
+                background = true;
+                _web_main_loop_timing($0, 16);
+                requestAnimationFrame(function() {
+                    background = false;
+                    _web_main_loop_timing($1, 1);
+                });
+            }, 250);
+        }, EM_TIMING_SETTIMEOUT, EM_TIMING_RAF);
+    }
     // the browser owns the event loop: one loop_frame per animation frame, the shutdown once it reports the end
     emscripten_set_main_loop([]() {
+        EM_ASM({ Module['haloLastFrame'] = performance.now(); });
         static double window_start;
         static double busy_ms;
         static int frames;
@@ -616,7 +658,7 @@ void MainLoop::loop(void)
             emscripten_cancel_main_loop();
             halo::main::main_loop_shutdown_cleanup();
         }
-    }, getenv("HALO_WEB_FPS") != nullptr ? atoi(getenv("HALO_WEB_FPS")) : 0, true);  // 0: on animation frames
+    }, fps, true);  // 0: on animation frames
 #else
     while (loop_frame()) {
     }

@@ -164,10 +164,19 @@ void GameRuntime::client_apply_position_update(network_machine *machine, const c
     }
 
     player_datum = machine_to_player[(uint16_t)machine->machine_id];
-    if (player_datum == (datum_index)halo::k_dword_none) {
-        return;
+    plr = player_datum == (datum_index)halo::k_dword_none ? 0 :
+        (player *)halo::memory::datum_get(player_datum, halo::game::globals().player_data);
+#if defined(__EMSCRIPTEN__)
+    if (machine->machine_id != 0) {  // web diagnostic: is the joined client's control reaching its unit on the host
+        static uint32_t applied;
+        if (applied++ % 60 == 0) {
+            fprintf(stderr, "web: host update from machine %d player=%08x unit=%08x id=%u last=%u throttle=(%.2f %.2f) n=%u\n",
+                machine->machine_id, (unsigned)player_datum, plr != 0 ? (unsigned)plr->unit : 0xffffffffu,
+                (unsigned)(packet->update_id & 0x7fffffff), (unsigned)machine->last_update_id,
+                (double)((player_action *)action)->throttle_x, (double)((player_action *)action)->throttle_y, applied);
+        }
     }
-    plr = (player *)halo::memory::datum_get(player_datum, halo::game::globals().player_data);
+#endif
     if (plr == 0 || plr->unit == (datum_index)halo::k_dword_none) {
         return;
     }
@@ -206,12 +215,30 @@ void GameRuntime::client_apply_received_update(network_machine *machine, uint32_
         halo::networking::message_delta_decode_compound_field(message, &update);
     }
     machine->last_update = update;
+#if defined(__EMSCRIPTEN__)
+    {  // web diagnostic: client updates the host decodes, and how many the quality check turns away
+        static uint32_t received, rejected;
+        int8_t quality = update.tick_count == 0 ? -1 :
+            (int8_t)halo::networking::network_client_check_connection_quality(machine->machine_id, update);
+        received++;
+        rejected += quality != 1;
+        if (received % 60 == 1) {
+            fprintf(stderr, "web: host received update %u from machine %d ticks=%d id=%u last_id=%u quality=%d rejected=%u\n",
+                received, machine->machine_id, (int)update.tick_count, (unsigned)update.update_id,
+                (unsigned)machine->last_update_id, quality, rejected);
+        }
+        if (quality != 1) {
+            return;
+        }
+    }
+#else
     if (update.tick_count == 0) {
         return;
     }
     if (halo::networking::network_client_check_connection_quality(machine->machine_id, update) != 1) {
         return;
     }
+#endif
 
     {
         client_position_packet packet = {};
@@ -1162,6 +1189,9 @@ void HostSession::cd_key_callback(int32_t game_id, int32_t local_id, int32_t aut
     if (authenticated != 0) {
         return;
     }
+#if defined(__EMSCRIPTEN__)
+    fprintf(stderr, "web: CD key rejected for local id %d: %s\n", local_id, message != 0 ? message : "");
+#endif
     for (i = 0; i < 0x10; i++) {
         if (server->machines[i].gcd_user_id == local_id) {
             machine = &server->machines[i];
@@ -1308,6 +1338,9 @@ uint8_t HostSession::reject_or_cleanup_client(const char *response, const char *
     if (halo::networking::ban_list_check_and_reject_player((char *)gcd_getkeyhash(network_console_connection_id, local_id)) == 0) {
         return 1;
     }
+#if defined(__EMSCRIPTEN__)
+    fprintf(stderr, "web: join rejected by the ban list, key hash %s\n", (const char *)gcd_getkeyhash(network_console_connection_id, local_id));
+#endif
     server = network_server;
     for (i = 0; i < 0x10; i++) {
         if (server->machines[i].gcd_user_id == local_id) {

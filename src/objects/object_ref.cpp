@@ -181,7 +181,7 @@ int32_t halo::objects::ObjectRef::get_controlling_player_index()
  *
  * @address 0x004ee3c0
  */
-void halo::objects::ObjectRef::notify_pickup_or_refresh_probe(datum_index player_index)
+void halo::objects::ObjectRef::notify_pickup_or_refresh_probe(datum_index player_index, const object_shield_impulse_result *impulse)
 {
     uint32_t object_index = handle;
     int16_t index = (int16_t)player_index;
@@ -215,12 +215,16 @@ void halo::objects::ObjectRef::notify_pickup_or_refresh_probe(datum_index player
             }
 
             if (record->local_player_index == -1) {
+                // The shield charge message is the whole impulse record with the handle swapped for its network id
+                // (0x4ee468 writes it over the by-value argument).
+                object_shield_impulse_result payload = *impulse;
                 int32_t encoded_value;
                 void *field_list[2];
                 int32_t encoded;
 
                 encoded_value = halo::networking::network_index_cache_get((hash_table *)&network_object_index_cache, (int32_t)object_index);
-                field_list[0] = &encoded_value;
+                memcpy(payload.unknown_00, &encoded_value, sizeof(encoded_value));
+                field_list[0] = &payload;
                 field_list[1] = 0;
                 encoded = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, 0x32, 0, field_list, 0, 1, 0);
                 halo::networking::network_session_send_to_machine((int8_t)record->machine_index, halo::networking::globals().server, 1, network_message_scratch,

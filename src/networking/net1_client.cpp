@@ -484,8 +484,20 @@ void ClientView::send_local_player_updates()
             } else {
                 encoded_size = halo::networking::build_local_player_vehicle_update(&out_changed, candidate);
             }
+#if defined(__EMSCRIPTEN__)
+            {  // web diagnostic: the host's ack of a remote player's control updates
+                static uint32_t calls, built;
+                calls++;
+                built += 0 < encoded_size;
+                if (calls % 150 == 1) {
+                    fprintf(stderr, "web: host ack player machine=%d f4=%d baseline=%d last=%d size=%d built=%u/%u\n",
+                        (int)candidate->machine_index, (int)candidate->unknown_f4, (int)candidate->baseline_update_id,
+                        (int)candidate->last_update_id, encoded_size, built, calls);
+                }
+            }
+#endif
             if (0 < encoded_size) {
-                halo::networking::network_session_send_to_machine(candidate->machine_index, network_server, 1, network_message_scratch, encoded_size, 0, 0, 0, 0);
+                halo::networking::network_session_send_to_machine(*(int8_t *)&candidate->machine_index, network_server, 1, network_message_scratch, encoded_size, 0, 0, 0, 0);
             }
         }
         candidate = (player *)halo::memory::data_iterator_next(&iter);
@@ -559,6 +571,11 @@ char ClientView::update_dispatch()
 
     result = 1;
     if (network_host_handoff_requested == 1) {
+#if defined(__EMSCRIPTEN__)
+        // Web diagnostic: which path ended the session (each one leaves its own join error code; -1 = a client path).
+        fprintf(stderr, "web: leaving the session: join_error=%d hosting=%d client_disconnect_reason=%d\n", network_join_error_code,
+            network_server != 0, network_client != 0 ? (int)network_client->disconnect_reason : -1);
+#endif
         network_game_mode = halo::networking::k_game_mode_local;
         halo::main::main_menu_music_stop();
         if (network_server != 0) {
@@ -981,7 +998,7 @@ int32_t ConnectionView::endpoint_set(const uint32_t *source)
     endpoint->ready = 0;
     endpoint->unknown_23 = 0;
     endpoint->control_block = 0;
-    memcpy(endpoint, source, 6 * sizeof(uint32_t));
+    memcpy(endpoint, source, sizeof(s_network_address)); // original copies 0x18, reading a stack dword past the 0x14-byte address
     endpoint->ready = 1;
     control_block = halo::platform::heap_allocate(0, 0x264);
     memset(control_block, 0, 2 * sizeof(uint32_t));
@@ -1094,8 +1111,21 @@ void ConnectionView::send_keepalive()
     now_ms = (uint32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 
     endpoint = &client->connection;
-    if (endpoint->ready == 1 && 3000 < (int32_t)(now_ms - endpoint->last_send_ms)) {
+#if defined(__EMSCRIPTEN__)
+    {
+        // Web diagnostic: whether this client's keepalive is due / queued (every 5 s).
+        static uint32_t last_report;
 
+        if (now_ms - last_report > 5000) {
+            last_report = now_ms;
+            fprintf(stderr, "web: keepalive ready=%d since_last=%d channel_flags=%x count=%d\n", endpoint->ready,
+                (int)(now_ms - endpoint->last_send_ms), (unsigned)client->channel->flags, endpoint->message_count);
+        }
+    }
+#endif
+    if (endpoint->ready == 1 && 3000u < now_ms - (uint32_t)endpoint->last_send_ms) {  // unsigned, as 0x4d944f (jbe)
+
+        challenge_payload[0] = now_ms;  // the original sends the send time (0x4d9460)
         challenge = halo::networking::network_prepare_challenge_packet(1, challenge_payload);
         if (challenge != 0) {
             out_flag = 0;
@@ -1427,6 +1457,10 @@ uint32_t JoinView::request_resolve_host()
     }
 
     halo::networking::network_channels_open();
+#if defined(__EMSCRIPTEN__)
+    fprintf(stderr, "web: browser join host=%s port=%u async=%d channels=%d\n", host_buffer, port & 0xffff,
+        needs_async_resolve, network_channels_open_ok);
+#endif
     if (network_channels_open_ok == 0) {
         server_browser_join_target = 0;
         return 0;

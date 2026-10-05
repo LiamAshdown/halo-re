@@ -25,6 +25,7 @@
 
 static auto &network_server = halo::link::ref<network_server_globals *>(halo::networking::vars().network_server);
 static auto &message_delta_parameters_enabled = halo::link::ref<uint8_t>(halo::networking::vars().message_delta_parameters_enabled);
+void message_delta_table_guard(bool open);  // net2_field_codec.cpp
 static auto &message_delta_unknown_table_0069a304 = halo::link::ref<uint8_t [28][0x18]>(halo::networking::vars().message_delta_unknown_table_0069a304);
 static auto &message_delta_config_text_buffer = halo::link::ref<char []>(halo::hs::vars().message_delta_config_text_buffer);
 static auto &message_delta_config_write_mode_string = halo::link::ref<char []>(halo::networking::vars().message_delta_config_write_mode_string);
@@ -46,9 +47,11 @@ void ParametersProtocol::dump_to_config_file(void)
     void *file;
 
     halo::networking::message_delta_definitions_teardown_field_bindings();
+    message_delta_table_guard(true);
     for (i = 0; i < 28; i++) {
         message_delta_unknown_table_0069a304[i][0] = 0;
     }
+    message_delta_table_guard(false);
     if (message_delta_parameters_enabled == 1) {
         file = fopen("parameters.cfg", message_delta_config_write_mode_string);
         if (file != 0) {

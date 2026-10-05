@@ -23,6 +23,7 @@ static auto &message_delta_item_count_bits = halo::link::ref<uint8_t []>(halo::n
 static auto &message_delta_parameters_enabled = halo::link::ref<uint8_t>(halo::networking::vars().message_delta_parameters_enabled);
 static auto &message_delta_parameters_protocol_sequence = halo::link::ref<int32_t>(halo::networking::vars().message_delta_parameters_protocol_sequence);
 static auto &message_delta_parameters_sending = halo::link::ref<uint8_t>(halo::networking::vars().message_delta_parameters_sending);
+void message_delta_table_guard(bool open);  // net2_field_codec.cpp
 static auto &message_delta_unknown_table_0069a304 = halo::link::ref<uint8_t [28][0x18]>(halo::networking::vars().message_delta_unknown_table_0069a304);
 
 typedef int32_t (*message_delta_field_decode_fn)(void *field_type, int32_t changed, int32_t offset, bit_stream *stream);
@@ -600,9 +601,11 @@ void DeltaMessageDriver::protocol_initialize(void)
     if (message_delta_parameters_enabled == 1) {
         halo::networking::message_delta_parameters_protocol_reload_from_config_file();
     }
+    message_delta_table_guard(true);
     for (i = 0; i < 28; i++) {
         message_delta_unknown_table_0069a304[i][0] = 1;
     }
+    message_delta_table_guard(false);
     for (i = 0; i < k_network_message_definition_count; i++) {
         halo::networking::message_delta_field_layout_compute_size(message_delta_definitions[i]);
     }

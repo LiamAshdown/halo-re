@@ -1011,7 +1011,7 @@ void halo::objects::ObjectDamage::apply_damage(damage_data *dd, int16_t hit_node
                 }
                 reported = 1;
             }
-            halo::objects::object_notify_pickup_or_refresh_probe(id, dd->responsible_player);
+            halo::objects::object_notify_pickup_or_refresh_probe(id, dd->responsible_player, &record);
             if (shield_damage > 0.0f && obj->base.type == _object_type_biped) {
                 obj->base.shield_update_pending = 1;
             }

@@ -345,6 +345,11 @@ __declspec(allocate(".geq$006994f8v")) __declspec(align(8)) uint32_t network_gam
 __declspec(allocate(".geq$00699f40v")) __declspec(align(16)) uint32_t unknown_00699f40[1] = {0x00000001u};
 #pragma section(".geq$00699f44v", read, write)
 __declspec(allocate(".geq$00699f44v")) __declspec(align(4)) uint32_t network_scenario_round_counter_a[1] = {0x00000000u};
+// The rest of the event queue that starts at 0x00699f40 (mode, count, 16 keys at +0x08, 16 payloads at +0x88; 0x388
+// bytes, as network_event_feed_b at 0x0071cc20). Without it EventFeed::queue_append writes past the count into the
+// following globals (the message-delta field type table).
+#pragma section(".geq$00699f48v", read, write)
+__declspec(allocate(".geq$00699f48v")) __declspec(align(4)) uint8_t network_event_feed_a_slots[0x380] = {0};
 
 /** 0x0069a2f0..0x0069a5a4: message_delta_field_type_table, message_delta_unknown_table_0069a304 */
 #pragma section(".geq$0069a2f0v", read, write)
