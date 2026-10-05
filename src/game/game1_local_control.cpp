@@ -619,8 +619,8 @@ void LocalControl::init_player_look_state_from_object(datum_index unit, int16_t 
         look->desired_grenade_index = (int16_t)u->desired_grenade_index;
         look->desired_zoom_level = (int16_t)u->desired_zoom_level;
 
-        if (!_isnan((double)look->pitch) && look->pitch <= 1.4922565f && -1.4922565f <= look->pitch) {
-            _isnan((double)look->yaw);
+        if (!halo::libm::is_nan((double)look->pitch) && look->pitch <= 1.4922565f && -1.4922565f <= look->pitch) {
+            halo::libm::is_nan((double)look->yaw);
         }
     }
 }

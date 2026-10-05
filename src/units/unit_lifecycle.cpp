@@ -590,7 +590,7 @@ void UnitView::recalculate_position()
         midpoint.x = (previous.x + nudged.x) * 0.5f;
         midpoint.y = (previous.y + nudged.y) * 0.5f;
         midpoint.z = (previous.z + nudged.z) * 0.5f;
-        if (!_isnan((double)midpoint.x) && coordinate_in_range(midpoint.x) &&
+        if (!halo::libm::is_nan((double)midpoint.x) && coordinate_in_range(midpoint.x) &&
             halo::camera::real_is_valid(midpoint.y) && coordinate_in_range(midpoint.y) &&
             halo::camera::real_is_valid(midpoint.z) && coordinate_in_range(midpoint.z)) {
             target = &midpoint;

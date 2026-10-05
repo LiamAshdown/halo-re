@@ -430,11 +430,11 @@ void ObserverHandle::evaluate_spline_value_and_orthonormalize()
 
         check = (forward->k * forward->k + forward->j * forward->j + forward->i * forward->i) -
             1.0f;
-        if (_isnan((double)check) == 0 && halo::libm::fabs((double)check) < 0.001) {
+        if (halo::libm::is_nan((double)check) == 0 && halo::libm::fabs((double)check) < 0.001) {
             check = (up->k * up->k + up->j * up->j + up->i * up->i) - 1.0f;
-            if (_isnan((double)check) == 0 && halo::libm::fabs((double)check) < 0.001) {
+            if (halo::libm::is_nan((double)check) == 0 && halo::libm::fabs((double)check) < 0.001) {
                 check = up->j * forward->j + up->k * forward->k + up->i * forward->i;
-                if (_isnan((double)check) == 0 && halo::libm::fabs((double)check) < 0.001) {
+                if (halo::libm::is_nan((double)check) == 0 && halo::libm::fabs((double)check) < 0.001) {
                     return;
                 }
             }

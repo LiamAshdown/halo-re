@@ -147,8 +147,8 @@ uint8_t VectorQuantizer::quantize_initialize(message_delta_field_type *field_typ
     int32_t *descriptor = (int32_t *)field_type->array_descriptor;
     int32_t i;
 
-    (void)_isnan(*(real *)&descriptor[0]);
-    (void)_isnan(*(real *)&descriptor[1]);
+    (void)halo::libm::is_nan(*(real *)&descriptor[0]);
+    (void)halo::libm::is_nan(*(real *)&descriptor[1]);
     if (descriptor[3] == 0) {
         descriptor[3] = (1 << descriptor[2]) - 1;
     }
@@ -158,7 +158,7 @@ uint8_t VectorQuantizer::quantize_initialize(message_delta_field_type *field_typ
     for (i = 0; i < descriptor[6]; i++) {
         real *point = (real *)(descriptor + 7 + i * 3);
 
-        if (_isnan(point[0]) || _isnan(point[1]) || _isnan(point[2])) {
+        if (halo::libm::is_nan(point[0]) || halo::libm::is_nan(point[1]) || halo::libm::is_nan(point[2])) {
             return 0;
         }
         halo::networking::vector3d_quantize(descriptor + 0x67 + i * 3, descriptor, point);

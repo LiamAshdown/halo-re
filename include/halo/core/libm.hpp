@@ -37,5 +37,7 @@ inline float cosf(float x) { return ::cosf(x); }
 inline float atan2f(float y, float x) { return ::atan2f(y, x); }
 inline long lrint(double x) { return ::lrint(x); }
 inline long lrintf(float x) { return ::lrintf(x); }
+/** Whether x is a NaN (the C runtime's _isnan; neither build relaxes IEEE comparisons). */
+inline int is_nan(double x) { return x != x; }
 
 }  // namespace halo::libm

@@ -1,3 +1,4 @@
+#include "halo/core/libm.hpp"
 #include "halo/camera/camera_math.hpp"
 #include "halo/math/api.hpp"
 #include "halo/camera/api.hpp"
@@ -18,7 +19,7 @@ uint8_t CameraMath::approximately_equal(float a, float b)
 {
     float difference;
 
-    if (_isnan((double)(a - b)) != 0) {
+    if (halo::libm::is_nan((double)(a - b)) != 0) {
         return 0;
     }
     difference = a - b;
@@ -38,7 +39,7 @@ uint8_t CameraMath::approximately_equal(float a, float b)
  */
 uint8_t CameraMath::is_valid(float value)
 {
-    return (uint8_t)(_isnan((double)value) == 0);
+    return (uint8_t)(halo::libm::is_nan((double)value) == 0);
 }
 
 /**
@@ -130,7 +131,7 @@ uint8_t CameraMath::is_unit_length(Vector3D *v)
     float length_squared_minus_one;
 
     length_squared_minus_one = (v->i * v->i + v->j * v->j + v->k * v->k) - 1.0f;
-    if (_isnan((double)length_squared_minus_one) != 0) {
+    if (halo::libm::is_nan((double)length_squared_minus_one) != 0) {
         return 0;
     }
     if (length_squared_minus_one < 0.0f) {

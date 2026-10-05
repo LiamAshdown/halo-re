@@ -24,7 +24,6 @@
 #define _snprintf snprintf
 #define _vsnprintf vsnprintf
 #define _strdup strdup
-#define _isnan isnan
 
 #define HALO_WCHAR16_COMPAT 1
 #include "halo/platform/wchar16.h"
