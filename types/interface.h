@@ -1235,7 +1235,7 @@ typedef void (*hud_anchor_offset_handler)(void);
 // Plain copies of COORD, SMALL_RECT, CONSOLE_SCREEN_BUFFER_INFO, CONSOLE_CURSOR_INFO,
 // KEY_EVENT_RECORD, INPUT_RECORD (key member only), RECT and POINT with the ANSI layout.
 // ---------------------------------------------------------------------------
-#ifdef HALO_WIN32_H   /* the SDK's own type where windows.h is in (same layout and field names) */
+#if defined(HALO_WIN32_H) && defined(_WIN32)   /* the SDK's own type where windows.h is in (same layout and field names) */
 typedef COORD win32_coord;
 #else
 typedef struct win32_coord {
@@ -1244,7 +1244,7 @@ typedef struct win32_coord {
 } win32_coord;                 // size 0x04
 #endif
 
-#ifdef HALO_WIN32_H   /* the SDK's own type where windows.h is in (same layout and field names) */
+#if defined(HALO_WIN32_H) && defined(_WIN32)   /* the SDK's own type where windows.h is in (same layout and field names) */
 typedef SMALL_RECT win32_small_rect;
 #else
 typedef struct win32_small_rect {
@@ -1255,7 +1255,7 @@ typedef struct win32_small_rect {
 } win32_small_rect;            // size 0x08
 #endif
 
-#ifdef HALO_WIN32_H   /* the SDK's own type where windows.h is in (same layout and field names) */
+#if defined(HALO_WIN32_H) && defined(_WIN32)   /* the SDK's own type where windows.h is in (same layout and field names) */
 typedef CONSOLE_SCREEN_BUFFER_INFO win32_console_screen_buffer_info;
 #else
 typedef struct win32_console_screen_buffer_info {
@@ -1267,7 +1267,7 @@ typedef struct win32_console_screen_buffer_info {
 } win32_console_screen_buffer_info;   // size 0x16
 #endif
 
-#ifdef HALO_WIN32_H   /* the SDK's own type where windows.h is in (same layout and field names) */
+#if defined(HALO_WIN32_H) && defined(_WIN32)   /* the SDK's own type where windows.h is in (same layout and field names) */
 typedef CONSOLE_CURSOR_INFO win32_console_cursor_info;
 #else
 typedef struct win32_console_cursor_info {
@@ -1291,7 +1291,7 @@ typedef struct win32_input_record {
     win32_key_event_record KeyEvent;  // 0x04 only the union member the console reads
 } win32_input_record;                 // size 0x14
 
-#ifdef HALO_WIN32_H   /* the SDK's own type where windows.h is in (same layout and field names) */
+#if defined(HALO_WIN32_H) && defined(_WIN32)   /* the SDK's own type where windows.h is in (same layout and field names) */
 typedef RECT win32_rect;
 #else
 typedef struct win32_rect {
@@ -1302,7 +1302,7 @@ typedef struct win32_rect {
 } win32_rect;                  // size 0x10
 #endif
 
-#ifdef HALO_WIN32_H   /* the SDK's own type where windows.h is in (same layout and field names) */
+#if defined(HALO_WIN32_H) && defined(_WIN32)   /* the SDK's own type where windows.h is in (same layout and field names) */
 typedef POINT win32_point;
 #else
 typedef struct win32_point {

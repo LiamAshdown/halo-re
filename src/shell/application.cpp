@@ -349,9 +349,11 @@ void Application::load_direct3d_and_config()
         FatalError::show(k_string_direct3d_create_failed, k_help_file_direct3d, 1);
     }
 
-    if (GetAsyncKeyState(k_vk_control) < 0) {
+#if defined(_WIN32)
+    if (GetAsyncKeyState(k_vk_control) < 0) {  // Ctrl held at startup offers safe mode
         FatalError::show(k_string_safe_mode_requested, k_help_file_general, 0);
     }
+#endif
     disable_d3dspy = d3d9_module != 0 ? (void (*)(void))halo::platform::library_symbol(d3d9_module, "DisableD3DSpy") : 0;
     if (disable_d3dspy != 0) {
         disable_d3dspy();

@@ -26,6 +26,25 @@
 #include "halo/interface/vars.hpp"
 #include "halo/game/api.hpp"
 
+#if !defined(_WIN32)
+/* No Win32 console off Windows. console_win32_attached is zero-initialised and never set, so the console calls below
+   never run there; these stand-ins only keep them building. */
+namespace {
+typedef uint32_t *LPDWORD;
+typedef win32_input_record *PINPUT_RECORD;
+int GetConsoleScreenBufferInfo(void *, win32_console_screen_buffer_info *) { return 0; }
+int SetConsoleCursorPosition(void *, win32_coord) { return 0; }
+int FillConsoleOutputCharacterA(void *, char, uint32_t, win32_coord, LPDWORD) { return 0; }
+int FillConsoleOutputAttribute(void *, uint16_t, uint32_t, win32_coord, LPDWORD) { return 0; }
+int WriteConsoleA(void *, const void *, uint32_t, LPDWORD, void *) { return 0; }
+int WriteConsoleOutputCharacterA(void *, const char *, uint32_t, win32_coord, LPDWORD) { return 0; }
+int GetConsoleCursorInfo(void *, win32_console_cursor_info *) { return 0; }
+int SetConsoleCursorInfo(void *, const win32_console_cursor_info *) { return 0; }
+int GetNumberOfConsoleInputEvents(void *, LPDWORD) { return 0; }
+int ReadConsoleInputA(void *, PINPUT_RECORD, uint32_t, LPDWORD) { return 0; }
+}  // namespace
+#endif
+
 static auto &console_echo_prefix = halo::link::ref<char []>(halo::ui::vars().console_echo_prefix);
 static auto &console_rcon_out_reentrant_guard = halo::link::ref<uint8_t>(halo::ui::vars().console_rcon_out_reentrant_guard);
 static auto &console_output_handle = halo::link::ref<void *>(halo::ui::vars().console_output_handle);

@@ -11,7 +11,9 @@
 #include "game.h"
 #include "networking.h"
 #include "crt.h"
+#if defined(_WIN32)
 #include <wininet.h>
+#endif
 #include <ctype.h>
 #include "interface.h"
 #include "saved_games.h"
@@ -383,11 +385,13 @@ char * AutopatchUpdater::get_proxy_settings(void)
     }
 
     query_length = 0x3ff;
+#if defined(_WIN32)
     if (InternetQueryOptionA(0, 0x26, query_buffer, (LPDWORD)&query_length) && query_length > 1 &&
         ((internet_proxy_info *)query_buffer)->proxy != 0) {
         strncpy(proxy_list, ((internet_proxy_info *)query_buffer)->proxy, 0x400);
         proxy_list[0x3ff] = 0;
     }
+#endif
 
     if (proxy_list[0] == 0) {
         winhttp = halo::platform::library_open("winhttp.dll");

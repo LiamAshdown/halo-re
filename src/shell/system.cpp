@@ -681,6 +681,7 @@ void OperatingSystem::identify()
 void SecurityResources::release(void *descriptor, void *acl, void *sid, void *thread_token, void *impersonation_token,
                                 void *sentinel)
 {
+#if defined(_WIN32)
     if (descriptor != sentinel) {
         LocalFree(descriptor);
     }
@@ -696,6 +697,14 @@ void SecurityResources::release(void *descriptor, void *acl, void *sid, void *th
     if (impersonation_token != sentinel) {
         CloseHandle(impersonation_token);
     }
+#else
+    (void)descriptor;
+    (void)acl;
+    (void)sid;
+    (void)thread_token;
+    (void)impersonation_token;
+    (void)sentinel;  // nothing is ever allocated off Windows
+#endif
 }
 
 /**
@@ -730,6 +739,7 @@ int32_t WriteAccessCheck::run()
         return security_write_access_state == 1;
     }
 
+#if defined(_WIN32)
     access_granted = 0;
     privilege_set_length = 0x14;
     nt_authority.value[0] = 0;
@@ -779,6 +789,18 @@ int32_t WriteAccessCheck::run()
         }
     }
 
+#else
+    // no NT access tokens off Windows: as on the platforms without them, access is granted
+    (void)sid_length;
+    (void)acl_length;
+    (void)privilege_set_length;
+    (void)nt_authority;
+    (void)mapping;
+    (void)privilege_set;
+    (void)granted_access;
+    (void)ok;
+    access_granted = 1;
+#endif
     security_write_access_state = (access_granted == 1);
     return security_write_access_state == 1;
 }

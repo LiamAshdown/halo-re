@@ -136,15 +136,6 @@ int32_t FatalError::show(uint32_t resource_id, uint32_t help_text_or_id, int32_t
     int32_t result;
 
     load_text(resource_id, help_text_or_id, is_fatal);
-    {
-        void *frames[12];
-        USHORT n = CaptureStackBackTrace(0, 12, frames, 0);
-        char line[256];
-        int len = 0;
-        for (USHORT i = 0; i < n; i++) {
-            len += sprintf(line + len, "%p ", frames[i]);
-        }
-    }
 
     fatal_error_is_fatal = is_fatal;
 
@@ -211,6 +202,7 @@ int32_t __stdcall DialogCentering::procedure(void *hwnd, uint32_t message, uint3
         return 0;
     }
 
+#if defined(_WIN32)
     GetWindowRect((HWND)hwnd, &window_rect);
     GetClientRect(GetDesktopWindow(), &desktop_rect);
     MoveWindow((HWND)hwnd,
@@ -219,6 +211,13 @@ int32_t __stdcall DialogCentering::procedure(void *hwnd, uint32_t message, uint3
                window_rect.right - window_rect.left,
                window_rect.bottom - window_rect.top,
                1);
+#else
+    (void)hwnd;  // dialogs are Windows-only
+    (void)window_rect;
+    (void)desktop_rect;
+#endif
+    (void)wparam;
+    (void)lparam;
     return 1;
 }
 
