@@ -67,6 +67,9 @@
 #include "halo/platform/system.hpp"
 #include "halo/platform/window.hpp"
 #include "halo/platform/cpu.hpp"
+#if defined(__EMSCRIPTEN__)
+#include <emscripten.h>
+#endif
 
 
 static auto &main_globals_data = halo::link::ref<main_globals>(halo::main::vars().main_globals_data);
@@ -590,9 +593,19 @@ namespace halo::main {
 void MainLoop::loop(void)
 {
     loop_begin();
+#if defined(__EMSCRIPTEN__)
+    // the browser owns the event loop: one loop_frame per animation frame, the shutdown once it reports the end
+    emscripten_set_main_loop([]() {
+        if (!loop_frame()) {
+            emscripten_cancel_main_loop();
+            halo::main::main_loop_shutdown_cleanup();
+        }
+    }, 0, true);
+#else
     while (loop_frame()) {
     }
     halo::main::main_loop_shutdown_cleanup();
+#endif
 }
 
 /** The main loop's setup, run once before the first loop_frame(). */

@@ -16,6 +16,11 @@ cmake_minimum_required(VERSION 3.21)
 cmake_policy(SET CMP0091 NEW)   # CMAKE_MSVC_RUNTIME_LIBRARY
 project(halo C CXX)
 
+if(EMSCRIPTEN)
+    include(cmake/web.cmake)   # the browser build
+    return()
+endif()
+
 if(NOT MSVC OR NOT CMAKE_SIZEOF_VOID_P EQUAL 4)
     message(FATAL_ERROR "halo_rebuilt is 32-bit MSVC only: use -A Win32 (Visual Studio) or an x86 tools prompt (Ninja)")
 endif()
