@@ -195,7 +195,7 @@ uint8_t AutopatchUpdater::download_pool_initialize(void)
                 thread_slot = &network_thread_table[i];
                 thread_slot->handle = 0;
                 network_thread_table[i].in_use = 1;
-                thread_slot->handle = halo::platform::thread_create(0x4000, (halo::platform::thread_procedure)halo::networking::autopatch_download_worker_thread, 0, 4, &thread_id);
+                thread_slot->handle = halo::platform::thread_create(0x4000, halo::networking::autopatch_download_worker_thread, 0, 4, &thread_id);
                 autopatch_download_thread = thread_slot;
                 if (thread_slot->handle != 0) {
                     if (halo::platform::thread_set_priority(thread_slot->handle, 0) != 0 &&
@@ -549,8 +549,9 @@ int32_t autopatch_download_start(void *path, int32_t local_file)
     return halo::networking::AutopatchUpdater::download_start(path, local_file);
 }
 
-uint32_t autopatch_download_worker_thread(void)
+uint32_t __stdcall autopatch_download_worker_thread(void *parameter)
 {
+    (void)parameter;  // a thread start routine: the parameter is unused
     return halo::networking::AutopatchUpdater::download_worker_thread();
 }
 

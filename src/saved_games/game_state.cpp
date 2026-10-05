@@ -102,7 +102,7 @@ void *allocate_buffer(int32_t cpu_size, int32_t extra_size)
     _snprintf(game_state_core_directory, k_path_maximum_length, "%s\\%s", profile_directory, "core");
     game_state_write_in_progress = 0;
     game_state_write_event = halo::platform::event_create(false, false, nullptr);
-    halo::platform::thread_start_detached((void (*)(void *))halo::saved_games::game_state_save_thread_proc, 0x1000, 0);
+    halo::platform::thread_start_detached(halo::saved_games::game_state_save_thread_proc, 0x1000, 0);
     return base;
 }
 

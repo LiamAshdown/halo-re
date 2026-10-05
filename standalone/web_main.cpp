@@ -11,6 +11,7 @@
  */
 #include "halo/shell/api.hpp"
 #include "halo/shell/standalone.hpp"
+#include "halo/shell/settings.hpp"
 
 #include <emscripten.h>
 #include <emscripten/wasmfs.h>
@@ -28,16 +29,26 @@ extern "C" {
 extern char *shell_module_path;
 int standalone_data_layout_check(void);
 
-/** The manifest the page fetched before starting the module ("" when there is none). */
-EM_JS(char *, web_halo_manifest, (), {
-    return stringToNewUTF8(Module.haloManifest || "");
-});
+/** The manifest the page fetched before starting ("" when there is none); main() runs on a worker, the page's
+    Module is the main thread's, so the string is made there (the heap is shared). */
+static char *web_halo_manifest()
+{
+    return reinterpret_cast<char *>(MAIN_THREAD_EM_ASM_INT({ return stringToNewUTF8(Module.haloManifest || ""); }));
+}
+
+/** The page's ?fps=N: frames on a timer instead of animation frames (which hidden pages do not get). */
+static int web_fps()
+{
+    return MAIN_THREAD_EM_ASM_INT({ return parseInt(new URLSearchParams(location.search).get("fps") || "0", 10) || 0; });
+}
 
 /** The game's command line: the page's ?args=... (for example -novideo). */
-EM_JS(char *, web_command_line, (), {
-    const args = new URLSearchParams(location.search).get("args") || "";
-    return stringToNewUTF8(args);
-});
+static char *web_command_line()
+{
+    return reinterpret_cast<char *>(MAIN_THREAD_EM_ASM_INT({
+        return stringToNewUTF8(new URLSearchParams(location.search).get("args") || "");
+    }));
+}
 
 void __cdecl standalone_log(const char *format, ...)
 {
@@ -115,6 +126,31 @@ int build_halo_tree(const char *manifest)
     return count;
 }
 
+/**
+ * The install's DigitalProductID (the product key check reads it from the registry on Windows): the server hands it
+ * over as /halo/digital_product_id.bin, and it goes into the settings store the first time.
+ */
+void import_product_id()
+{
+    const halo::shell::SettingsStore &settings = halo::shell::SettingsStore::current();
+    uint8_t value[0x100];
+    uint32_t size = sizeof(value);
+    FILE *file;
+
+    if (settings.read_value(halo::shell::SettingsScope::machine, "DigitalProductID", nullptr, value, &size)) {
+        return;
+    }
+    file = fopen("/halo/digital_product_id.bin", "rb");
+    if (file == nullptr) {
+        return;
+    }
+    size = static_cast<uint32_t>(fread(value, 1, sizeof(value), file));
+    fclose(file);
+    if (size != 0) {
+        settings.write_string(halo::shell::SettingsScope::machine, "DigitalProductID", reinterpret_cast<const char *>(value), size);
+    }
+}
+
 }  // namespace
 
 }  // namespace halo::standalone
@@ -130,6 +166,12 @@ int main()
 
     wasmfs_create_directory("/home", 0777, persistent);
     setenv("HOME", "/home", 1);
+    if (int fps = web_fps()) {
+        char text[16];
+
+        snprintf(text, sizeof(text), "%d", fps);
+        setenv("HALO_WEB_FPS", text, 1);  // read by MainLoop::loop
+    }
     wasmfs_create_directory("/halo", 0777, server);
     files = build_halo_tree(manifest);
     printf("halo: %d game files from the server\n", files);
@@ -141,6 +183,7 @@ int main()
     if (int misplaced = standalone_data_layout_check()) {
         printf("halo: %d engine globals are not laid out as in the original image\n", misplaced);
     }
+    import_product_id();
     shell_module_path = g_module_path;
     chdir("/halo");
     return halo::shell::shell_winmain(nullptr, nullptr, command_line, 1);

@@ -1926,9 +1926,10 @@ void network_dispatch_initialize(void)
  *
  * @address 0x441510
  */
-void network_hostname_thread_proc(char *hostname_buffer)
+uint32_t __stdcall network_hostname_thread_proc(void *hostname_buffer)
 {
-    halo::networking::NetworkRuntime::hostname_thread_proc(hostname_buffer);
+    halo::networking::NetworkRuntime::hostname_thread_proc(static_cast<char *>(hostname_buffer));
+    return 0;  // a thread start routine; nothing reads its exit code
 }
 
 /**

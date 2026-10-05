@@ -9,7 +9,7 @@
  * standalone data layer under these original names; the module reaches them through the named references of
  * halo::saved_games::globals below.
  */
-inline auto &unknown_0072132a = halo::link::ref<uint8_t>(halo::saved_games::vars().unknown_0072132a);
+static auto &unknown_0072132a = halo::link::ref<uint8_t>(halo::saved_games::vars().unknown_0072132a);
 
 namespace halo::saved_games::fields {
 
@@ -19,6 +19,6 @@ namespace halo::saved_games::fields {
  *
  * @address 0x72132a
  */
-inline uint8_t &saved_game_files_initialized = unknown_0072132a;
+static uint8_t &saved_game_files_initialized = unknown_0072132a;
 
 }

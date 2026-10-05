@@ -600,7 +600,7 @@ void MainLoop::loop(void)
             emscripten_cancel_main_loop();
             halo::main::main_loop_shutdown_cleanup();
         }
-    }, 0, true);
+    }, getenv("HALO_WEB_FPS") != nullptr ? atoi(getenv("HALO_WEB_FPS")) : 0, true);  // 0: on animation frames
 #else
     while (loop_frame()) {
     }

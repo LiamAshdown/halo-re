@@ -27,13 +27,13 @@ void DirectSoundDevice::dispose(void)
 
         if (buffer_3d != 0) {
             void **vtable = halo::sound::com_methods(buffer_3d);
-            void (__stdcall *release)(void *) = (void (__stdcall *)(void *))vtable[2];
+            uint32_t (__stdcall *release)(void *) = (uint32_t (__stdcall *)(void *))vtable[2];
             release(buffer_3d);
         }
         if (buffer != 0) {
             void **vtable = halo::sound::com_methods(buffer);
-            void (__stdcall *stop)(void *) = (void (__stdcall *)(void *))vtable[halo::sound::dsound_slot::sb_stop];
-            void (__stdcall *release)(void *) = (void (__stdcall *)(void *))vtable[2];
+            int32_t (__stdcall *stop)(void *) = (int32_t (__stdcall *)(void *))vtable[halo::sound::dsound_slot::sb_stop];
+            uint32_t (__stdcall *release)(void *) = (uint32_t (__stdcall *)(void *))vtable[2];
             stop(buffer);
             release(buffer);
         }
@@ -51,14 +51,14 @@ void DirectSoundDevice::dispose(void)
 
     if (directsound_listener != 0) {
         void **vtable = halo::sound::com_methods(directsound_listener);
-        void (__stdcall *release)(void *) = (void (__stdcall *)(void *))vtable[2];
+        uint32_t (__stdcall *release)(void *) = (uint32_t (__stdcall *)(void *))vtable[2];
         release(directsound_listener);
         directsound_listener = 0;
     }
 
     if (directsound_primary_buffer != 0) {
         void **vtable = halo::sound::com_methods(directsound_primary_buffer);
-        void (__stdcall *release)(void *) = (void (__stdcall *)(void *))vtable[2];
+        uint32_t (__stdcall *release)(void *) = (uint32_t (__stdcall *)(void *))vtable[2];
         release(directsound_primary_buffer);
         directsound_primary_buffer = 0;
     }
@@ -67,7 +67,7 @@ void DirectSoundDevice::dispose(void)
         void **vtable = halo::sound::com_methods(directsound);
         int32_t (__stdcall *set_cooperative_level)(void *, void *, uint32_t) =
             (int32_t (__stdcall *)(void *, void *, uint32_t))vtable[halo::sound::dsound_slot::ds_set_cooperative_level];
-        void (__stdcall *release)(void *) = (void (__stdcall *)(void *))vtable[2];
+        uint32_t (__stdcall *release)(void *) = (uint32_t (__stdcall *)(void *))vtable[2];
         set_cooperative_level(directsound, halo::shell::globals().window, 1);
         release(directsound);
         directsound = 0;

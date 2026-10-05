@@ -10,14 +10,14 @@
 #include "game.h"
 #include "networking.h"
 #include "objects.h"
-#include <string.h>
+#include <string.h>
 #include "halo/core/link.hpp"
 #include "halo/networking/vars.hpp"
 #ifdef __cplusplus
 #endif
 
-inline auto &message_delta_field_type_table = halo::link::ref<message_delta_field_type_vtable [28]>(halo::networking::vars().message_delta_field_type_table);
-inline auto &message_delta_item_count_bits = halo::link::ref<uint8_t []>(halo::networking::vars().message_delta_item_count_bits);
+static auto &message_delta_field_type_table = halo::link::ref<message_delta_field_type_vtable [28]>(halo::networking::vars().message_delta_field_type_table);
+static auto &message_delta_item_count_bits = halo::link::ref<uint8_t []>(halo::networking::vars().message_delta_item_count_bits);
 
  // 0x4cf8f0
       // 0x4cf950

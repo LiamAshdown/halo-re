@@ -412,7 +412,7 @@ int NetworkRuntime::local_hostent_get(void **out_hostent)
     uint32_t thread_id;
 
     network_hostname_ready = 0;
-    thread_handle = halo::platform::thread_create(0x10400, (halo::platform::thread_procedure)halo::networking::network_hostname_thread_proc, network_local_hostname_buffer, 0, &thread_id);
+    thread_handle = halo::platform::thread_create(0x10400, halo::networking::network_hostname_thread_proc, network_local_hostname_buffer, 0, &thread_id);
     if (thread_handle != 0) {
         wait_result = halo::platform::wait(thread_handle, 10000);
         if (wait_result == 0x102) {

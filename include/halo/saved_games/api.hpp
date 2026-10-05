@@ -95,7 +95,7 @@ uint8_t game_state_read_persistent_storage(void);
 void game_state_read_persistent_storage_block(int32_t size, void *buffer);
 void game_state_read_profile_file(char *name, int32_t size, void *buffer);
 uint8_t game_state_read_profile_header(char *name, int32_t size, void *buffer);
-void game_state_save_thread_proc(void);
+void game_state_save_thread_proc(void *parameter);
 void game_state_startup(void);
 void game_state_write_persistent_storage(uint32_t *crc_slot, uint8_t *buffer, int32_t header_size, int32_t total_size);
 uint8_t game_state_write_profile_file(int32_t size, char *name, const void *buffer);

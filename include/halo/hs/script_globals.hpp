@@ -11,17 +11,17 @@
  * original names (the hs global table points at them); the named references of halo::hs::globals below are
  * what the engine code uses.
  */
-inline auto &g_0087abc0 = halo::link::ref<uint8_t>(halo::hs::vars().g_0087abc0);
-inline auto &jetpack = halo::link::ref<uint8_t>(halo::hs::vars().jetpack);
-inline auto &bump_possession = halo::link::ref<uint8_t>(halo::hs::vars().bump_possession);
-inline auto &g_0087abc5 = halo::link::ref<uint8_t>(halo::hs::vars().g_0087abc5);
-inline auto &ai_debug_gate_87abc6 = halo::link::ref<uint8_t>(halo::hs::vars().ai_debug_gate_87abc6);
-inline auto &g_0087abc7 = halo::link::ref<uint8_t>(halo::hs::vars().g_0087abc7);
-inline auto &cheat_super_jump = halo::link::ref<uint8_t>(halo::hs::vars().cheat_super_jump);
-inline auto &object_prediction = halo::link::ref<uint8_t>(halo::hs::vars().object_prediction);
-inline auto &g_00689481 = halo::link::ref<uint8_t>(halo::hs::vars().g_00689481);
-inline auto &recover_saved_games_hack = halo::link::ref<uint8_t>(halo::hs::vars().recover_saved_games_hack);
-inline auto &director_camera_target_changed = halo::link::ref<uint8_t>(halo::hs::vars().director_camera_target_changed);
+static auto &g_0087abc0 = halo::link::ref<uint8_t>(halo::hs::vars().g_0087abc0);
+static auto &jetpack = halo::link::ref<uint8_t>(halo::hs::vars().jetpack);
+static auto &bump_possession = halo::link::ref<uint8_t>(halo::hs::vars().bump_possession);
+static auto &g_0087abc5 = halo::link::ref<uint8_t>(halo::hs::vars().g_0087abc5);
+static auto &ai_debug_gate_87abc6 = halo::link::ref<uint8_t>(halo::hs::vars().ai_debug_gate_87abc6);
+static auto &g_0087abc7 = halo::link::ref<uint8_t>(halo::hs::vars().g_0087abc7);
+static auto &cheat_super_jump = halo::link::ref<uint8_t>(halo::hs::vars().cheat_super_jump);
+static auto &object_prediction = halo::link::ref<uint8_t>(halo::hs::vars().object_prediction);
+static auto &g_00689481 = halo::link::ref<uint8_t>(halo::hs::vars().g_00689481);
+static auto &recover_saved_games_hack = halo::link::ref<uint8_t>(halo::hs::vars().recover_saved_games_hack);
+static auto &director_camera_target_changed = halo::link::ref<uint8_t>(halo::hs::vars().director_camera_target_changed);
 
 namespace halo::hs::fields {
 
@@ -32,14 +32,14 @@ namespace halo::hs::fields {
  *
  * @address 0x87abc0
  */
-inline uint8_t &deathless_player = g_0087abc0;
+static uint8_t &deathless_player = g_0087abc0;
 
 /**
  * hs global "cheat_jetpack". While set, a unit controlled by a player takes no fall damage.
  *
  * @address 0x87abc1
  */
-inline uint8_t &jetpack = ::jetpack;
+static uint8_t &jetpack = ::jetpack;
 
 /**
  * hs global "cheat_bump_possession". While set, a unit that has bumped a biped for more than three ticks
@@ -47,7 +47,7 @@ inline uint8_t &jetpack = ::jetpack;
  *
  * @address 0x87abc3
  */
-inline uint8_t &bump_possession = ::bump_possession;
+static uint8_t &bump_possession = ::bump_possession;
 
 /**
  * hs global "cheat_reflexive_damage_effects". When set, damage that has no other player effect route marks
@@ -55,7 +55,7 @@ inline uint8_t &bump_possession = ::bump_possession;
  *
  * @address 0x87abc5
  */
-inline uint8_t &reflexive_damage_effects = g_0087abc5;
+static uint8_t &reflexive_damage_effects = g_0087abc5;
 
 /**
  * hs global "cheat_medusa". While set, an actor that sees a parented enemy target flags its unit (bit 0x20 of
@@ -63,21 +63,21 @@ inline uint8_t &reflexive_damage_effects = g_0087abc5;
  *
  * @address 0x87abc6
  */
-inline uint8_t &medusa = ai_debug_gate_87abc6;
+static uint8_t &medusa = ai_debug_gate_87abc6;
 
 /**
  * hs global "cheat_super_jump". While set, the jump speed of a player-controlled unit is multiplied by 4.
  *
  * @address 0x87abc4
  */
-inline uint8_t &super_jump = cheat_super_jump;
+static uint8_t &super_jump = cheat_super_jump;
 
 /**
  * hs global "cheat_omnipotent". While set, any damage a player causes kills the damaged object.
  *
  * @address 0x87abc7
  */
-inline uint8_t &omnipotent = g_0087abc7;
+static uint8_t &omnipotent = g_0087abc7;
 
 /**
  * hs global "object_prediction" (default 1). Gates the nudge of an object towards its predicted position when
@@ -85,7 +85,7 @@ inline uint8_t &omnipotent = g_0087abc7;
  *
  * @address 0x689471
  */
-inline uint8_t &object_prediction = ::object_prediction;
+static uint8_t &object_prediction = ::object_prediction;
 
 /**
  * hs global "should_play_multiplayer_hit_sound" (default 1). The throttled multiplayer sound event only plays
@@ -93,7 +93,7 @@ inline uint8_t &object_prediction = ::object_prediction;
  *
  * @address 0x689481
  */
-inline uint8_t &should_play_multiplayer_hit_sound = g_00689481;
+static uint8_t &should_play_multiplayer_hit_sound = g_00689481;
 
 /**
  * hs global "recover_saved_games_hack" (default 0). When set, a revert proceeds even though no revert is
@@ -101,7 +101,7 @@ inline uint8_t &should_play_multiplayer_hit_sound = g_00689481;
  *
  * @address 0x746fa4
  */
-inline uint8_t &recover_saved_games_hack = ::recover_saved_games_hack;
+static uint8_t &recover_saved_games_hack = ::recover_saved_games_hack;
 
 /**
  * Set whenever the director camera mode and target are changed (by the camera scripts, the followed object
@@ -110,7 +110,7 @@ inline uint8_t &recover_saved_games_hack = ::recover_saved_games_hack;
  *
  * @address 0x6869d1
  */
-inline uint8_t &director_camera_target_changed = ::director_camera_target_changed;
+static uint8_t &director_camera_target_changed = ::director_camera_target_changed;
 
 /**
  * hs global "framerate_throttle". The 30 fps frame limiter: set when the profile's frame rate mode is 2 and read
@@ -119,6 +119,6 @@ inline uint8_t &director_camera_target_changed = ::director_camera_target_change
  *
  * @address 0x6894ba
  */
-inline uint8_t &framerate_throttle = ::framerate_throttle;
+static uint8_t &framerate_throttle = ::framerate_throttle;
 
 }

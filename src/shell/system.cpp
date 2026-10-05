@@ -1,3 +1,4 @@
+#include <inttypes.h>
 #include "win32.h"
 #include "halo/shell/system.hpp"
 #include "halo/core/win32_constants.hpp"
@@ -406,7 +407,7 @@ char *ProductId::build_string()
         return &k_empty_string;
     }
 
-    sprintf(product_id_string, "%05d,%09d,0,% 19.19I64d", data.unknown_20, product_id_digits, hash_prefix);
+    sprintf(product_id_string, "%05d,%09d,0,% 19.19" PRId64, data.unknown_20, product_id_digits, hash_prefix);
     halo::platform::crypto_context_close(reinterpret_cast<void *>(static_cast<uintptr_t>(crypt_provider)));
     return product_id_string;
 }

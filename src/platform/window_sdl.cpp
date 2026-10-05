@@ -11,6 +11,9 @@
 
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
+#if defined(__EMSCRIPTEN__)
+#include <emscripten/html5.h>
+#endif
 #include <SDL_syswm.h>
 
 #ifdef _WIN32
@@ -288,6 +291,9 @@ window_handle window_create(void *instance, void *resource_module, const char *c
         return nullptr;
     }
     SDL_DisableScreenSaver();
+#if defined(__EMSCRIPTEN__)
+    opengl = false;  // the WebGL context is made directly on the canvas (gl_context_create), not through SDL's EGL
+#endif
     g_window = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_SHOWN | (opengl ? SDL_WINDOW_OPENGL : 0));
     if (g_window == nullptr) {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, "ERROR - failed to create window", SDL_GetError(), nullptr);
@@ -440,6 +446,58 @@ void cursor_position(int32_t *x, int32_t *y)
     *y = global_y;
 }
 
+#if defined(__EMSCRIPTEN__)
+
+/*
+ * In the browser the game runs on a worker that owns the canvas (an OffscreenCanvas): the WebGL 2 context is made there
+ * with the HTML5 API, since SDL's EGL path would ask the page thread, which no longer has the canvas. The browser shows
+ * the frame when the main loop's callback returns.
+ */
+namespace {
+EMSCRIPTEN_WEBGL_CONTEXT_HANDLE g_webgl;
+}
+
+bool gl_context_create(window_handle window, bool es)
+{
+    EmscriptenWebGLContextAttributes attributes;
+
+    (void)window;
+    (void)es;  // WebGL 2 is OpenGL ES 3.0
+    emscripten_webgl_init_context_attributes(&attributes);
+    attributes.majorVersion = 2;
+    attributes.minorVersion = 0;
+    attributes.alpha = false;
+    attributes.depth = true;
+    attributes.stencil = true;
+    attributes.antialias = false;
+    attributes.preserveDrawingBuffer = false;
+    g_webgl = emscripten_webgl_create_context("#canvas", &attributes);
+    return g_webgl > 0 && emscripten_webgl_make_context_current(g_webgl) == EMSCRIPTEN_RESULT_SUCCESS;
+}
+
+void gl_swap(window_handle window)
+{
+    (void)window;
+}
+
+void gl_drawable_size(window_handle window, uint32_t *width, uint32_t *height)
+{
+    int w = 0;
+    int h = 0;
+
+    (void)window;
+    emscripten_webgl_get_drawing_buffer_size(g_webgl, &w, &h);
+    *width = (uint32_t)w;
+    *height = (uint32_t)h;
+}
+
+void *gl_proc_address(const char *name)
+{
+    return emscripten_webgl_get_proc_address(name);
+}
+
+#else
+
 bool gl_context_create(window_handle window, bool es)
 {
     SDL_GLContext context;
@@ -457,6 +515,8 @@ bool gl_context_create(window_handle window, bool es)
     return context != nullptr && SDL_GL_MakeCurrent(g_window, context) == 0;
 }
 
+#endif
+
 void desktop_size(uint32_t *width, uint32_t *height)
 {
     SDL_DisplayMode mode;
@@ -469,6 +529,8 @@ void desktop_size(uint32_t *width, uint32_t *height)
         *height = (uint32_t)mode.h;
     }
 }
+
+#if !defined(__EMSCRIPTEN__)
 
 void gl_drawable_size(window_handle window, uint32_t *width, uint32_t *height)
 {
@@ -491,6 +553,8 @@ void *gl_proc_address(const char *name)
 {
     return SDL_GL_GetProcAddress(name);
 }
+
+#endif
 
 bool gamma_ramp_get(window_handle window, void *ramp)
 {

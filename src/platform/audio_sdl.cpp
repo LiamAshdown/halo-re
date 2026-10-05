@@ -10,6 +10,9 @@
 #include "halo/platform/audio.hpp"
 
 #include <SDL.h>
+#if defined(__EMSCRIPTEN__)
+#include <emscripten/threading.h>
+#endif
 
 #include "halo/core/libm.hpp"
 #include <cstdlib>
@@ -543,28 +546,48 @@ int32_t __stdcall device_create_sound_buffer(void *, const buffer_description *d
 
 }  // namespace
 
-int32_t __stdcall audio_device_create(void *, void **direct_sound, void *)
+namespace {
+
+/** Opens the output (44.1 kHz stereo, mixed by mix()); 0 on failure. */
+int open_output()
 {
     SDL_AudioSpec want;
     SDL_AudioSpec have;
 
+    SDL_SetMainReady();
+    if (SDL_InitSubSystem(SDL_INIT_AUDIO) != 0) {
+        return 0;
+    }
+    memset(&want, 0, sizeof(want));
+    want.freq = (int)k_output_rate;
+    want.format = AUDIO_S16SYS;
+    want.channels = 2;
+    want.samples = 1024;
+    want.callback = mix;
+    g_device = SDL_OpenAudioDevice(nullptr, 0, &want, &have, 0);
+    if (g_device != 0) {
+        SDL_PauseAudioDevice(g_device, 0);
+    }
+    return g_device != 0;
+}
+
+}  // namespace
+
+int32_t __stdcall audio_device_create(void *, void **direct_sound, void *)
+{
     *direct_sound = nullptr;
     if (g_device == 0) {
-        SDL_SetMainReady();
-        if (SDL_InitSubSystem(SDL_INIT_AUDIO) != 0) {
+#if defined(__EMSCRIPTEN__)
+        // Web Audio lives on the page thread; the game runs on a worker. The mixer callback then runs on the page
+        // thread too, reading the buffers through the shared heap.
+        if (!emscripten_sync_run_in_main_runtime_thread(EM_FUNC_SIG_I, open_output)) {
             return k_invalid_call;
         }
-        memset(&want, 0, sizeof(want));
-        want.freq = (int)k_output_rate;
-        want.format = AUDIO_S16SYS;
-        want.channels = 2;
-        want.samples = 1024;
-        want.callback = mix;
-        g_device = SDL_OpenAudioDevice(nullptr, 0, &want, &have, 0);
-        if (g_device == 0) {
+#else
+        if (!open_output()) {
             return k_invalid_call;
         }
-        SDL_PauseAudioDevice(g_device, 0);
+#endif
     }
     g_device_refs++;
     *direct_sound = &g_device_object;

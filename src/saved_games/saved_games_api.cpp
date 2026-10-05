@@ -318,8 +318,9 @@ uint8_t game_state_read_profile_header(char *name, int32_t size, void *buffer)
     return halo::saved_games::game_state::read_profile_header(name, size, buffer);
 }
 
-void game_state_save_thread_proc(void)
+void game_state_save_thread_proc(void *parameter)
 {
+    (void)parameter;  // a _beginthread start routine: the parameter is unused
     halo::saved_games::game_state::save_thread_proc();
 }
 

@@ -3,7 +3,7 @@
     python tools/web_data.py <output folder> <data source>...
 
 Writes each data file to the output folder without MSVC's section placement (__declspec(allocate(...)) and
-#pragma section, so the globals keep definition order), and replaces the /alternatename linker aliases, which wasm-ld
+#pragma section, so the globals keep definition order; every one is kept even when unreferenced, pads included), and replaces the /alternatename linker aliases, which wasm-ld
 does not have, with aliases defined next to their targets (alias attribute, the symbol name given by an asm label).
 Files are only rewritten when their text changes.
 """
@@ -29,7 +29,8 @@ def main():
     os.makedirs(out_dir, exist_ok=True)
     placed = set()
     for source, text in texts.items():
-        text = ALLOCATE.sub('', text)
+        # the image keeps its layout: nothing references the pads (and some globals), and wasm-ld drops unreferenced data
+        text = ALLOCATE.sub('__attribute__((used, retain)) ', text)
         text = SECTION.sub('', text)
         text = ALIAS.sub('', text)
         extra = []

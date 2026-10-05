@@ -70,7 +70,7 @@ struct Globals {
 
 Globals &globals();
 
-inline auto &k_physics_gravity = halo::link::ref<float>(halo::physics::vars().k_physics_gravity);
+static auto &k_physics_gravity = halo::link::ref<float>(halo::physics::vars().k_physics_gravity);
 
 void breakable_surface_apply_damage(damage_data *damage, int32_t surface_index, int32_t collision_surface_index);
 void breakable_surface_damage_in_blast_radius(damage_data *damage);

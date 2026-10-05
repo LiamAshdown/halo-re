@@ -77,9 +77,17 @@ target_link_options(halo PRIVATE
     "SHELL:-sMIN_WEBGL_VERSION=2" "SHELL:-sMAX_WEBGL_VERSION=2"
     "SHELL:-sGL_ENABLE_GET_PROC_ADDRESS=1"     # the renderer loads every GL entry point by name (SDL_GL_GetProcAddress)
     "SHELL:-sWASMFS=1"                          # fetch backend (the Halo folder) and OPFS (saves)
+    "SHELL:-sPROXY_TO_PTHREAD=1"                # main() runs on a worker: the file backends block, which the page thread may not
+    "SHELL:-sOFFSCREENCANVAS_SUPPORT=1"         # that worker draws: the canvas goes to it as an OffscreenCanvas
+    "SHELL:-sOFFSCREENCANVASES_TO_PTHREAD=#canvas"
     "SHELL:-sINITIAL_MEMORY=1536MB"             # map memory sits at 0x40000000 (+27 MB); the heap grows past it
     "SHELL:-sSTACK_SIZE=8MB" "SHELL:-sDEFAULT_PTHREAD_STACK_SIZE=1MB" "SHELL:-sPTHREAD_POOL_SIZE=8"
     "SHELL:-sEXPORTED_RUNTIME_METHODS=callMain,stringToNewUTF8"
+    "SHELL:-sEMULATE_FUNCTION_POINTER_CASTS=1"  # the engine calls through tables whose entries have other signatures, as x86 allows
     "SHELL:-sENVIRONMENT=web,worker"
     "SHELL:-sASSERTIONS=1"
+    "--profiling-funcs"                         # function names in stack traces
+    "SHELL:-Wl,--Map=${CMAKE_BINARY_DIR}/halo.map"
     "--shell-file" "${CMAKE_SOURCE_DIR}/web/shell.html")
+# debug builds trap null and out-of-range loads and stores where they happen (SAFE_HEAP)
+target_link_options(halo PRIVATE $<$<CONFIG:Debug>:SHELL:-sSAFE_HEAP=2>)  # 2: no alignment checks; the engine reads packed records unaligned, as x86 allows

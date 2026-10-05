@@ -152,12 +152,12 @@ void DirectSoundDevice::probe_channel_pools(int32_t *mono3d_count, uint32_t mono
 
     for (i = 0; i < k_probe_pool_capacity; i++) {
         if (buffers_3d[i] != nullptr) {
-            void (__stdcall *release)(com_object *) = (void (__stdcall *)(com_object *))buffers_3d[i]->vtable[2];
+            uint32_t (__stdcall *release)(com_object *) = (uint32_t (__stdcall *)(com_object *))buffers_3d[i]->vtable[2];
             release(buffers_3d[i]);
             buffers_3d[i] = nullptr;
         }
         if (buffers[i] != nullptr) {
-            void (__stdcall *release)(com_object *) = (void (__stdcall *)(com_object *))buffers[i]->vtable[2];
+            uint32_t (__stdcall *release)(com_object *) = (uint32_t (__stdcall *)(com_object *))buffers[i]->vtable[2];
             release(buffers[i]);
             buffers[i] = nullptr;
         }

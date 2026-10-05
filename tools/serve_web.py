@@ -6,7 +6,10 @@ Serves the web build (halo.html, .js, .wasm) at / and the installed Halo folder,
 streams game files from /halo/ as the game opens them: HTTP range requests fetch just the parts of a .map file that
 are read. /halo/manifest.json lists every file with its size so the page can create the game's file tree up front.
 Paths under /halo/ match case-insensitively (the game asks for maps\\ where the install has MAPS\\).
---fx points /halo/override/shaders/fx.bin at a converted shader file (tools/convert_fx.py).
+/halo/digital_product_id.bin is the install's DigitalProductID registry value (the product key check reads it; the
+browser has no registry), read from this machine's registry and only ever sent to this machine.
+--fx serves a converted shader file (tools/convert_fx.py) as shaders/fx.bin, in place of the install's 2003 one,
+as the Windows loader's file override does.
 
 Every response carries the cross-origin isolation headers browsers require before a page may use threads
 (SharedArrayBuffer). The server listens on 127.0.0.1 only.
@@ -49,7 +52,23 @@ def resolve_case_insensitive(root, relative):
     return path
 
 
-def build_manifest(halo_root, fx_override):
+def digital_product_id():
+    """The installed Halo's DigitalProductID registry value (bytes), or None (not Windows, or not installed)."""
+    try:
+        import winreg
+    except ImportError:
+        return None
+    for view in (winreg.KEY_WOW64_32KEY, winreg.KEY_WOW64_64KEY):
+        try:
+            key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r'Software\Microsoft\Microsoft Games\Halo', 0, winreg.KEY_READ | view)
+            value, _ = winreg.QueryValueEx(key, 'DigitalProductID')
+            return bytes(value)
+        except OSError:
+            continue
+    return None
+
+
+def build_manifest(halo_root, fx_override, product_id):
     files = []
     for directory, _, names in os.walk(halo_root):
         for name in names:
@@ -57,7 +76,11 @@ def build_manifest(halo_root, fx_override):
             relative = os.path.relpath(full, halo_root).replace(os.sep, '/')
             files.append({'path': relative, 'size': os.path.getsize(full)})
     if fx_override:
-        files.append({'path': 'override/shaders/fx.bin', 'size': os.path.getsize(fx_override)})
+        for f in files:
+            if f['path'].lower() == 'shaders/fx.bin':
+                f['size'] = os.path.getsize(fx_override)
+    if product_id:
+        files.append({'path': 'digital_product_id.bin', 'size': len(product_id)})
     files.sort(key=lambda f: f['path'].lower())
     return json.dumps({'files': files}).encode()
 
@@ -67,6 +90,7 @@ class Handler(SimpleHTTPRequestHandler):
     web_root = '.'
     halo_root = '.'
     fx_override = None
+    product_id = None
     manifest = b''
 
     def end_headers(self):
@@ -85,7 +109,9 @@ class Handler(SimpleHTTPRequestHandler):
         path = posixpath.normpath(path)
         if path == '/halo/manifest.json':
             return None, 'manifest'
-        if path.lower() == '/halo/override/shaders/fx.bin' and self.fx_override:
+        if path == '/halo/digital_product_id.bin' and self.product_id:
+            return None, 'product_id'
+        if path.lower() == '/halo/shaders/fx.bin' and self.fx_override:
             return self.fx_override, 'file'
         if path == '/halo' or path.startswith('/halo/'):
             found = resolve_case_insensitive(self.halo_root, path[len('/halo'):])
@@ -102,13 +128,14 @@ class Handler(SimpleHTTPRequestHandler):
 
     def respond(self, send_body):
         path, kind = self.target()
-        if kind == 'manifest':
+        if kind in ('manifest', 'product_id'):
+            body = self.manifest if kind == 'manifest' else self.product_id
             self.send_response(200)
-            self.send_header('Content-Type', 'application/json')
-            self.send_header('Content-Length', str(len(self.manifest)))
+            self.send_header('Content-Type', 'application/json' if kind == 'manifest' else 'application/octet-stream')
+            self.send_header('Content-Length', str(len(body)))
             self.end_headers()
             if send_body:
-                self.wfile.write(self.manifest)
+                self.wfile.write(body)
             return
         if path is None:
             self.send_error(404)
@@ -165,7 +192,8 @@ def main():
     Handler.web_root = os.path.abspath(args.web)
     Handler.halo_root = os.path.abspath(args.halo)
     Handler.fx_override = os.path.abspath(args.fx) if args.fx else None
-    Handler.manifest = build_manifest(Handler.halo_root, Handler.fx_override)
+    Handler.product_id = digital_product_id()
+    Handler.manifest = build_manifest(Handler.halo_root, Handler.fx_override, Handler.product_id)
     server = ThreadingHTTPServer(('127.0.0.1', args.port), Handler)
     print('halo-re: http://127.0.0.1:%d/  (Halo files from %s)' % (args.port, Handler.halo_root))
     server.serve_forever()
