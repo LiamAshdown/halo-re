@@ -9,6 +9,7 @@
 #include "halo/cache/globals.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/platform/time.hpp"
 
 
 namespace halo::cache {
@@ -88,7 +89,7 @@ uint32_t structure_bsp_loader::load(ScenarioBSP *bsp)
     completion.data = 0;
     halo::cache::cache_io::request_new(&completion, bsp->bsp_start, bsp->bsp_size, (void *)bsp->bsp_address, 1, 0);
     while (completion_flag == 0) {
-
+        halo::platform::sleep_milliseconds(0);  // an empty spin on the IO thread's flag is UB; optimizers hoist the load
     }
 
     globals().structure_bsp_data = (void *)bsp->bsp_address;

@@ -91,3 +91,9 @@ target_link_options(halo PRIVATE
     "--shell-file" "${CMAKE_SOURCE_DIR}/web/shell.html")
 # debug builds trap null and out-of-range loads and stores where they happen (SAFE_HEAP)
 target_link_options(halo PRIVATE $<$<CONFIG:Debug>:SHELL:-sSAFE_HEAP=2>)  # 2: no alignment checks; the engine reads packed records unaligned, as x86 allows
+# bisecting optimizer-sensitive code: src/ globs listed here (e.g. "cache/*.cpp") compile at -O0 (a debugging aid, empty normally)
+set(HALO_WEB_O0_SOURCES "" CACHE STRING "src/ globs compiled at -O0 (semicolon list)")
+foreach(pattern ${HALO_WEB_O0_SOURCES})
+    file(GLOB o0_sources "${CMAKE_SOURCE_DIR}/src/${pattern}")
+    set_property(SOURCE ${o0_sources} APPEND PROPERTY COMPILE_OPTIONS -O0)
+endforeach()
