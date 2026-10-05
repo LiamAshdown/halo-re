@@ -37,6 +37,18 @@ HBITMAP g_splash_bitmap;
 HDC g_splash_dc;
 #endif
 
+/** The worker owns the canvas, so SDL cannot resize it: the drawing buffer follows the window size here. */
+void sync_canvas_size()
+{
+#if defined(__EMSCRIPTEN__)
+    int width;
+    int height;
+
+    SDL_GetWindowSize(g_window, &width, &height);
+    emscripten_set_canvas_element_size("#canvas", width, height);
+#endif
+}
+
 /** The Windows virtual key a key event would have carried (WM_KEYDOWN wparam), 0 for keys Windows has none for. */
 uint32_t virtual_key(SDL_Scancode scancode)
 {
@@ -367,6 +379,7 @@ void window_center(window_handle window, int32_t width, int32_t height)
         SDL_SetWindowSize(g_window, width, height);
         SDL_SetWindowPosition(g_window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
         SDL_ShowWindow(g_window);
+        sync_canvas_size();
     }
 }
 
@@ -471,6 +484,7 @@ bool gl_context_create(window_handle window, bool es)
     attributes.stencil = true;
     attributes.antialias = false;
     attributes.preserveDrawingBuffer = false;
+    sync_canvas_size();
     g_webgl = emscripten_webgl_create_context("#canvas", &attributes);
     return g_webgl > 0 && emscripten_webgl_make_context_current(g_webgl) == EMSCRIPTEN_RESULT_SUCCESS;
 }

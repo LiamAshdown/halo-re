@@ -22,9 +22,46 @@ def defines(text, name):
     return pattern.search(text) is not None
 
 
+GROUP = re.compile(r'__declspec\(allocate\("(\.\w+\$)([^"]*)"\)\)')
+
+
+def regroup(texts):
+    """MSVC sorts a section group by name across files; definition order does not. A file's own group is the one most of
+    its definitions use. A definition placed in a group that is another file's own (eq_bss.cpp's main_globals_data in
+    slice08's .g08) moves into that file, before the first of its definitions whose section name sorts after it, with the
+    #pragma section line above it. Such definitions are one line each."""
+    counts = {}
+    for source, text in texts.items():
+        for m in GROUP.finditer(text):
+            counts.setdefault(source, {}).setdefault(m.group(1), 0)
+            counts[source][m.group(1)] += 1
+    own = {source: max(groups, key=groups.get) for source, groups in counts.items()}
+    homes = {group: source for source, group in sorted(own.items(), key=lambda item: counts[item[0]][item[1]])}
+    lines = {source: text.split('\n') for source, text in texts.items()}
+    for source in texts:
+        kept = []
+        for line in lines[source]:
+            m = GROUP.search(line)
+            owner = homes.get(m.group(1)) if m else None
+            if owner is None or m.group(1) == own.get(source):
+                kept.append(line)
+                continue
+            moved = [kept.pop()] if kept and kept[-1].startswith('#pragma section') else []
+            target = lines[owner]
+            at = next((j for j, other in enumerate(target) if (o := GROUP.search(other)) and o.group(1) == m.group(1)
+                       and o.group(2) > m.group(2)), None)
+            if at is None:
+                sys.exit('web_data.py: no place in %s for %s' % (owner, line))
+            if at > 0 and target[at - 1].startswith('#pragma section'):
+                at -= 1
+            target[at:at] = moved + [line]
+        lines[source] = kept
+    return {source: '\n'.join(lines[source]) for source in texts}
+
+
 def main():
     out_dir, sources = sys.argv[1], sys.argv[2:]
-    texts = {source: open(source, encoding='utf-8').read() for source in sources}
+    texts = regroup({source: open(source, encoding='utf-8').read() for source in sources})
     aliases = [(m.group(1), m.group(2)) for text in texts.values() for m in ALIAS.finditer(text)]
     os.makedirs(out_dir, exist_ok=True)
     placed = set()
