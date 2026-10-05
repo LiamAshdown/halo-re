@@ -28,6 +28,7 @@ extern const char standalone_halo_folder[];
 void __cdecl standalone_log(const char *format, ...);
 int standalone_devmode(void);
 int WINAPI WinMain(HINSTANCE instance, HINSTANCE previous, LPSTR command_line, int show);
+int standalone_data_layout_check(void);
 
 }
 
@@ -353,6 +354,9 @@ int run(HINSTANCE instance, HINSTANCE previous, LPSTR command_line, int show)
     SetDllDirectoryA(standalone_halo_folder);
     hook_own_create_file_a();
     emulate_crt_startup();
+    if (int misplaced = standalone_data_layout_check()) {
+        log_line("data layout: %d globals are not where the original image has them", misplaced);
+    }
     if (!SetCurrentDirectoryA(standalone_halo_folder)) {
         log_line("cannot change to the Halo folder %s", standalone_halo_folder);
     }
