@@ -99,3 +99,4 @@ unchanged and translate them; the engine code above the interface is not rewritt
   textureCube/texture3D for those samplers. Flashlight lights the BSP. Open: other levels unchecked, GLES3/WebGL profile (milestone 6).
 - 2026-10-04: MojoShader is now tracked in third_party/mojoshader (upstream ad5dff8 plus the halo-re changes listed in its README.halo.md, full diff
   in halo.patch); the build no longer reads vendor/mojoshader.
+- 2026-10-05: the GL context comes from SDL2 (SDL_GL_CreateContext/SwapWindow/GetProcAddress); WGL and the pixel-format code are gone.

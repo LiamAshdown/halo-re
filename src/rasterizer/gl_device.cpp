@@ -7,6 +7,7 @@
 
 #include "gl_internal.hpp"
 #include "halo/shell/standalone.hpp"
+#include "halo/platform/window.hpp"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -286,31 +287,12 @@ gl_surface *make_level_surface(gl_texture *texture, uint32_t face, uint32_t leve
 
 bool create_context(HWND window)
 {
-    PIXELFORMATDESCRIPTOR descriptor;
-    int format;
-
-    memset(&descriptor, 0, sizeof(descriptor));
-    descriptor.nSize = sizeof(descriptor);
-    descriptor.nVersion = 1;
-    descriptor.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
-    descriptor.iPixelType = PFD_TYPE_RGBA;
-    descriptor.cColorBits = 32;
-    descriptor.cDepthBits = 24;
-    descriptor.cStencilBits = 8;
-    descriptor.iLayerType = PFD_MAIN_PLANE;
-
     g_state.window = window;
-    g_state.dc = GetDC(window);
-    format = ChoosePixelFormat(g_state.dc, &descriptor);
-    if (format == 0 || !SetPixelFormat(g_state.dc, format, &descriptor)) {
-        halo::shell::standalone_log("gl: no usable pixel format (error %lu)", GetLastError());
+    if (!halo::platform::gl_context_create(window)) {
+        halo::shell::standalone_log("gl: could not create or activate the OpenGL context");
         return false;
     }
-    g_state.context = wglCreateContext(g_state.dc);
-    if (g_state.context == nullptr || !wglMakeCurrent(g_state.dc, g_state.context)) {
-        halo::shell::standalone_log("gl: could not create or activate the OpenGL context (error %lu)", GetLastError());
-        return false;
-    }
+    g_state.context = window;
     halo::shell::standalone_log("gl: context ready, %s / %s / %s", reinterpret_cast<const char *>(glGetString(GL_VENDOR)),
         reinterpret_cast<const char *>(glGetString(GL_RENDERER)), reinterpret_cast<const char *>(glGetString(GL_VERSION)));
     g_state.modern = gl_load_api();
@@ -402,8 +384,8 @@ int32_t GlDevice::reset(d3d_arg present_parameters)
 
 int32_t GlDevice::present(d3d_arg, d3d_arg, d3d_arg, d3d_arg)
 {
-    if (g_state.dc != nullptr) {
-        SwapBuffers(g_state.dc);
+    if (g_state.context != nullptr) {
+        halo::platform::gl_swap(g_state.window);
     }
     g_frame_number++;
     frame_presented();

@@ -111,8 +111,7 @@ struct gl_query : gl_object {
 
 struct device_state {
     HWND window;
-    HDC dc;
-    HGLRC context;
+    void *context;  // non-null once the platform made the window's OpenGL context current
     uint32_t width;
     uint32_t height;
     gl_object *device_object;

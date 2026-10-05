@@ -270,7 +270,7 @@ SDL_Rect display_bounds()
 }  // namespace
 
 window_handle window_create(void *instance, void *resource_module, const char *class_name, const char *title, int32_t width, int32_t height,
-    uint32_t icon_resource, uint32_t splash_resource, const window_events &events)
+    uint32_t icon_resource, uint32_t splash_resource, bool opengl, const window_events &events)
 {
     SDL_SysWMinfo info;
 
@@ -289,7 +289,7 @@ window_handle window_create(void *instance, void *resource_module, const char *c
         return nullptr;
     }
     SDL_DisableScreenSaver();
-    g_window = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_SHOWN);
+    g_window = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_SHOWN | (opengl ? SDL_WINDOW_OPENGL : 0));
     if (g_window == nullptr) {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, "ERROR - failed to create window", SDL_GetError(), nullptr);
         return nullptr;
@@ -435,6 +435,29 @@ void cursor_position(int32_t *x, int32_t *y)
     SDL_GetGlobalMouseState(&global_x, &global_y);
     *x = global_x;
     *y = global_y;
+}
+
+bool gl_context_create(window_handle window)
+{
+    SDL_GLContext context;
+
+    (void)window;
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+    context = SDL_GL_CreateContext(g_window);
+    return context != nullptr && SDL_GL_MakeCurrent(g_window, context) == 0;
+}
+
+void gl_swap(window_handle window)
+{
+    (void)window;
+    SDL_GL_SwapWindow(g_window);
+}
+
+void *gl_proc_address(const char *name)
+{
+    return SDL_GL_GetProcAddress(name);
 }
 
 bool gamma_ramp_get(window_handle window, void *ramp)

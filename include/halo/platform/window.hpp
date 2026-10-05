@@ -61,11 +61,11 @@ struct window_events {
 
 /**
  * Creates the game window, width by height client pixels centred on the desktop, with the icon and loading-screen
- * bitmap resources of the given modules. Shows a message box and returns null on failure; on success brings the
- * window to the front.
+ * bitmap resources of the given modules; opengl makes it able to take an OpenGL context. Shows a message box and
+ * returns null on failure; on success brings the window to the front.
  */
 window_handle window_create(void *instance, void *resource_module, const char *class_name, const char *title, int32_t width, int32_t height,
-    uint32_t icon_resource, uint32_t splash_resource, const window_events &events);
+    uint32_t icon_resource, uint32_t splash_resource, bool opengl, const window_events &events);
 /** Hides and destroys the window and frees the loading-screen bitmap. */
 void window_destroy(window_handle window);
 void window_show(window_handle window, uint32_t command);
@@ -88,6 +88,13 @@ void wait_for_messages(uint32_t milliseconds);
 /** Shows or hides the cursor; returns the new state (1 shown, 0 hidden). */
 int32_t cursor_show(bool show);
 void cursor_position(int32_t *x, int32_t *y);
+
+/** Creates an OpenGL context (24-bit depth, 8-bit stencil, double buffered) on the window and makes it current. */
+bool gl_context_create(window_handle window);
+/** Shows the frame drawn into the window's back buffer. */
+void gl_swap(window_handle window);
+/** The address of an OpenGL function, null when the driver has none. */
+void *gl_proc_address(const char *name);
 
 /** The display's gamma ramp (3 x 256 16-bit entries) for the window's screen. */
 bool gamma_ramp_get(window_handle window, void *ramp);

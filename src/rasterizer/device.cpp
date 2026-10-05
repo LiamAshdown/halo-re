@@ -20,6 +20,7 @@
 #include "halo/bitmaps/bitmaps.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/rasterizer/d3dx.hpp"
+#include "halo/rasterizer/gl_device.hpp"
 
 namespace {
 
@@ -364,7 +365,8 @@ void rasterizer_capture_and_present(const int16_t *tile, BitmapData *bitmap)
 uint32_t rasterizer_create_game_window(int32_t height, int32_t width)
 {
     void *hwnd = halo::platform::window_create(halo::shell::globals().instance, halo::shell::globals().module_handle, shell_window_class_name,
-        shell_window_title, width, height, k_game_icon_resource_id, k_loading_screen_resource_id, halo::shell::game_window_events());
+        shell_window_title, width, height, k_game_icon_resource_id, k_loading_screen_resource_id, halo::rasterizer::gl_renderer_requested(),
+        halo::shell::game_window_events());
 
     if (hwnd == nullptr) {
         return 0;

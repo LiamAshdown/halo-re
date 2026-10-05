@@ -141,5 +141,5 @@ typedef ptrdiff_t GLintptr;
 HALO_GL_FUNCTIONS(HALO_GL_DECLARE)
 #undef HALO_GL_DECLARE
 
-/** Resolves every entry point with wglGetProcAddress; false (and a log line) if a required one is missing. */
+/** Resolves every entry point through the platform's GL context; false (and a log line) if a required one is missing. */
 bool gl_load_api();
