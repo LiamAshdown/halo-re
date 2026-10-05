@@ -10,6 +10,7 @@
 
 #define HALO_GL_DEFINE(ret, name, args) ret(HALO_GL_APIENTRY *name) args = nullptr;
 HALO_GL_FUNCTIONS(HALO_GL_DEFINE)
+HALO_GL_OPTIONAL_FUNCTIONS(HALO_GL_DEFINE)
 #undef HALO_GL_DEFINE
 
 bool gl_load_api()
@@ -24,5 +25,8 @@ bool gl_load_api()
     }
     HALO_GL_FUNCTIONS(HALO_GL_LOAD)
 #undef HALO_GL_LOAD
+#define HALO_GL_LOAD_OPTIONAL(ret, name, args) name = reinterpret_cast<ret(HALO_GL_APIENTRY *) args>(halo::platform::gl_proc_address(#name));
+    HALO_GL_OPTIONAL_FUNCTIONS(HALO_GL_LOAD_OPTIONAL)
+#undef HALO_GL_LOAD_OPTIONAL
     return complete;
 }

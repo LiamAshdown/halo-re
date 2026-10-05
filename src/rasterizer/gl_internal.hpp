@@ -118,6 +118,7 @@ struct device_state {
     uint32_t height;
     gl_object *device_object;
     bool modern;  // entry points beyond GL 1.1 loaded
+    bool es;      // OpenGL ES / WebGL context: no border clamp, polygon mode or sample-counting queries
 };
 
 /** Everything the draw calls depend on, tracked as the engine sets it. */

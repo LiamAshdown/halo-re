@@ -4,7 +4,8 @@
  * @file include/halo/rasterizer/gl_api.hpp
  * The OpenGL types, constants and entry points the GL backend uses, all loaded at run time through the platform's GL
  * context (OpenGL 1.1 included), so no system GL header is needed and the same code builds for desktop GL, OpenGL ES 3
- * and WebGL 2. The backend only uses calls that also exist in OpenGL ES 3 / WebGL 2 where possible.
+ * and WebGL 2. The backend uses what OpenGL ES 3 / WebGL 2 has (desktop drivers need OpenGL 4.3 or ARB_ES3_compatibility
+ * for the ES shaders); the few desktop-only calls are optional.
  */
 
 #include <stddef.h>
@@ -169,14 +170,14 @@ typedef ptrdiff_t GLintptr;
     X(void, glBindTexture, (GLenum target, GLuint texture)) \
     X(void, glClear, (GLbitfield mask)) \
     X(void, glClearColor, (GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)) \
-    X(void, glClearDepth, (GLdouble depth)) \
+    X(void, glClearDepthf, (GLfloat depth)) \
     X(void, glClearStencil, (GLint s)) \
     X(void, glColorMask, (GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha)) \
     X(void, glCullFace, (GLenum mode)) \
     X(void, glDeleteTextures, (GLsizei n, const GLuint *textures)) \
     X(void, glDepthFunc, (GLenum func)) \
     X(void, glDepthMask, (GLboolean flag)) \
-    X(void, glDepthRange, (GLdouble n, GLdouble f)) \
+    X(void, glDepthRangef, (GLfloat n, GLfloat f)) \
     X(void, glDisable, (GLenum cap)) \
     X(void, glDrawArrays, (GLenum mode, GLint first, GLsizei count)) \
     X(void, glDrawElements, (GLenum mode, GLsizei count, GLenum type, const void *indices)) \
@@ -186,7 +187,6 @@ typedef ptrdiff_t GLintptr;
     X(GLenum, glGetError, (void)) \
     X(const GLubyte *, glGetString, (GLenum name)) \
     X(void, glPixelStorei, (GLenum pname, GLint param)) \
-    X(void, glPolygonMode, (GLenum face, GLenum mode)) \
     X(void, glPolygonOffset, (GLfloat factor, GLfloat units)) \
     X(void, glReadPixels, (GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, void *pixels)) \
     X(void, glScissor, (GLint x, GLint y, GLsizei width, GLsizei height)) \
@@ -258,8 +258,13 @@ typedef ptrdiff_t GLintptr;
     X(void, glGenVertexArrays, (GLsizei n, GLuint *arrays)) \
     X(void, glBindVertexArray, (GLuint array))
 
+/* desktop-only entry points; null under OpenGL ES / WebGL */
+#define HALO_GL_OPTIONAL_FUNCTIONS(X) \
+    X(void, glPolygonMode, (GLenum face, GLenum mode))
+
 #define HALO_GL_DECLARE(ret, name, args) extern ret(HALO_GL_APIENTRY *name) args;
 HALO_GL_FUNCTIONS(HALO_GL_DECLARE)
+HALO_GL_OPTIONAL_FUNCTIONS(HALO_GL_DECLARE)
 #undef HALO_GL_DECLARE
 
 /** Resolves every entry point through the platform's GL context; false (and a log line) if a required one is missing. */

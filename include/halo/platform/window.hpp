@@ -89,8 +89,11 @@ void wait_for_messages(uint32_t milliseconds);
 int32_t cursor_show(bool show);
 void cursor_position(int32_t *x, int32_t *y);
 
-/** Creates an OpenGL context (24-bit depth, 8-bit stencil, double buffered) on the window and makes it current. */
-bool gl_context_create(window_handle window);
+/**
+ * Creates an OpenGL context (24-bit depth, 8-bit stencil, double buffered) on the window and makes it current; es asks
+ * for OpenGL ES 3.0 (what WebGL 2 is) instead of the desktop default.
+ */
+bool gl_context_create(window_handle window, bool es);
 /** The size in pixels of the window's OpenGL back buffer. */
 void gl_drawable_size(window_handle window, uint32_t *width, uint32_t *height);
 /** Shows the frame drawn into the window's back buffer. */

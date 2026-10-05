@@ -370,7 +370,6 @@ gl_format format_for(uint32_t d3d_format)
     case k_fourcc_dxt1: return {GL_COMPRESSED_RGBA_S3TC_DXT1_EXT, 0, 0, true, false};
     case k_fourcc_dxt2: case k_fourcc_dxt3: return {GL_COMPRESSED_RGBA_S3TC_DXT3_EXT, 0, 0, true, false};
     case k_fourcc_dxt4: case k_fourcc_dxt5: return {GL_COMPRESSED_RGBA_S3TC_DXT5_EXT, 0, 0, true, false};
-    case 21: return {GL_RGBA8, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, false, false};
     case 60: return {k_gl_rg8_snorm, GL_RG, GL_BYTE, false, false};
     case 63: return {k_gl_rgba8_snorm, GL_RGBA, GL_BYTE, false, false};
     case 111: return {k_gl_r16f, GL_RED, k_gl_half_float, false, false};
@@ -468,7 +467,7 @@ GLenum wrap_mode(uint32_t address)
     switch (address) {
     case 2: return GL_MIRRORED_REPEAT;
     case 3: return GL_CLAMP_TO_EDGE;
-    case 4: return GL_CLAMP_TO_BORDER;
+    case 4: return g_state.es ? GL_CLAMP_TO_EDGE : GL_CLAMP_TO_BORDER;  // no border clamp in OpenGL ES 3.0 / WebGL 2
     case 5: return GL_MIRRORED_REPEAT;
     default: return GL_REPEAT;
     }
@@ -515,7 +514,7 @@ void apply_sampler(gl_texture *texture, uint32_t unit)
     if (state[SAMP_MAGFILTER] == 3 || state[SAMP_MINFILTER] == 3) {
         glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, static_cast<float>(state[SAMP_MAXANISOTROPY] > 1 ? state[SAMP_MAXANISOTROPY] : 1));
     }
-    if (state[SAMP_ADDRESSU] == 4 || state[SAMP_ADDRESSV] == 4) {
+    if ((state[SAMP_ADDRESSU] == 4 || state[SAMP_ADDRESSV] == 4) && !g_state.es) {
         uint32_t c = state[SAMP_BORDERCOLOR];
         float color[4] = {static_cast<float>((c >> 16) & 255) / 255.0f, static_cast<float>((c >> 8) & 255) / 255.0f,
             static_cast<float>(c & 255) / 255.0f, static_cast<float>(c >> 24) / 255.0f};
@@ -642,7 +641,13 @@ void read_back_surface(gl_surface *surface)
     framebuffer = framebuffer_for_target(surface->back_buffer ? nullptr : surface, &width, &height);
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
-    glReadPixels(0, 0, static_cast<GLsizei>(width), static_cast<GLsizei>(height), GL_BGRA, GL_UNSIGNED_BYTE, surface->data);
+    glReadPixels(0, 0, static_cast<GLsizei>(width), static_cast<GLsizei>(height), GL_RGBA, GL_UNSIGNED_BYTE, surface->data);
+    for (size_t i = 0; i < static_cast<size_t>(width) * height * 4; i += 4) {
+        uint8_t red = surface->data[i];  // Direct3D surfaces hold B, G, R, A
+
+        surface->data[i] = surface->data[i + 2];
+        surface->data[i + 2] = red;
+    }
     if (framebuffer == 0) {
         // default framebuffer rows run bottom-up; Direct3D surfaces run top-down
         uint8_t *row = static_cast<uint8_t *>(malloc(surface->pitch));
@@ -726,13 +731,17 @@ void stretch_rect_impl(gl_surface *source, const int32_t *source_rect, gl_surfac
     }
     // CPU to GPU: write the pixels into the render-target texture (A8R8G8B8 only)
     if (dest->parent != nullptr && source->format == 21 && dest->parent->name != 0) {
+        uint32_t width = static_cast<uint32_t>(sr[2] - sr[0]);
+        uint32_t height = static_cast<uint32_t>(sr[3] - sr[1]);
+        uint8_t *rgba = static_cast<uint8_t *>(malloc(static_cast<size_t>(width) * height * 4 + 4));
+
+        convert_to_rgba(21, source->data + static_cast<size_t>(sr[1]) * source->pitch + static_cast<size_t>(sr[0]) * 4, width, height, source->pitch, rgba);
         glActiveTexture(GL_TEXTURE0 + 15);
         glBindTexture(GL_TEXTURE_2D, dest->parent->name);
         g_bound_texture_name[15] = 0;
-        glPixelStorei(GL_UNPACK_ROW_LENGTH, static_cast<GLint>(source->pitch / 4));
-        glTexSubImage2D(GL_TEXTURE_2D, static_cast<GLint>(dest->level), dr[0], dr[1], sr[2] - sr[0], sr[3] - sr[1], GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV,
-            source->data + static_cast<size_t>(sr[1]) * source->pitch + static_cast<size_t>(sr[0]) * 4);
-        glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+        glTexSubImage2D(GL_TEXTURE_2D, static_cast<GLint>(dest->level), dr[0], dr[1], static_cast<GLsizei>(width), static_cast<GLsizei>(height), GL_RGBA,
+            GL_UNSIGNED_BYTE, rgba);
+        free(rgba);
     }
 }
 
@@ -1570,7 +1579,9 @@ void apply_render_state()
     if (group_changed(fill, 1)) {
         uint32_t mode = rs[D3DRS_FILLMODE];
 
-        glPolygonMode(GL_FRONT_AND_BACK, mode == 1 ? GL_POINT : mode == 2 ? GL_LINE : GL_FILL);
+        if (glPolygonMode != nullptr) {
+            glPolygonMode(GL_FRONT_AND_BACK, mode == 1 ? GL_POINT : mode == 2 ? GL_LINE : GL_FILL);
+        }
         commit_group(fill, 1);
     }
     g_applied_valid = true;
@@ -2207,7 +2218,7 @@ void draw_geometry(uint32_t type, int32_t base_vertex, uint32_t vertex_count, ui
     }
     apply_render_state();
     glViewport(viewport_x, viewport_y, static_cast<GLsizei>(viewport_width), static_cast<GLsizei>(viewport_height));
-    glDepthRange(g_pipe.viewport[4], g_pipe.viewport[5] != 0.0f ? g_pipe.viewport[5] : 1.0);
+    glDepthRangef(g_pipe.viewport[4], g_pipe.viewport[5] != 0.0f ? g_pipe.viewport[5] : 1.0f);
     bind_textures(setup);
     upload_uniforms(p, setup, viewport_width, viewport_height, viewport_x, viewport_y);
 

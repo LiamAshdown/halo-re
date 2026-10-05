@@ -290,12 +290,13 @@ gl_surface *make_level_surface(gl_texture *texture, uint32_t face, uint32_t leve
 bool create_context(void *window)
 {
     g_state.window = window;
-    if (!halo::platform::gl_context_create(window)) {
+    if (!halo::platform::gl_context_create(window, getenv("HALO_GL_ES") != nullptr)) {
         halo::shell::standalone_log("gl: could not create or activate the OpenGL context");
         return false;
     }
     g_state.context = window;
     g_state.modern = gl_load_api();
+    g_state.es = glGetString != nullptr && strncmp(reinterpret_cast<const char *>(glGetString(GL_VERSION)), "OpenGL ES", 9) == 0;
     if (glGetString != nullptr) {
         halo::shell::standalone_log("gl: context ready, %s / %s / %s", reinterpret_cast<const char *>(glGetString(GL_VENDOR)),
             reinterpret_cast<const char *>(glGetString(GL_RENDERER)), reinterpret_cast<const char *>(glGetString(GL_VERSION)));
@@ -486,7 +487,7 @@ int32_t GlDevice::clear(uint32_t, d3d_arg, uint32_t flags, uint32_t color, float
     }
     if ((flags & 2) != 0) {
         glDepthMask(GL_TRUE);
-        glClearDepth(z);
+        glClearDepthf(z);
         mask |= GL_DEPTH_BUFFER_BIT;
     }
     if ((flags & 4) != 0) {
@@ -1035,10 +1036,10 @@ int32_t GlDevice::query_issue(d3d_arg object, uint32_t flags)
         return 0;
     }
     if ((flags & 1) != 0) {
-        glBeginQuery(GL_SAMPLES_PASSED, query->name);
+        glBeginQuery(g_state.es ? GL_ANY_SAMPLES_PASSED : GL_SAMPLES_PASSED, query->name);
     }
     if ((flags & 2) != 0) {
-        glEndQuery(GL_SAMPLES_PASSED);
+        glEndQuery(g_state.es ? GL_ANY_SAMPLES_PASSED : GL_SAMPLES_PASSED);
         query->issued = true;
     }
     return 0;
@@ -1056,6 +1057,9 @@ int32_t GlDevice::query_get_data(d3d_arg object, d3d_arg data, uint32_t size, ui
             return 1;  // S_FALSE: not ready yet
         }
         glGetQueryObjectuiv(query->name, GL_QUERY_RESULT, &samples);
+        if (g_state.es && samples != 0) {
+            samples = 0x100000;  // ES only says whether any sample passed: report the flare's whole area as visible
+        }
     }
     if (data.get() != nullptr && size >= 4) {
         memset(data.get(), 0, size);
