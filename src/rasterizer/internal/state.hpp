@@ -6,7 +6,6 @@
  * (C linkage) and the prototypes of the halo::rasterizer implementation functions.
  */
 
-#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -73,7 +72,7 @@ inline auto &rasterizer_game_gamma_ramp = halo::link::ref<d3d_gamma_ramp>(halo::
 inline auto &rasterizer_gamma_high_bit_17 = halo::link::ref<uint8_t>(halo::rasterizer::vars().rasterizer_gamma_high_bit_17);
 inline auto &rasterizer_fullscreen = halo::link::ref<uint8_t>(halo::rasterizer::vars().rasterizer_fullscreen);
 inline auto &rasterizer_device = halo::link::ref<void *>(halo::game::vars().rasterizer_device);
-inline auto &rasterizer_window_handle = halo::link::ref<HWND>(halo::rasterizer::vars().rasterizer_window_handle);
+inline auto &rasterizer_window_handle = halo::link::ref<void *>(halo::rasterizer::vars().rasterizer_window_handle);
 inline auto &rasterizer_misc_vertex_buffer = halo::link::ref<void *>(halo::rasterizer::vars().rasterizer_misc_vertex_buffer);
 inline auto &transparent_geometry_groups = halo::link::ref<transparent_geometry_group *>(halo::rasterizer::vars().transparent_geometry_groups);
 inline auto &transparent_geometry_groups_secondary = halo::link::ref<transparent_geometry_group *>(halo::rasterizer::vars().transparent_geometry_groups_secondary);
