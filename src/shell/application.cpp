@@ -6,6 +6,7 @@
 #include "halo/shell/hardware.hpp"
 #include "halo/shell/system.hpp"
 #include "halo/shell/window.hpp"
+#include "halo/platform/audio.hpp"
 #include <excpt.h>
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
@@ -136,8 +137,8 @@ uint8_t EngineLifecycle::initialize()
         direct3d_create9 = halo::platform::library_symbol(d3d9_module, "Direct3DCreate9");
 
         if (shell_nosound == 0) {
-            dsound_module = halo::platform::library_open("dsound.dll");
-            direct_sound_create8 = halo::platform::library_symbol(dsound_module, "DirectSoundCreate8");
+            dsound_module = 0;
+            direct_sound_create8 = (void *)halo::platform::audio_device_create;
         } else {
             dsound_module = 0;
             direct_sound_create8 = 0;
@@ -341,8 +342,8 @@ void Application::load_direct3d_and_config()
 }
 
 /**
- * Loads dsound.dll (unless sound is off), dinput8.dll and shfolder.dll and resolves their entry
- * points; a missing one is a fatal error.
+ * Points the sound code at the platform's audio device (unless sound is off) and loads shfolder.dll; a missing
+ * shfolder.dll is a fatal error.
  */
 void Application::load_audio_input_libraries()
 {
@@ -350,11 +351,8 @@ void Application::load_audio_input_libraries()
         dsound_module = 0;
         direct_sound_create8 = 0;
     } else {
-        dsound_module = halo::platform::library_open("dsound.dll");
-        direct_sound_create8 = halo::platform::library_symbol(dsound_module, "DirectSoundCreate8");
-        if (dsound_module == 0 || direct_sound_create8 == 0) {
-            FatalError::show(k_string_dsound_missing, k_help_file_directx, 1);
-        }
+        dsound_module = 0;
+        direct_sound_create8 = (void *)halo::platform::audio_device_create;
     }
     shfolder_module = halo::platform::library_open("shfolder.dll");
     sh_get_folder_path = halo::platform::library_symbol(shfolder_module, "SHGetFolderPathA");
