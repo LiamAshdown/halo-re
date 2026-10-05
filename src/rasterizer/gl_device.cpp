@@ -1035,10 +1035,10 @@ int32_t GlDevice::query_issue(d3d_arg object, uint32_t flags)
     if (!g_state.modern || query->name == 0) {
         return 0;
     }
-    if ((flags & 1) != 0) {
+    if ((flags & 2) != 0) {  // D3DISSUE_BEGIN
         glBeginQuery(g_state.es ? GL_ANY_SAMPLES_PASSED : GL_SAMPLES_PASSED, query->name);
     }
-    if ((flags & 2) != 0) {
+    if ((flags & 1) != 0) {  // D3DISSUE_END
         glEndQuery(g_state.es ? GL_ANY_SAMPLES_PASSED : GL_SAMPLES_PASSED);
         query->issued = true;
     }
@@ -1056,9 +1056,14 @@ int32_t GlDevice::query_get_data(d3d_arg object, d3d_arg data, uint32_t size, ui
         if (available == 0 && (flags & 1) == 0) {
             return 1;  // S_FALSE: not ready yet
         }
-        glGetQueryObjectuiv(query->name, GL_QUERY_RESULT, &samples);
-        if (g_state.es && samples != 0) {
-            samples = 0x100000;  // ES only says whether any sample passed: report the flare's whole area as visible
+        if (available != 0 || !g_state.es) {  // desktop GL waits for the result on a flush
+            glGetQueryObjectuiv(query->name, GL_QUERY_RESULT, &samples);
+            if (g_state.es && samples != 0) {
+                samples = 0x100000;  // ES only says whether any sample passed: report the flare's whole area as visible
+            }
+            query->last_samples = samples;
+        } else {
+            samples = query->last_samples;  // WebGL never has a result within the frame that issued the query
         }
     }
     if (data.get() != nullptr && size >= 4) {

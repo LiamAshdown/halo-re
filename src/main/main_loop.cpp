@@ -596,7 +596,23 @@ void MainLoop::loop(void)
 #if defined(__EMSCRIPTEN__)
     // the browser owns the event loop: one loop_frame per animation frame, the shutdown once it reports the end
     emscripten_set_main_loop([]() {
-        if (!loop_frame()) {
+        static double window_start;
+        static double busy_ms;
+        static int frames;
+        double start = emscripten_get_now();
+        bool more = loop_frame();
+
+        busy_ms += emscripten_get_now() - start;
+        frames++;
+        if (start - window_start >= 2000.0) {  // the frame rate, and how much of each frame the game's own work takes
+            if (window_start != 0.0) {
+                printf("web: %.1f fps, %.1f ms of game work per frame\n", frames * 1000.0 / (start - window_start), busy_ms / frames);
+            }
+            window_start = start;
+            busy_ms = 0.0;
+            frames = 0;
+        }
+        if (!more) {
             emscripten_cancel_main_loop();
             halo::main::main_loop_shutdown_cleanup();
         }

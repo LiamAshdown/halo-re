@@ -109,6 +109,7 @@ struct gl_shader : gl_object {
 struct gl_query : gl_object {
     GLuint name;
     bool issued;
+    GLuint last_samples;  // the latest result read, reported while WebGL has no newer one (results arrive a frame late)
 };
 
 struct device_state {
