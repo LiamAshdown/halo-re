@@ -8,7 +8,6 @@
 #include "halo/shell/system.hpp"
 #include "halo/shell/window.hpp"
 #include "halo/platform/audio.hpp"
-#include <excpt.h>
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
@@ -45,6 +44,7 @@
 #include "halo/platform/file.hpp"
 #include "halo/platform/memory.hpp"
 #include "halo/platform/system.hpp"
+#include "halo/platform/fault.hpp"
 
 static auto &shell_command_line = halo::link::ref<char *>(halo::shell::vars().shell_command_line);
 static auto &shell_window = halo::link::ref<void *>(halo::shell::vars().shell_window);
@@ -512,9 +512,9 @@ int32_t __stdcall Application::winmain(void *instance, void *previous_instance, 
     SingleInstance::check(k_shell_instance_mode_single);
 
     completed = true;
-    __try {
+    HALO_TRY {
         completed = run_session(instance, command_line, show_command);
-    } __except (CrashReporter::current().handle_exception((win32_exception_pointers *)GetExceptionInformation())) {
+    } HALO_EXCEPT(CrashReporter::current().handle_exception((win32_exception_pointers *)GetExceptionInformation())) {
     }
     if (!completed) {
         return 0;

@@ -16,6 +16,7 @@
 #include "halo/platform/time.hpp"
 #include "halo/platform/system.hpp"
 #include "halo/platform/window.hpp"
+#include "halo/platform/fault.hpp"
 
 static auto &shell_module_handle = halo::link::ref<void *>(halo::shell::vars().shell_module_handle);
 static auto &fatal_error_text = halo::link::ref<char [k_shell_fatal_error_text_length]>(halo::shell::vars().fatal_error_text);
@@ -109,12 +110,12 @@ void FatalError::make_remembered_name(char *name, uint32_t resource_id)
  */
 void FatalError::shut_down_engine_services()
 {
-    __try {
+    HALO_TRY {
         shell_window_proc_bypass = 1;
         halo::rasterizer::chimera__registry_check_3();
         halo::rasterizer::rasterizer_service_deferred_windowed_ops();
         halo::sound::sound_stop_all();
-    } __except (1) {
+    } HALO_EXCEPT(1) {
     }
 }
 

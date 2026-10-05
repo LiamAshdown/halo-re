@@ -11,6 +11,7 @@
 #include "halo/rasterizer/api.hpp"
 #include "halo/shell/api.hpp"
 #include "halo/core/bit_cast.hpp"
+#include "halo/platform/fault.hpp"
 
 static auto &config_maximum_resolution = halo::link::ref<int32_t>(halo::shell::vars().config_maximum_resolution);
 static auto &config_linear_texture_addressing = halo::link::ref<int32_t>(halo::shell::vars().config_linear_texture_addressing);
@@ -210,9 +211,9 @@ uint8_t ConfigPropertyTable::apply(const shell_config_property *property, const 
 {
     uint8_t ok;
 
-    __try {
+    HALO_TRY {
         ok = ((shell_config_property_setter)property->setter)(value);
-    } __except (1) {
+    } HALO_EXCEPT(1) {
         ok = 0;
     }
     return ok;
