@@ -3,9 +3,9 @@
  * DirectSound implementation of the AudioDevice interface.
  */
 
-#include "win32.h"
 #include "halo/sound/directsound.hpp"
 #include "internal/state.hpp"
+#include "halo/shell/api.hpp"
 #include "halo/sound/api.hpp"
 
 namespace halo::sound {
@@ -68,9 +68,7 @@ void DirectSoundDevice::dispose(void)
         int32_t (__stdcall *set_cooperative_level)(void *, void *, uint32_t) =
             (int32_t (__stdcall *)(void *, void *, uint32_t))vtable[halo::sound::dsound_slot::ds_set_cooperative_level];
         void (__stdcall *release)(void *) = (void (__stdcall *)(void *))vtable[2];
-        void *active_window = GetActiveWindow();
-
-        set_cooperative_level(directsound, active_window, 1);
+        set_cooperative_level(directsound, halo::shell::globals().window, 1);
         release(directsound);
         directsound = 0;
     }

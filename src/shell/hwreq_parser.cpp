@@ -1,4 +1,3 @@
-#include "win32.h"
 #include "halo/shell/hwreq.hpp"
 #include "halo/shell/layout.hpp"
 #include "halo/core/link.hpp"
@@ -6,6 +5,7 @@
 #include "halo/shell/api.hpp"
 #include "halo/shell/runtime.hpp"
 #include "halo/platform/file.hpp"
+#include "halo/platform/system.hpp"
 
 static auto &hwreq_parser_vtable_instance = halo::link::ref<hwreq_parser_vtable>(halo::shell::vars().hwreq_parser_vtable_instance);
 static auto &hwreq_open_error_text = halo::link::ref<char []>(halo::shell::vars().hwreq_open_error_text);
@@ -434,25 +434,12 @@ uint8_t HwreqParser::parse(const char *path, const shell_sound_device *sound_dev
     self->error_reported = 0;
 
     if ((driver_version.parts.low_part | static_cast<uint32_t>(driver_version.parts.high_part)) == 0) {
-        uint32_t handle;
-        uint32_t info_size = GetFileVersionInfoSizeA(self->adapter.driver, (LPDWORD)&handle);
+        uint32_t version_high;
+        uint32_t version_low;
 
-        if (info_size != 0) {
-            void *info = malloc(info_size);
-            void *fixed;
-            uint32_t fixed_length;
-
-            if (GetFileVersionInfoA(self->adapter.driver, handle, info_size, info) &&
-                VerQueryValueA(info, hwreq_version_root_block, &fixed, &fixed_length)) {
-                uint32_t fixed_info[k_version_fixed_info_dwords];
-
-                for (i = 0; i < k_version_fixed_info_dwords; i++) {
-                    fixed_info[i] = ((uint32_t *)fixed)[i];
-                }
-                driver_version.parts.high_part = static_cast<int32_t>(fixed_info[2]);
-                driver_version.parts.low_part = fixed_info[3];
-            }
-            free(info);
+        if (halo::platform::file_version(self->adapter.driver, &version_high, &version_low)) {
+            driver_version.parts.high_part = static_cast<int32_t>(version_high);
+            driver_version.parts.low_part = version_low;
         }
     }
 

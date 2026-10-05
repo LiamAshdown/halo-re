@@ -1,4 +1,3 @@
-#include "win32.h"
 #include "halo/shell/window.hpp"
 #include "interface.h"
 #include "halo/core/link.hpp"
@@ -7,6 +6,8 @@
 #include "halo/shell/vars.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/shell/api.hpp"
+#include "halo/platform/system.hpp"
+#include <cstdio>
 
 static auto &default_locale_name = halo::link::ref<uint8_t [2]>(halo::shell::vars().default_locale_name);
 static auto &locale_codepage_format = halo::link::ref<char [4]>(halo::shell::vars().locale_codepage_format);
@@ -39,7 +40,7 @@ void CodepageLocale::apply()
         compare = (1 - less_than) - (less_than != 0);
     }
     if (compare == 0) {
-        wsprintfA(codepage_locale, locale_codepage_format, GetACP());
+        sprintf(codepage_locale, locale_codepage_format, halo::platform::ansi_code_page());
         setlocale(2, codepage_locale);
     }
 }

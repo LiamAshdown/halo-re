@@ -1,3 +1,4 @@
+#include "win32.h"
 #include "halo/math/constants.hpp"
 #include "halo/interface/ifr1_console_terminal.hpp"
 #include "halo/core/datum.hpp"

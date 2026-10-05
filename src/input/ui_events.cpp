@@ -2,7 +2,6 @@
  * Menu navigation event generation and the four UI input event queues.
  */
 
-#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -24,6 +23,7 @@
 #include "halo/input/game_actions.hpp"
 #include "halo/input/system.hpp"
 #include "halo/platform/time.hpp"
+#include "halo/platform/system.hpp"
 
 static void menu_direction_update(menu_repeat_state *state, uint8_t active, int32_t now_ms,
                                    int32_t virtual_key_id, uint8_t *fired)
@@ -248,7 +248,7 @@ void UiEvents::menu_generate_events(void)
     }
 
     {
-        uint32_t double_click_ms = GetDoubleClickTime();
+        uint32_t double_click_ms = halo::platform::double_click_time();
         halo::platform::read_performance_counter(&counter);
         now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 

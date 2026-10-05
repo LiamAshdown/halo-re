@@ -2,12 +2,10 @@
  * Network game menu behaviour: host setup, adapter details, client connection and wait timeouts.
  */
 
-#include "win32.h"
 #include "halo/core/datum.hpp"
 #include "crt.h"
 #include "halo/core/ui_tag_paths.hpp"
 #include "halo/text/api.hpp"
-#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -30,6 +28,7 @@
 #include "halo/interface/vars.hpp"
 #include "halo/networking/vars.hpp"
 #include "halo/platform/time.hpp"
+#include "halo/platform/net.hpp"
 
 
 static auto &ui_list_current = halo::link::ref<int32_t>(halo::ui::vars().ui_list_current);
@@ -271,14 +270,7 @@ void UiNetworkMenu::network_host_setup_refresh(widget_instance *widget)
     ip_control = row->first_child->next_sibling;
     ip_control->text = halo::memory::heap_reallocate(ip_control->text, 0x40, widget_memory_pool);
     if (ip_control->text != nullptr) {
-        uint32_t swapped = ((network_resolved_local_address << 0x10 | network_resolved_local_address & 0xff00 |
-                             network_resolved_local_address >> 0x10 & 0xff) << 8) |
-                            (network_resolved_local_address >> 0x18);
-        struct in_addr swapped_address;
-        char *text;
-
-        swapped_address.s_addr = swapped;
-        text = inet_ntoa(swapped_address);
+        char *text = halo::platform::ipv4_text(network_resolved_local_address);
         char *scan = text;
         while (*scan != '\0') {
             scan++;

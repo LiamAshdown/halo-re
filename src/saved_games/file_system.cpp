@@ -1,6 +1,5 @@
 #include "crt.h"
 #include "halo/text/api.hpp"
-#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -205,13 +204,9 @@ uint8_t halo::saved_games::FileReference::get_size_by_path(uint32_t *out_size)
 {
     file_reference_record *ref = self;
     char full_path[0x800];
-    win32_file_attribute_data attributes;
-    int32_t ok;
 
     halo::saved_games::path_build_full(ref->path, full_path, ref->location);
-    ok = GetFileAttributesExA(full_path, (GET_FILEEX_INFO_LEVELS)(0 ), &attributes);
-    if (ok != 0) {
-        *out_size = attributes.file_size_low;
+    if (halo::platform::file_size_by_path(full_path, out_size)) {
         return 1;
     }
     halo::saved_games::saved_games_report_last_error();

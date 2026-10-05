@@ -20,7 +20,6 @@
 #include <string.h>
 #include "units.h"
 #include "cutscene.h"
-#include "win32.h"
 #include "hs.h"
 #include <stdio.h>
 
@@ -374,7 +373,7 @@ void RenderViews::screenshot_render(render_view *views)
         bitmap->flags = to_bits(tags::bitmap_data_tag_flag::unused | tags::bitmap_data_tag_flag::power_of_two_dimensions);
     }
 
-    *(void **)&((struct BitmapData *)bitmap)->pixel_base = GlobalAlloc(0, halo::bitmaps::bitmap_data_view(bitmap).calculate_pixel_data_size());
+    *(void **)&((struct BitmapData *)bitmap)->pixel_base = halo::platform::heap_allocate(0, halo::bitmaps::bitmap_data_view(bitmap).calculate_pixel_data_size());
 
     if (*(void **)&((struct BitmapData *)bitmap)->pixel_base != 0) {
         halo::main::console_print_error_va(1, "");

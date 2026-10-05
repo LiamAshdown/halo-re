@@ -13,6 +13,7 @@
 #include "halo/interface/vars.hpp"
 #include "halo/interface/constants.hpp"
 #include "halo/interface/wide_text.hpp"
+#include "halo/platform/system.hpp"
 
 static auto &missing_string_text = halo::link::ref<uint16_t []>(halo::ui::vars().missing_string_text);
 
@@ -51,12 +52,12 @@ uint8_t CheckpointListRows::add_row(int32_t index, const char *name, int32_t lev
     *(int32_t *)(record + 0x04) = difficulty;
     strcpy((char *)(record + 0x48), name);
 
-    GetTimeFormatA(halo::interface::k_locale_user_default, halo::interface::k_time_format_hours_minutes_24, (const SYSTEMTIME *)time, 0, text, 0x10);
+    halo::platform::time_text((const system_time *)time, halo::interface::k_time_format_hours_minutes_24, text, 0x10);
     widen(wide, text);
     wide[12] = 0;
     wcscpy((wchar_t *)(record + 0x08), (const wchar_t *)wide);
     wcscat((wchar_t *)(record + 0x08), L"|n");
-    GetDateFormatA(halo::interface::k_locale_user_default, halo::interface::k_date_format_short, (const SYSTEMTIME *)time, 0, text, 0x10);
+    halo::platform::date_text((const system_time *)time, halo::interface::k_date_format_short, text, 0x10);
     widen(wide, text);
     wide[12] = 0;
     wcscat((wchar_t *)(record + 0x08), (const wchar_t *)wide);

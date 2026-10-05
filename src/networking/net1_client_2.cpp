@@ -1,3 +1,4 @@
+#include "win32.h"
 #include "halo/networking/net1_client.hpp"
 #include "halo/networking/channel_queue.hpp"
 #include "halo/core/cstring.hpp"

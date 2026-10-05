@@ -2,7 +2,6 @@
 
 #include "halo/cache/cache.hpp"
 
-#include "win32.h"
 #include "crt.h"
 #include "memory.h"
 #include <string.h>
@@ -21,7 +20,6 @@
 #include "halo/platform/memory.hpp"
 #include "halo/platform/system.hpp"
 
-typedef uint32_t (*get_mapped_file_name_a_t)(void *process, void *address, char *filename, uint32_t size);
 
 namespace halo::cache {
 
@@ -566,8 +564,6 @@ void cache_files::unload()
 void cache_files::reserve_map_memory()
 {
     char path_buffer[halo::win32::k_max_path];
-    void *psapi_module;
-    get_mapped_file_name_a_t get_mapped_file_name_a;
     const char *caption;
 
     globals().map_memory = nullptr;
@@ -583,14 +579,7 @@ void cache_files::reserve_map_memory()
     if (globals().map_memory == nullptr) {
         memset(path_buffer, 0, sizeof(path_buffer));
 
-        psapi_module = halo::platform::library_open("Psapi.dll");
-        if (psapi_module != nullptr) {
-            get_mapped_file_name_a = (get_mapped_file_name_a_t)halo::platform::library_symbol(psapi_module, "GetMappedFileNameA");
-            if (get_mapped_file_name_a != (get_mapped_file_name_a_t)0) {
-                get_mapped_file_name_a(GetCurrentProcess(), (void *)k_map_memory_base, path_buffer, halo::win32::k_max_path);
-            }
-            halo::platform::library_close(psapi_module);
-        }
+        halo::platform::mapped_file_name((void *)k_map_memory_base, path_buffer, halo::win32::k_max_path);
 
         caption = path_buffer;
         if (path_buffer[0] == '\0') {

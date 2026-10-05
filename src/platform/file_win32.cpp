@@ -85,6 +85,17 @@ uint32_t file_attributes(const char *path)
     return GetFileAttributesA(path);
 }
 
+bool file_size_by_path(const char *path, uint32_t *size)
+{
+    WIN32_FILE_ATTRIBUTE_DATA data;
+
+    if (!GetFileAttributesExA(path, GetFileExInfoStandard, &data)) {
+        return false;
+    }
+    *size = data.nFileSizeLow;
+    return true;
+}
+
 bool file_set_attributes(const char *path, uint32_t attributes)
 {
     return SetFileAttributesA(path, attributes) != 0;

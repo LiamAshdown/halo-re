@@ -38,6 +38,23 @@ uint32_t temp_directory(char *buffer, uint32_t size);
 /** The current local date and time (GetLocalTime). */
 void local_time(system_time *time);
 
+/** time (or now when null) as user-locale date / time text (GetDateFormatA / GetTimeFormatA; flags are the DATE_ / TIME_
+ * values); returns the length written, 0 on failure. */
+uint32_t date_text(const system_time *time, uint32_t flags, char *text, uint32_t size);
+uint32_t time_text(const system_time *time, uint32_t flags, char *text, uint32_t size);
+
+/** The fixed version of an executable or driver file (VS_FIXEDFILEINFO dwFileVersionMS / LS); false when it has none. */
+bool file_version(const char *path, uint32_t *version_high, uint32_t *version_low);
+
+/** The ANSI code page number (GetACP). */
+uint32_t ansi_code_page();
+
+/** The longest gap between the clicks of a double click, in milliseconds (GetDoubleClickTime). */
+uint32_t double_click_time();
+
+/** The file mapped at address in this process, for error messages (GetMappedFileNameA); false when there is none. */
+bool mapped_file_name(void *address, char *buffer, uint32_t size);
+
 /** Fills the caller's OSVERSIONINFOA-layout record (GetVersionExA). */
 bool os_version(os_version_info_a *info);
 

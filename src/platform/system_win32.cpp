@@ -63,6 +63,64 @@ void local_time(system_time *time)
     GetLocalTime(reinterpret_cast<SYSTEMTIME *>(time));
 }
 
+uint32_t date_text(const system_time *time, uint32_t flags, char *text, uint32_t size)
+{
+    return (uint32_t)GetDateFormatA(LOCALE_USER_DEFAULT, flags, reinterpret_cast<const SYSTEMTIME *>(time), nullptr, text, (int)size);
+}
+
+uint32_t time_text(const system_time *time, uint32_t flags, char *text, uint32_t size)
+{
+    return (uint32_t)GetTimeFormatA(LOCALE_USER_DEFAULT, flags, reinterpret_cast<const SYSTEMTIME *>(time), nullptr, text, (int)size);
+}
+
+bool file_version(const char *path, uint32_t *version_high, uint32_t *version_low)
+{
+    DWORD handle;
+    DWORD size = GetFileVersionInfoSizeA(path, &handle);
+    bool found = false;
+
+    if (size != 0) {
+        void *info = malloc(size);
+        VS_FIXEDFILEINFO *fixed;
+        UINT fixed_size;
+
+        if (GetFileVersionInfoA(path, handle, size, info) && VerQueryValueA(info, "\\", (void **)&fixed, &fixed_size)) {
+            *version_high = fixed->dwFileVersionMS;
+            *version_low = fixed->dwFileVersionLS;
+            found = true;
+        }
+        free(info);
+    }
+    return found;
+}
+
+uint32_t ansi_code_page()
+{
+    return GetACP();
+}
+
+uint32_t double_click_time()
+{
+    return GetDoubleClickTime();
+}
+
+bool mapped_file_name(void *address, char *buffer, uint32_t size)
+{
+    typedef DWORD (WINAPI *get_mapped_file_name_proc)(HANDLE, void *, char *, DWORD);
+    HMODULE psapi = LoadLibraryA("Psapi.dll");
+    bool found = false;
+
+    if (psapi != nullptr) {
+        get_mapped_file_name_proc get_mapped_file_name = (get_mapped_file_name_proc)GetProcAddress(psapi, "GetMappedFileNameA");
+
+        if (get_mapped_file_name != nullptr) {
+            found = get_mapped_file_name(GetCurrentProcess(), address, buffer, size) != 0;
+        }
+        FreeLibrary(psapi);
+    }
+    return found;
+}
+
 bool os_version(os_version_info_a *info)
 {
     return GetVersionExA(reinterpret_cast<OSVERSIONINFOA *>(info)) != 0;

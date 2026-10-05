@@ -1,4 +1,3 @@
-#include "win32.h"
 #include "halo/objects/flags.hpp"
 #include "halo/game/multiplayer_game_text.hpp"
 #include "halo/game/game2_engine_hud.hpp"
@@ -27,6 +26,7 @@
 #include "halo/interface/vars.hpp"
 #include "halo/networking/vars.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/platform/net.hpp"
 
 static auto &current_game_engine = halo::link::ref<game_engine_definition *>(halo::game::vars().current_game_engine);
 static auto &game_engine_variant = halo::link::ref<game_variant>(halo::game::vars().game_engine_variant);
@@ -298,11 +298,7 @@ void EngineHud::rasterize_in_game_score(datum_index subject_player, float opacit
         s_network_address address;
 
         if (halo::networking::globals().server != 0) {
-            struct in_addr in;
-            uint32_t raw = scoreboard_server_address_raw;
-
-            in.s_addr = ((raw << 0x10 | (raw & 0xff00) | (raw >> 0x10 & 0xff)) << 8) | (raw >> 0x18);
-            address_text = inet_ntoa(in);
+            address_text = halo::platform::ipv4_text(scoreboard_server_address_raw);
             port = scoreboard_server_port;
         } else {
             network_receive_queue *queue;

@@ -3,7 +3,6 @@
  */
 
 #include "crt.h"
-#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -71,10 +70,8 @@ void Timedemo::benchmark_update(void)
     char module_path[0x104];
     char date[0x20];
     char time[0x20];
-    uint32_t version_size;
-    uint32_t version_handle;
-    void *version_data;
-    uint32_t *fixed_file_info;
+    uint32_t version_high;
+    uint32_t version_low;
     const char *shader;
     const char *frame_suffix;
     double total_time;
@@ -178,8 +175,8 @@ void Timedemo::benchmark_update(void)
         file = (FILE *)fopen("timedemo.txt", "a");
         halo::platform::executable_path(module_path, 0x104);
         fseek(file, 0, SEEK_END);
-        GetDateFormatA(win32::k_locale_user_default, 0, 0, 0, date, 0x20);
-        GetTimeFormatA(win32::k_locale_user_default, 0, 0, 0, time, 0x20);
+        halo::platform::date_text(nullptr, 0, date, 0x20);
+        halo::platform::time_text(nullptr, 0, time, 0x20);
         fprintf(file, "Date / Time: %s %s (%dms)\n", date, time, shell_startup_tick_count);
 
         if (halo::shell::globals().force_shader == 9999) {
@@ -203,14 +200,10 @@ void Timedemo::benchmark_update(void)
         }
 
         fprintf(file, "%s %s", module_path, halo::shell::globals().command_line);
-        version_size = GetFileVersionInfoSizeA(module_path, (LPDWORD)(&version_handle));
-        version_data = halo::platform::heap_allocate(0, version_size);
-        GetFileVersionInfoA(module_path, 0, version_size, version_data);
-        VerQueryValueA(version_data, "\\", (void **)&fixed_file_info, &version_handle);
+        version_high = version_low = 0;
+        halo::platform::file_version(module_path, &version_high, &version_low);
         fprintf(file, "   (Version=%d.%d.%d.%d)\n",
-            fixed_file_info[2] >> 16, fixed_file_info[2] & 0xffff,
-            fixed_file_info[3] >> 16, fixed_file_info[3] & 0xffff);
-        halo::platform::heap_free(version_data);
+            version_high >> 16, version_high & 0xffff, version_low >> 16, version_low & 0xffff);
 
         frame_suffix = timedemo_globals_data.buckets[8].frames == 1 ? ")" : "s)";
         total_time = (double)timedemo_globals_data.total_time_ms;

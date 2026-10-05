@@ -49,6 +49,8 @@ bool file_copy(const char *source, const char *destination, bool fail_if_exists)
 /** The file's attributes, 0xffffffff when it does not exist (GetFileAttributesA). */
 uint32_t file_attributes(const char *path);
 bool file_set_attributes(const char *path, uint32_t attributes);
+/** The size of the file at path (low 32 bits, GetFileAttributesExA); false (last_error set) when it cannot be read. */
+bool file_size_by_path(const char *path, uint32_t *size);
 bool directory_create(const char *path);
 bool directory_remove(const char *path);
 /** Copies the current directory into buffer; returns its length (GetCurrentDirectoryA). */
