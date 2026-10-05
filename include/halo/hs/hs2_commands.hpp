@@ -26,7 +26,7 @@ struct EvaluateCommandTable {
  * Command group for the hs evaluate handlers "devices". Each static member is the handler of one hs function and
  * is reached through the entry function that keeps the original name.
  */
-class DeviceCommands {
+class DeviceEvaluateCommands {
 public:
     [[nodiscard]] static EvaluateCommandTable commands() noexcept;
 

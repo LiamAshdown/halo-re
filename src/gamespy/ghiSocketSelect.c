@@ -21,34 +21,34 @@ int ghiSocketSelect(SOCKET socket, int *readFlag, int *writeFlag, int *exceptFla
     int result;
 
     if (readFlag != 0) {
-        readSet.fd_array[0] = socket;
-        readSet.fd_count = 1;
+        FD_ZERO(&readSet);
+        FD_SET(socket, &readSet);
         readSetPointer = &readSet;
     }
     if (writeFlag != 0) {
-        writeSet.fd_array[0] = socket;
-        writeSet.fd_count = 1;
+        FD_ZERO(&writeSet);
+        FD_SET(socket, &writeSet);
         writeSetPointer = &writeSet;
     }
     if (exceptFlag != 0) {
-        exceptSet.fd_array[0] = socket;
-        exceptSet.fd_count = 1;
+        FD_ZERO(&exceptSet);
+        FD_SET(socket, &exceptSet);
         exceptSetPointer = &exceptSet;
     }
     timeout.tv_sec = 0;
     timeout.tv_usec = 0;
-    result = select(0x40, readSetPointer, writeSetPointer, exceptSetPointer, &timeout);
+    result = select(FD_SETSIZE, readSetPointer, writeSetPointer, exceptSetPointer, &timeout);
     if (result == SOCKET_ERROR) {
         return 0;
     }
     if (readFlag != 0) {
-        *readFlag = result > 0 && __WSAFDIsSet(socket, readSetPointer) ? 1 : 0;
+        *readFlag = result > 0 && FD_ISSET(socket, readSetPointer) ? 1 : 0;
     }
     if (writeFlag != 0) {
-        *writeFlag = result > 0 && __WSAFDIsSet(socket, writeSetPointer) ? 1 : 0;
+        *writeFlag = result > 0 && FD_ISSET(socket, writeSetPointer) ? 1 : 0;
     }
     if (exceptFlag != 0) {
-        *exceptFlag = result > 0 && __WSAFDIsSet(socket, exceptSetPointer) ? 1 : 0;
+        *exceptFlag = result > 0 && FD_ISSET(socket, exceptSetPointer) ? 1 : 0;
     }
     return 1;
 }

@@ -294,7 +294,11 @@ window_handle window_create(void *instance, void *resource_module, const char *c
         return nullptr;
     }
     SDL_VERSION(&info.version);
+#ifdef _WIN32
     g_native = SDL_GetWindowWMInfo(g_window, &info) ? static_cast<void *>(info.info.win.window) : static_cast<void *>(g_window);
+#else
+    g_native = g_window;  // the engine only passes it back to the platform layer
+#endif
 
 #ifdef _WIN32
     g_splash_bitmap = LoadBitmapA(static_cast<HINSTANCE>(resource_module), MAKEINTRESOURCEA(splash_resource));

@@ -22,7 +22,7 @@ namespace halo::hs {
  *
  * @address 0x47ca40
  */
-void DeviceCommands::evaluate_device_set_position(int16_t function_index, uint32_t thread_index, char first)
+void DeviceEvaluateCommands::evaluate_device_set_position(int16_t function_index, uint32_t thread_index, char first)
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
@@ -50,7 +50,7 @@ void DeviceCommands::evaluate_device_set_position(int16_t function_index, uint32
  *
  * @address 0x47cb60
  */
-void DeviceCommands::evaluate_device_set_position_immediate(int16_t function_index, uint32_t thread_index, char first)
+void DeviceEvaluateCommands::evaluate_device_set_position_immediate(int16_t function_index, uint32_t thread_index, char first)
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
@@ -76,7 +76,7 @@ void DeviceCommands::evaluate_device_set_position_immediate(int16_t function_ind
  *
  * @address 0x47c930
  */
-void DeviceCommands::evaluate_device_set_power(int16_t function_index, uint32_t thread_index, char first)
+void DeviceEvaluateCommands::evaluate_device_set_power(int16_t function_index, uint32_t thread_index, char first)
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
@@ -98,14 +98,14 @@ void DeviceCommands::evaluate_device_set_power(int16_t function_index, uint32_t 
 }
 
 /**
- * Table of the hs functions handled by DeviceCommands, in source order.
+ * Table of the hs functions handled by DeviceEvaluateCommands, in source order.
  */
-EvaluateCommandTable DeviceCommands::commands() noexcept
+EvaluateCommandTable DeviceEvaluateCommands::commands() noexcept
 {
     static constexpr EvaluateFn k_commands[] = {
-        &DeviceCommands::evaluate_device_set_position,
-        &DeviceCommands::evaluate_device_set_position_immediate,
-        &DeviceCommands::evaluate_device_set_power,
+        &DeviceEvaluateCommands::evaluate_device_set_position,
+        &DeviceEvaluateCommands::evaluate_device_set_position_immediate,
+        &DeviceEvaluateCommands::evaluate_device_set_power,
     };
     return {k_commands, static_cast<uint32_t>(sizeof(k_commands) / sizeof(k_commands[0]))};
 }

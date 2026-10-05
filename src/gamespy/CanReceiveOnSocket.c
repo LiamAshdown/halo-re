@@ -13,10 +13,10 @@ int CanReceiveOnSocket(SOCKET sock)
     struct timeval timeout;
     int result;
 
-    read_set.fd_array[0] = sock;
-    read_set.fd_count = 1;
+    FD_ZERO(&read_set);
+    FD_SET(sock, &read_set);
     timeout.tv_sec = 0;
     timeout.tv_usec = 0;
-    result = select(0x40, &read_set, 0, 0, &timeout);
+    result = select(FD_SETSIZE, &read_set, 0, 0, &timeout);
     return result != SOCKET_ERROR && result != 0;
 }

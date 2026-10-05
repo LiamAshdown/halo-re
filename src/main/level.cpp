@@ -42,7 +42,6 @@
 #include "halo/interface/vars.hpp"
 #include "halo/main/vars.hpp"
 #include "halo/networking/vars.hpp"
-#include <io.h>
 #include "halo/networking/api.hpp"
 #include "halo/platform/time.hpp"
 #include "halo/platform/file.hpp"

@@ -62,7 +62,7 @@ uint8_t VirtualKeyboard::vk_trim_trailing_whitespace(void)
 {
     int32_t i = wcslen((const wchar_t *)virtual_keyboard.destination) - 1;
     while (i >= 0) {
-        if (iswctype(virtual_keyboard.destination[i], _SPACE) == 0) {
+        if (iswspace(virtual_keyboard.destination[i]) == 0) {
             return 1;
         }
         virtual_keyboard.destination[i] = 0;

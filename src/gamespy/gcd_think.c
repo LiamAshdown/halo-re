@@ -64,16 +64,16 @@ void gcd_think(void)
         int from_length = 0x10;
         int result;
 
-        set.fd_array[0] = gcd_socket;
-        set.fd_count = 1;
-        result = select(0x40, &set, 0, 0, &timeout);
+        FD_ZERO(&set);
+        FD_SET(gcd_socket, &set);
+        result = select(FD_SETSIZE, &set, 0, 0, &timeout);
         while (result != SOCKET_ERROR && result != 0) {
             result = recvfrom(gcd_socket, gcd_receive_buffer, 0x3ff, 0, &from, &from_length);
             if (result != SOCKET_ERROR) {
                 gcd_receive_buffer[result] = 0;
                 gcd_process(gcd_receive_buffer, result, &from);
             }
-            result = select(0x40, &set, 0, 0, &timeout);
+            result = select(FD_SETSIZE, &set, 0, 0, &timeout);
         }
     }
     for (i = 0; i < gcd_game_count; i++) {

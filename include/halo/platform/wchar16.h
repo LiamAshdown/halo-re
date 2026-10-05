@@ -31,6 +31,10 @@ wchar_t *halo_wcsstr(const wchar_t *text, const wchar_t *pattern);
 /** MSVC swprintf / vswprintf: at most count units including the terminator; -1 (and a truncated string) when it does not fit. */
 int halo_swprintf(wchar_t *out, size_t count, const wchar_t *format, ...);
 int halo_vswprintf(wchar_t *out, size_t count, const wchar_t *format, va_list args);
+/** MSVC _vsnwprintf: at most count units; terminated only when there is room; -1 when the text does not fit. */
+int halo_vsnwprintf(wchar_t *out, size_t count, const wchar_t *format, va_list args);
+/** _wtol / _wtoi: leading spaces, an optional sign, decimal digits. */
+long halo_wtol(const wchar_t *text);
 /** wprintf: the text goes to stdout as UTF-8. */
 int halo_wprintf(const wchar_t *format, ...);
 
@@ -52,6 +56,9 @@ int halo_wprintf(const wchar_t *format, ...);
 #define wcsstr halo_wcsstr
 #define swprintf halo_swprintf
 #define vswprintf halo_vswprintf
+#define _vsnwprintf halo_vsnwprintf
+#define _wtol halo_wtol
+#define _wtoi (int)halo_wtol
 #define wprintf halo_wprintf
 #endif
 

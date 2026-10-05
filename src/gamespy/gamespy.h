@@ -11,6 +11,44 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <ctype.h>
+
+#if !defined(_WIN32)
+/* The few Windows names the SDK uses besides sockets (types/win32.h maps those), off Windows. */
+#include <pthread.h>
+#include <strings.h>
+#include <time.h>
+typedef int BOOL;
+#ifndef TRUE
+#define TRUE 1
+#define FALSE 0
+#endif
+#define _stricmp strcasecmp
+#define _strnicmp strncasecmp
+#define _strdup strdup
+static inline unsigned long GetTickCount(void)
+{
+    struct timespec now;
+
+    clock_gettime(CLOCK_MONOTONIC, &now);
+    return (unsigned long)now.tv_sec * 1000ul + (unsigned long)(now.tv_nsec / 1000000);
+}
+typedef pthread_mutex_t CRITICAL_SECTION;
+static inline void InitializeCriticalSection(CRITICAL_SECTION *lock)
+{
+    pthread_mutexattr_t attributes;
+
+    pthread_mutexattr_init(&attributes);
+    pthread_mutexattr_settype(&attributes, PTHREAD_MUTEX_RECURSIVE);  /* critical sections are re-entrant */
+    pthread_mutex_init(lock, &attributes);
+    pthread_mutexattr_destroy(&attributes);
+}
+#define DeleteCriticalSection(lock) pthread_mutex_destroy(lock)
+#define EnterCriticalSection(lock) pthread_mutex_lock(lock)
+#define LeaveCriticalSection(lock) pthread_mutex_unlock(lock)
+#include <unistd.h>
+#define Sleep(milliseconds) usleep((useconds_t)(milliseconds) * 1000u)
+#endif
 
 // ---- darray.c
 typedef void (*ArrayElementFreeFn)(void *elem);

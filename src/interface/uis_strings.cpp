@@ -237,7 +237,7 @@ uint8_t UiStrings::wide_string_has_non_whitespace(const uint16_t *text)
 {
     uint16_t ch = *text;
     while (ch != 0) {
-        if (!iswctype(ch, _SPACE)) {
+        if (!iswspace(ch)) {
             return 1;
         }
         text = text + 1;

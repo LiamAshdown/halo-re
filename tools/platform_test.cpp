@@ -20,6 +20,17 @@ static int failures;
         }                                                                    \
     } while (0)
 
+static int call_vsnwprintf(int (*function)(wchar_t *, size_t, const wchar_t *, va_list), wchar_t *out, size_t count, const wchar_t *format, ...)
+{
+    va_list args;
+    int result;
+
+    va_start(args, format);
+    result = function(out, count, format, args);
+    va_end(args);
+    return result;
+}
+
 static int sign(int x) { return x < 0 ? -1 : x > 0 ? 1 : 0; }
 
 template <typename... Args>
@@ -90,6 +101,27 @@ int main()
 
         CHECK(ours < 0);
         CHECK(tiny[7] == 0);
+    }
+    {
+        // _vsnwprintf: no terminator when the text exactly fills the buffer, -1 when it does not fit
+        static const wchar_t *const texts[] = {L"fits", L"exactly8", L"far too long"};
+
+        for (const wchar_t *text : texts) {
+            wchar_t ours[8], theirs[8];
+            int ours_result, theirs_result;
+
+            wmemset(ours, L'#', 8);
+            wmemset(theirs, L'#', 8);
+            ours_result = call_vsnwprintf(halo_vsnwprintf, ours, 8, L"%s", text);
+            theirs_result = call_vsnwprintf(_vsnwprintf, theirs, 8, L"%s", text);
+            if (ours_result != theirs_result || memcmp(ours, theirs, sizeof(ours)) != 0) {
+                printf("FAIL _vsnwprintf(\"%ls\"): MSVC %d, ours %d\n", text, theirs_result, ours_result);
+                failures++;
+            }
+        }
+        CHECK(halo_wtol(L"  -1234x") == _wtol(L"  -1234x"));
+        CHECK(halo_wtol(L"+77") == _wtol(L"+77"));
+        CHECK(halo_wtol(L"abc") == _wtol(L"abc"));
     }
     {
         // SHA-1: FIPS 180 test vectors, plus one input that needs a second padding block

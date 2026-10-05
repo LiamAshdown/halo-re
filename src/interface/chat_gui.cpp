@@ -14,7 +14,6 @@
 #include "halo/interface/wide_text.hpp"
 #include <string.h>
 #include <wchar.h>
-#include <windows.h>
 #include "halo/platform/time.hpp"
 #include "halo/platform/system.hpp"
 

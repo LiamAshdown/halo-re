@@ -15,11 +15,11 @@ int CanSendOnSocket(SOCKET sock)
     struct timeval timeout;
     int result;
 
-    write_set.fd_count = 1;
-    write_set.fd_array[0] = sock;
+    FD_ZERO(&write_set);
+    FD_SET(sock, &write_set);
     timeout.tv_sec = 0;
     timeout.tv_usec = 0;
-    result = select(0x40, 0, &write_set, 0, &timeout);
+    result = select(FD_SETSIZE, 0, &write_set, 0, &timeout);
     if (result == SOCKET_ERROR || result == 0) {
         return 0;
     }

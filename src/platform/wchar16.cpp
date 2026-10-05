@@ -7,6 +7,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 namespace {
@@ -145,7 +146,8 @@ wchar_t *halo_wcsstr(const wchar_t *text, const wchar_t *pattern)
     return nullptr;
 }
 
-int halo_vswprintf(wchar_t *out_text, size_t count, const wchar_t *format, va_list args)
+/** Formats into out_text (at most count units, terminated when count is not 0); returns the full length. */
+static size_t format_wide(wchar_t *out_text, size_t count, const wchar_t *format, va_list args)
 {
     wide_out out = {out_text, count, 0};
 
@@ -310,7 +312,56 @@ int halo_vswprintf(wchar_t *out_text, size_t count, const wchar_t *format, va_li
     if (count != 0) {
         out_text[out.length < count ? out.length : count - 1] = 0;
     }
-    return out.length < count ? static_cast<int>(out.length) : -1;
+    return out.length;
+}
+
+int halo_vswprintf(wchar_t *out_text, size_t count, const wchar_t *format, va_list args)
+{
+    size_t length = format_wide(out_text, count, format, args);
+
+    return length < count ? static_cast<int>(length) : -1;
+}
+
+int halo_vsnwprintf(wchar_t *out, size_t count, const wchar_t *format, va_list args)
+{
+    va_list copy;
+    int length;
+
+    va_copy(copy, args);
+    length = static_cast<int>(format_wide(nullptr, 0, format, copy));
+    va_end(copy);
+    if (count == 0) {
+        return length == 0 ? 0 : -1;
+    }
+    if (static_cast<size_t>(length) < count) {
+        return halo_vswprintf(out, count, format, args);
+    }
+    {
+        // fills count units: the formatter writes count - 1 and a terminator, the last unit is the next character
+        wchar_t *whole = static_cast<wchar_t *>(malloc((static_cast<size_t>(length) + 1) * sizeof(wchar_t)));
+
+        halo_vswprintf(whole, static_cast<size_t>(length) + 1, format, args);
+        memcpy(out, whole, count * sizeof(wchar_t));
+        free(whole);
+    }
+    return static_cast<size_t>(length) == count ? length : -1;
+}
+
+long halo_wtol(const wchar_t *text)
+{
+    long value = 0;
+    bool negative = false;
+
+    while (*text == L' ' || *text == L'\t' || *text == L'\n' || *text == L'\r' || *text == L'\v' || *text == L'\f') text++;
+    if (*text == L'-' || *text == L'+') {
+        negative = *text == L'-';
+        text++;
+    }
+    while (*text >= L'0' && *text <= L'9') {
+        value = value * 10 + (*text - L'0');
+        text++;
+    }
+    return negative ? -value : value;
 }
 
 int halo_swprintf(wchar_t *out, size_t count, const wchar_t *format, ...)

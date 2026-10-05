@@ -506,14 +506,12 @@ int16_t ReceiveQueueView::get_remote_address(s_network_address *address)
 uint32_t ReceiveQueueView::start()
 {
     network_receive_queue *queue = self;
-    uint32_t result;
-
     queue->data_ready = 1;
     gt2SetSocketData(network_game_socket, queue);
     queue->flags = queue->flags | 2;
-    result = gt2Listen(network_game_socket, (void *)halo::networking::network_listen_connection_request_handler);
+    gt2Listen(network_game_socket, (void *)halo::networking::network_listen_connection_request_handler);
     queue->last_error = 0;
-    return result & 0xffff0000;
+    return 0;  // the original returned gt2Listen's leftover EAX masked to its high half: the low bits callers read are 0
 }
 
 /**

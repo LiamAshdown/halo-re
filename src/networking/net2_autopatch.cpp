@@ -249,7 +249,8 @@ uint32_t AutopatchUpdater::download_pool_shutdown(void)
     autopatch_download_thread = 0;
     autopatch_download_mutex = 0;
 
-    return (uint32_t)ghttpCleanup() & 0xffffff00;
+    ghttpCleanup();
+    return 0;  // the original returned ghttpCleanup's leftover EAX with AL cleared: callers read AL, which is 0
 }
 
 int32_t AutopatchUpdater::download_pool_tick(void)

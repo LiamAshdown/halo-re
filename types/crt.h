@@ -15,7 +15,9 @@
 #include <wctype.h>
 #include <time.h>
 #include <locale.h>
+#if defined(_WIN32)
 #include <process.h>
+#endif
 #include <float.h>
 
 #endif

@@ -25,6 +25,23 @@
 #define _vsnprintf vsnprintf
 #define _strdup strdup
 
+#include <stdint.h>
+#include <time.h>
+typedef int32_t __time32_t;  // the original's 32-bit time_t
+static inline __time32_t _time32(__time32_t *out)
+{
+    __time32_t now = (__time32_t)time(0);
+
+    if (out != 0) *out = now;
+    return now;
+}
+static inline struct tm *_localtime32(const __time32_t *value)
+{
+    time_t wide = *value;
+
+    return localtime(&wide);
+}
+
 #define HALO_WCHAR16_COMPAT 1
 #include "halo/platform/wchar16.h"
 

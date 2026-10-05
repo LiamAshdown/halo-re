@@ -4,33 +4,33 @@
 namespace halo::hs {
 
 /**
- * Free-function entry point for halo::hs::DeviceCommands::evaluate_device_set_position; forwards to the C++ implementation unchanged.
+ * Free-function entry point for halo::hs::DeviceEvaluateCommands::evaluate_device_set_position; forwards to the C++ implementation unchanged.
  *
  * @address 0x47ca40
  */
 void hs_evaluate_device_set_position(int16_t function_index, uint32_t thread_index, char first)
 {
-    halo::hs::DeviceCommands::evaluate_device_set_position(function_index, thread_index, first);
+    halo::hs::DeviceEvaluateCommands::evaluate_device_set_position(function_index, thread_index, first);
 }
 
 /**
- * Free-function entry point for halo::hs::DeviceCommands::evaluate_device_set_position_immediate; forwards to the C++ implementation unchanged.
+ * Free-function entry point for halo::hs::DeviceEvaluateCommands::evaluate_device_set_position_immediate; forwards to the C++ implementation unchanged.
  *
  * @address 0x47cb60
  */
 void hs_evaluate_device_set_position_immediate(int16_t function_index, uint32_t thread_index, char first)
 {
-    halo::hs::DeviceCommands::evaluate_device_set_position_immediate(function_index, thread_index, first);
+    halo::hs::DeviceEvaluateCommands::evaluate_device_set_position_immediate(function_index, thread_index, first);
 }
 
 /**
- * Free-function entry point for halo::hs::DeviceCommands::evaluate_device_set_power; forwards to the C++ implementation unchanged.
+ * Free-function entry point for halo::hs::DeviceEvaluateCommands::evaluate_device_set_power; forwards to the C++ implementation unchanged.
  *
  * @address 0x47c930
  */
 void hs_evaluate_device_set_power(int16_t function_index, uint32_t thread_index, char first)
 {
-    halo::hs::DeviceCommands::evaluate_device_set_power(function_index, thread_index, first);
+    halo::hs::DeviceEvaluateCommands::evaluate_device_set_power(function_index, thread_index, first);
 }
 
 /**

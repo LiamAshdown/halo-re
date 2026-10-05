@@ -29,23 +29,24 @@ file(GLOB GAME_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/src/*/*.cpp")
 list(FILTER GAME_SOURCES EXCLUDE REGEX "/src/[a-z]+/[a-z0-9_]+_win32\\.cpp$")
 file(GLOB GAMESPY_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/src/gamespy/*.c")
 
-# ---- the engine globals: the data image without MSVC's ordered sections. The clustered globals then keep their
-# definition order (eq_*.cpp list them by original address), and zero ones stay in .data next to the others;
-# standalone_data_layout_check() reports any that moved at startup.
+# ---- the engine globals: the data image without MSVC's ordered sections and with its linker aliases as alias
+# definitions (tools/web_data.py). The clustered globals keep their definition order (eq_*.cpp list them by original
+# address), and zero ones stay in .data next to the others; standalone_data_layout_check() reports any that moved.
 file(GLOB DATA_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/standalone/data/*.cpp")
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
+execute_process(COMMAND "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/tools/web_data.py" "${CMAKE_BINARY_DIR}/data" ${DATA_SOURCES}
+    RESULT_VARIABLE web_data_result)
+if(NOT web_data_result EQUAL 0)
+    message(FATAL_ERROR "tools/web_data.py failed")
+endif()
 set(WEB_DATA_SOURCES "")
 foreach(source ${DATA_SOURCES})
     get_filename_component(name "${source}" NAME)
-    file(READ "${source}" text)
-    string(REGEX REPLACE "__declspec\\(allocate\\(\"[^\"]*\"\\)\\) *" "" text "${text}")
-    string(REGEX REPLACE "#pragma section\\([^)]*\\)" "" text "${text}")
-    set(generated "${CMAKE_BINARY_DIR}/data/${name}")
-    file(WRITE "${generated}.new" "${text}")
-    configure_file("${generated}.new" "${generated}" COPYONLY)  # rewritten only when it changed
-    list(APPEND WEB_DATA_SOURCES "${generated}")
+    list(APPEND WEB_DATA_SOURCES "${CMAKE_BINARY_DIR}/data/${name}")
     set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${source}")
 endforeach()
-set_source_files_properties(${WEB_DATA_SOURCES} PROPERTIES COMPILE_OPTIONS "-fno-zero-initialized-in-bss")
+# -fms-compatibility: the tables store function addresses in void * slots, as MSVC allows
+set_source_files_properties(${WEB_DATA_SOURCES} PROPERTIES COMPILE_OPTIONS "-fno-zero-initialized-in-bss;-fms-compatibility")
 
 # ---- third-party code
 set(MOJO_DIR "${CMAKE_SOURCE_DIR}/third_party/mojoshader")
@@ -65,7 +66,7 @@ target_compile_options(stb_vorbis PRIVATE -w -pthread)
 # ---- the page
 add_executable(halo ${GAME_SOURCES} ${GAMESPY_SOURCES} ${WEB_DATA_SOURCES} "${CMAKE_SOURCE_DIR}/standalone/web_main.cpp")
 set_target_properties(halo PROPERTIES SUFFIX ".html")
-set_source_files_properties(${GAMESPY_SOURCES} PROPERTIES LANGUAGE C COMPILE_OPTIONS "-w;-pthread;-fshort-wchar")
+set_source_files_properties(${GAMESPY_SOURCES} PROPERTIES LANGUAGE C COMPILE_OPTIONS "-w;-pthread;-fshort-wchar;-fms-extensions;-fdeclspec;-iquote;${CMAKE_SOURCE_DIR}/types")
 target_compile_options(halo PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${WEB_COMPILE_OPTIONS}> ${WEB_QUOTE_INCLUDES} "SHELL:-sUSE_SDL=2")
 target_compile_definitions(halo PRIVATE ${WEB_DEFINITIONS})
 target_include_directories(halo PRIVATE ${WEB_INCLUDES})
