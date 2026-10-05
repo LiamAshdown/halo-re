@@ -1936,7 +1936,7 @@ void rasterizer_sun_glow_render(lens_flare_instance *instance)
     real_vector3d direction;
     real_point3d point;
     float screen[3];
-    float scale;
+    float scale[2];  // rasterizer_sun_glow_project_point writes x and y
     float rect[4];
     float falloff;
     float cone_cosine;
@@ -1969,7 +1969,7 @@ void rasterizer_sun_glow_render(lens_flare_instance *instance)
     point.x = direction.i * radius + instance->position.x;
     point.y = direction.j * radius + instance->position.y;
     point.z = direction.k * radius + instance->position.z;
-    if (!rasterizer_sun_glow_project_point(&point, radius, screen, &scale)) {
+    if (!rasterizer_sun_glow_project_point(&point, radius, screen, scale)) {
         render_device().set_software_vertex_processing(rasterizer_software_vertex_processing);
         return;
     }

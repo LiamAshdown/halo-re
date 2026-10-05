@@ -169,8 +169,10 @@ uint32_t UiProfiles::new_profile_name_entry_commit(void)
             new_profile_name_terminator_006b380a = 0;
             profile_id = halo::saved_games::saved_game_create_default_profile((uint16_t *)new_profile_name_buffer_006b37f4);
         }
-        if (profile_id != -1 && halo::saved_games::player_profile_get_or_cached_default((saved_player_profile *)default_profile_data, (int32_t)profile_id) != 0) {
-            halo::interface::player_profile_load((int16_t)profile_id, nullptr, profile_id);
+        saved_player_profile profile;  // a local at [esp+0x10c] in the original, read back for the load
+
+        if (profile_id != -1 && halo::saved_games::player_profile_get_or_cached_default(&profile, (int32_t)profile_id) != 0) {
+            halo::interface::player_profile_load(0, &profile, profile_id);  // AX = 0, EDX = &profile (0x4a1a4a)
             if (new_profile_name_flag_0071916e != 0) {
                 halo::interface::saved_item_select(-1);
             }
