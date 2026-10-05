@@ -1,5 +1,6 @@
 #include "halo/shell/hwreq.hpp"
 #include "halo/shell/layout.hpp"
+#include "halo/platform/system.hpp"
 
 namespace halo::shell {
 
@@ -305,7 +306,7 @@ HwreqCondition HwreqParser::resolve_field()
         uint32_t detected;
 
         version.size = sizeof(os_version_info_a);
-        GetVersionExA((LPOSVERSIONINFOA)&version);
+        halo::platform::os_version(&version);
 
         if (version.platform_id == 2) {
             if (version.major_version == 5) {

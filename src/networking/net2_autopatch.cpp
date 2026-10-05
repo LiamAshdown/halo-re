@@ -32,6 +32,7 @@
 #include "halo/platform/time.hpp"
 #include "halo/platform/thread.hpp"
 #include "halo/platform/memory.hpp"
+#include "halo/platform/system.hpp"
 
 static auto &autopatch_download_slots = halo::link::ref<autopatch_download_slot [2]>(halo::networking::vars().autopatch_download_slots);
 static auto &network_mutex_table = halo::link::ref<network_mutex_record [k_network_mutex_table_count]>(halo::networking::vars().network_mutex_table);
@@ -389,11 +390,11 @@ char * AutopatchUpdater::get_proxy_settings(void)
     }
 
     if (proxy_list[0] == 0) {
-        winhttp = LoadLibraryA("winhttp.dll");
+        winhttp = halo::platform::library_open("winhttp.dll");
         if (winhttp != 0) {
-            get_proxy_for_url = (winhttp_get_proxy_for_url_proc)GetProcAddress((HMODULE)winhttp, "WinHttpGetProxyForUrl");
-            open = (winhttp_open_proc)GetProcAddress((HMODULE)winhttp, "WinHttpOpen");
-            close_handle = (winhttp_close_handle_proc)GetProcAddress((HMODULE)winhttp, "WinHttpCloseHandle");
+            get_proxy_for_url = (winhttp_get_proxy_for_url_proc)halo::platform::library_symbol(winhttp, "WinHttpGetProxyForUrl");
+            open = (winhttp_open_proc)halo::platform::library_symbol(winhttp, "WinHttpOpen");
+            close_handle = (winhttp_close_handle_proc)halo::platform::library_symbol(winhttp, "WinHttpCloseHandle");
             if (get_proxy_for_url != 0 && open != 0 && close_handle != 0) {
                 session = open(k_agent_halopc, 0, 0, 0, 0);
                 if (session != 0) {
@@ -406,7 +407,7 @@ char * AutopatchUpdater::get_proxy_settings(void)
                     if (get_proxy_for_url(session, k_bungie_url, &options, &proxy_info)) {
                         if (proxy_info.proxy != 0) {
                             if (proxy_info.proxy[0] != 0) {
-                                WideCharToMultiByte(0, 0, (LPCWCH)proxy_info.proxy, -1, proxy_list, 0x400, 0, 0);
+                                halo::platform::wide_to_ansi(proxy_info.proxy, -1, proxy_list, 0x400);
                                 proxy_list[0x3ff] = 0;
                             }
                             if (proxy_info.proxy != 0) {
@@ -420,7 +421,7 @@ char * AutopatchUpdater::get_proxy_settings(void)
                     close_handle(session);
                 }
             }
-            FreeLibrary((HMODULE)winhttp);
+            halo::platform::library_close(winhttp);
         }
         if (proxy_list[0] == 0) {
             return autopatch_proxy_server;

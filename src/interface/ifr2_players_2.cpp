@@ -19,6 +19,7 @@
 static auto &config_disable_specular = halo::link::ref<uint32_t>(halo::shell::vars().config_disable_specular);
 #include "halo/interface/constants.hpp"
 #include "halo/interface/com_object.hpp"
+#include "halo/platform/window.hpp"
 
 #ifdef interface
 #undef interface
@@ -79,7 +80,7 @@ uint8_t PlayerProfiles::apply_video_options(saved_player_profile *settings)
     state::frame_rate_limiter_enabled = halo::game::globals().time_force_single_tick != 0 ? 0 : settings->frame_rate_mode == 2;
 
     if (halo::rasterizer::globals().fullscreen == 0 || halo::rasterizer::globals().device == 0) {
-        GetWindowRect(GetDesktopWindow(), &desktop);
+        halo::platform::desktop_bounds(reinterpret_cast<halo::platform::window_rect *>(&desktop));
         if ((uint32_t)mode.height >= (uint32_t)desktop.bottom || (uint32_t)mode.width >= (uint32_t)desktop.right) {
             if (desktop.bottom > 600) {
                 mode.width = 800;

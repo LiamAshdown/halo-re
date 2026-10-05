@@ -16,6 +16,7 @@
 #include "halo/core/link.hpp"
 #include "halo/saved_games/vars.hpp"
 #include "halo/platform/file.hpp"
+#include "halo/platform/system.hpp"
 
 static auto &file_enumeration_pos = halo::link::ref<file_enumeration_position>(halo::saved_games::vars().file_enumeration_pos);
 static auto &file_enumeration_flags_value = halo::link::ref<uint32_t>(halo::saved_games::vars().file_enumeration_flags_value);
@@ -780,7 +781,7 @@ void report_last_error(void)
     char scratch[0x800];
 
     message_id = halo::platform::last_error();
-    FormatMessageA(win32::k_format_message_system_message, 0, message_id, 0, (LPSTR)scratch, sizeof(scratch), 0);
+    halo::platform::error_message(message_id, scratch, sizeof(scratch));
     halo::platform::set_last_error(0);
     return;
 }

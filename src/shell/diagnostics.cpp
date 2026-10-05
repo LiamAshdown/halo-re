@@ -13,6 +13,8 @@
 #include "halo/main/api.hpp"
 #include "halo/shell/api.hpp"
 #include "halo/platform/time.hpp"
+#include "halo/platform/system.hpp"
+#include "halo/platform/window.hpp"
 
 static auto &shell_module_handle = halo::link::ref<void *>(halo::shell::vars().shell_module_handle);
 static auto &fatal_error_text = halo::link::ref<char [k_shell_fatal_error_text_length]>(halo::shell::vars().fatal_error_text);
@@ -169,15 +171,14 @@ int32_t FatalError::show(uint32_t resource_id, uint32_t help_text_or_id, int32_t
         strcat(message, "\n\nYes: continue (and do not ask again on this graphics device)\nNo: restart in safe mode\nCancel: quit");
     }
 
-    ShowCursor(1);
-    answer = MessageBoxA((HWND)shell_window, message, fatal_error_title,
-                         is_fatal != 0 ? (halo::win32::k_mb_ok | halo::win32::k_mb_iconerror) : (halo::win32::k_mb_yesnocancel | halo::win32::k_mb_iconwarning));
-    ShowCursor(0);
+    halo::platform::cursor_show(true);
+    answer = halo::platform::message_box(shell_window, message, fatal_error_title, is_fatal != 0 ? (halo::win32::k_mb_ok | halo::win32::k_mb_iconerror) : (halo::win32::k_mb_yesnocancel | halo::win32::k_mb_iconwarning));
+    halo::platform::cursor_show(false);
 
     if (is_fatal != 0 || answer == halo::win32::k_id_cancel) {
         ExitFlag::set_clean();
         shut_down_engine_services();
-        ExitProcess(1);
+        halo::platform::process_exit(1);
     }
 
     result = (answer == halo::win32::k_id_no) ? 1 : 0;
@@ -208,14 +209,13 @@ int32_t __stdcall DialogCentering::procedure(void *hwnd, uint32_t message, uint3
         return 0;
     }
 
-    GetWindowRect((HWND)hwnd, &window_rect);
-    GetClientRect(GetDesktopWindow(), &desktop_rect);
-    MoveWindow((HWND)hwnd,
+    halo::platform::window_bounds(hwnd, reinterpret_cast<halo::platform::window_rect *>(&window_rect));
+    halo::platform::desktop_client_area(reinterpret_cast<halo::platform::window_rect *>(&desktop_rect));
+    halo::platform::window_move(hwnd,
                (desktop_rect.right - desktop_rect.left) / 2 - (window_rect.right - window_rect.left) / 2,
                (desktop_rect.bottom - desktop_rect.top) / 2 - (window_rect.bottom - window_rect.top) / 2,
                window_rect.right - window_rect.left,
-               window_rect.bottom - window_rect.top,
-               1);
+               window_rect.bottom - window_rect.top);
     return 1;
 }
 

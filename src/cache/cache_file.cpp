@@ -19,6 +19,7 @@
 #include "halo/platform/file.hpp"
 #include "halo/platform/thread.hpp"
 #include "halo/platform/memory.hpp"
+#include "halo/platform/system.hpp"
 
 typedef uint32_t (*get_mapped_file_name_a_t)(void *process, void *address, char *filename, uint32_t size);
 
@@ -582,23 +583,21 @@ void cache_files::reserve_map_memory()
     if (globals().map_memory == nullptr) {
         memset(path_buffer, 0, sizeof(path_buffer));
 
-        psapi_module = LoadLibraryA("Psapi.dll");
+        psapi_module = halo::platform::library_open("Psapi.dll");
         if (psapi_module != nullptr) {
-            get_mapped_file_name_a = (get_mapped_file_name_a_t)GetProcAddress((HMODULE)psapi_module, "GetMappedFileNameA");
+            get_mapped_file_name_a = (get_mapped_file_name_a_t)halo::platform::library_symbol(psapi_module, "GetMappedFileNameA");
             if (get_mapped_file_name_a != (get_mapped_file_name_a_t)0) {
                 get_mapped_file_name_a(GetCurrentProcess(), (void *)k_map_memory_base, path_buffer, halo::win32::k_max_path);
             }
-            FreeLibrary((HMODULE)psapi_module);
+            halo::platform::library_close(psapi_module);
         }
 
         caption = path_buffer;
         if (path_buffer[0] == '\0') {
             caption = "Error";
         }
-        MessageBoxA(nullptr,
-            "Cannot allocate required memory. Some other application has loaded where Halo needs to be located.",
-            caption, 0);
-        ExitProcess(1);
+        halo::platform::message_box(nullptr, "Cannot allocate required memory. Some other application has loaded where Halo needs to be located.", caption, 0);
+        halo::platform::process_exit(1);
     }
     return;
 }

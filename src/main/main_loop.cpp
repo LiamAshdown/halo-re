@@ -65,6 +65,8 @@
 #include "halo/units/api.hpp"
 #include "halo/platform/time.hpp"
 #include "halo/platform/memory.hpp"
+#include "halo/platform/system.hpp"
+#include "halo/platform/window.hpp"
 
 
 static auto &main_globals_data = halo::link::ref<main_globals>(halo::main::vars().main_globals_data);
@@ -599,7 +601,7 @@ void MainLoop::loop(void)
     int32_t elapsed_ms;
     int32_t i;
 
-    GetLocalTime((LPSYSTEMTIME)local_time);
+    halo::platform::local_time(reinterpret_cast<system_time *>(local_time));
     strncpy(main_globals_data.scenario_path, k_default_scenario_path, k_main_path_length - 1);
     main_globals_data.scenario_path[k_main_path_length - 1] = 0;
     main_globals_data.return_to_main_menu = 1;
@@ -804,9 +806,7 @@ void MainLoop::loop(void)
             main_globals_data.time_is_running = 1;
         }
         if (shell_application_inactive != 0) {
-            MsgWaitForMultipleObjects(0, 0, 0,
-                (main_globals_data.game_connection > 0 && main_globals_data.game_connection <= 2) ? 20 : 100,
-                0xff );
+            halo::platform::wait_for_messages((main_globals_data.game_connection > 0 && main_globals_data.game_connection <= 2) ? 20 : 100);
         }
         halo::platform::read_performance_counter(&counter);
         elapsed_ms = (int32_t)((counter * 1000) / halo::cseries::globals().performance_frequency) -

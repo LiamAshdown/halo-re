@@ -22,6 +22,7 @@
 #include "halo/platform/time.hpp"
 #include "halo/platform/file.hpp"
 #include "halo/platform/memory.hpp"
+#include "halo/platform/system.hpp"
 
 static auto &saved_player_profile_slots_handle = halo::link::ref<int32_t>(halo::saved_games::vars().saved_player_profile_slots_handle);
 static auto &checkpoint_sort_newest_first = halo::link::ref<uint8_t>(halo::saved_games::vars().checkpoint_sort_newest_first);
@@ -293,7 +294,7 @@ void write_stats_file(char *scenario_name, int32_t difficulty)
 
     file = fopen(path, network_summary_log_mode_string);
     if (file != 0) {
-        GetLocalTime((LPSYSTEMTIME)&now);
+        halo::platform::local_time(reinterpret_cast<system_time *>(&now));
         level = halo::main::campaign_level_find_index_for_path(scenario_name);
         fprintf((FILE *)file, "%d,%d,%d\n", (int32_t)level, difficulty, halo::game::globals().game_time->game_time);
         fprintf((FILE *)file, "%hu,%hu,%hu\n", now.month, now.day, now.year);

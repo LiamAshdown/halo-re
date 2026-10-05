@@ -27,6 +27,7 @@
 #include "halo/networking/vars.hpp"
 #include "halo/core/libm.hpp"
 #include "halo/platform/time.hpp"
+#include "halo/shell/settings.hpp"
 
 static auto &network_join_error_code = halo::link::ref<int16_t>(halo::networking::vars().network_join_error_code);
 static auto &interface_loading_screen_progress = halo::link::ref<int32_t>(halo::networking::vars().interface_loading_screen_progress);
@@ -241,23 +242,16 @@ uint32_t RemoteConsole::dist_id(void)
 {
     uint32_t dist_id = 0;
     uint32_t size = 4;
-    void *key;
 
-    if (RegOpenKeyExA((HKEY)0x80000002, "Software\\Microsoft\\Microsoft Games\\Halo", 0, 0x20019,
-                       (PHKEY)&key) == 0) {
-        if (RegQueryValueExA((HKEY)key, "DistID", 0, 0, (uint8_t *)&dist_id, (LPDWORD)&size) != 0) {
-            dist_id = 0;
-        }
-        RegCloseKey((HKEY)key);
+    if (!halo::shell::SettingsStore::current().read_value(halo::shell::SettingsScope::machine, "DistID", nullptr, &dist_id, &size)) {
+        dist_id = 0;
     }
     return dist_id;
 }
 
 char * RemoteConsole::halo_version(void)
 {
-    void *key;
     int32_t i;
-    int32_t status;
     uint32_t size;
 
     for (i = 0; i < 0x40; i++) {
@@ -265,17 +259,9 @@ char * RemoteConsole::halo_version(void)
     }
 
     size = 0x3f;
-    status = RegOpenKeyExA((HKEY)0x80000002, "Software\\Microsoft\\Microsoft Games\\Halo", 0,
-                            0x20019, (PHKEY)&key);
-    if (status != 0) {
-        registry_halo_version_buffer[0] = 0;
-        return registry_halo_version_buffer;
-    }
-    status = RegQueryValueExA((HKEY)key, "Version", 0, 0, (uint8_t *)registry_halo_version_buffer, (LPDWORD)&size);
-    if (status != 0) {
+    if (!halo::shell::SettingsStore::current().read_value(halo::shell::SettingsScope::machine, "Version", nullptr, registry_halo_version_buffer, &size)) {
         registry_halo_version_buffer[0] = 0;
     }
-    RegCloseKey((HKEY)key);
     return registry_halo_version_buffer;
 }
 

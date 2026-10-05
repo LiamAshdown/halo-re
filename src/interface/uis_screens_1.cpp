@@ -29,6 +29,7 @@
 #include "halo/core/x87.hpp"
 #include "halo/camera/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/platform/window.hpp"
 
 static auto &chat_window_default_x = halo::link::ref<int32_t>(halo::ui::vars().chat_window_default_x);
 static auto &chat_window_default_y = halo::link::ref<int32_t>(halo::ui::vars().chat_window_default_y);
@@ -154,7 +155,7 @@ void UiScreens::cursor_update(void)
     if (ui_use_os_cursor != 0) {
         win32_point point;
 
-        GetCursorPos(&point);
+        halo::platform::cursor_position(reinterpret_cast<int32_t *>(&point.x), reinterpret_cast<int32_t *>(&point.y));
         delta_x = previous_mouse_x - point.x;
         delta_y = previous_mouse_y - point.y;
         previous_mouse_x = point.x;

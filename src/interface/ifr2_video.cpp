@@ -7,6 +7,7 @@
 #include "halo/core/link.hpp"
 #include "halo/interface/vars.hpp"
 #include <string.h>
+#include "halo/platform/window.hpp"
 
 #ifdef interface
 #undef interface
@@ -49,7 +50,7 @@ void VideoOptions::display_modes_enumerate(uint32_t format)
     if (rasterizer_direct3d == 0) {
         return;
     }
-    GetWindowRect(GetDesktopWindow(), &desktop);
+    halo::platform::desktop_bounds(reinterpret_cast<halo::platform::window_rect *>(&desktop));
     index = rasterizer_direct3d->vtable->get_adapter_mode_count(rasterizer_direct3d, d3d_adapter, format);
     while (index != 0) {
         index--;

@@ -40,6 +40,8 @@ constexpr uint32_t k_pixel_shader_none = 0xffffffffu;
 #include "halo/core/datum.hpp"
 #include "halo/platform/time.hpp"
 #include "halo/platform/memory.hpp"
+#include "halo/platform/system.hpp"
+#include "halo/platform/window.hpp"
 
 
 
@@ -361,53 +363,13 @@ void rasterizer_capture_and_present(const int16_t *tile, BitmapData *bitmap)
  */
 uint32_t rasterizer_create_game_window(int32_t height, int32_t width)
 {
-    WNDCLASSEXA wc = {};
-    win32_rect rect;
-    void *hwnd;
+    void *hwnd = halo::platform::window_create(halo::shell::globals().instance, halo::shell::globals().module_handle, shell_window_class_name,
+        shell_window_title, width, height, k_game_icon_resource_id, k_loading_screen_resource_id, halo::shell::game_window_events());
 
-    wc.lpfnWndProc = reinterpret_cast<WNDPROC>(shell_window_proc);
-    rasterizer_window_style = WS_OVERLAPPEDWINDOW;
-    wc.cbSize = sizeof(wc);
-    wc.style = CS_CLASSDC;
-    wc.hInstance = static_cast<HINSTANCE>(halo::shell::globals().instance);
-    wc.hIcon = LoadIconA(wc.hInstance, MAKEINTRESOURCEA(k_game_icon_resource_id));
-    wc.hIconSm = LoadIconA(wc.hInstance, MAKEINTRESOURCEA(k_game_icon_resource_id));
-    wc.hCursor = LoadCursorA(nullptr, IDC_ARROW);
-    wc.lpszClassName = shell_window_class_name;
-    RegisterClassExA(&wc);
-
-    GetWindowRect(GetDesktopWindow(), &rect);
-    rect.top = (uint32_t)((rect.bottom - rect.top) - height) >> 1;
-    rect.bottom = rect.top + height;
-    rect.left = (uint32_t)((rect.right - rect.left) - width) >> 1;
-    rect.right = rect.left + width;
-    AdjustWindowRect(&rect, rasterizer_window_style, 0);
-
-    hwnd = CreateWindowExA(0, shell_window_class_name, shell_window_title,
-                            rasterizer_window_style, rect.left, rect.top, rect.right - rect.left,
-                            rect.bottom - rect.top, GetDesktopWindow(), (HMENU)nullptr, wc.hInstance, nullptr);
     if (hwnd == nullptr) {
-        char *message_buffer = nullptr;
-        uint32_t message_id = GetLastError();
-        FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, nullptr, message_id, halo::win32::k_locale_user_default, reinterpret_cast<LPSTR>(&message_buffer), 0, nullptr);
-        MessageBoxA((HWND)nullptr, message_buffer, "ERROR - failed to create window", MB_ICONINFORMATION);
-        UnregisterClassA(shell_window_class_name, (HINSTANCE)halo::shell::globals().instance);
-        LocalFree(message_buffer);
         return 0;
     }
-
     halo::shell::globals().window = hwnd;
-    rasterizer_window_icon_bitmap = LoadBitmapA(static_cast<HINSTANCE>(halo::shell::globals().module_handle), MAKEINTRESOURCEA(k_loading_screen_resource_id));
-    if (rasterizer_window_icon_bitmap != nullptr) {
-        void *hdc = GetDC((HWND)hwnd);
-        rasterizer_window_icon_dc = CreateCompatibleDC((HDC)hdc);
-        SelectObject((HDC)rasterizer_window_icon_dc, rasterizer_window_icon_bitmap);
-    }
-
-    SetForegroundWindow((HWND)hwnd);
-    SetActiveWindow((HWND)hwnd);
-    SetFocus((HWND)hwnd);
-    ShowWindow((HWND)hwnd, 5);
     return 1;
 }
 
@@ -815,8 +777,6 @@ uint8_t rasterizer_initialize_direct3d(void)
         uint32_t shader_version;
         int32_t error;
         uint32_t i;
-        void *desktop;
-        void *hdc;
 
         if (attempt == -1) {
             if (requested_adapter == 0) {
@@ -914,10 +874,10 @@ uint8_t rasterizer_initialize_direct3d(void)
                 rasterizer_caps_flag_688 = 1;
             }
         } else if (graphics_vendor_id == k_vendor_id_nvidia) {
-            void *library = LoadLibraryA("NVCPL.dll");
+            void *library = halo::platform::library_open("NVCPL.dll");
 
             if (library != 0) {
-                nvcpl_get_data_int_fn get_data_int = (nvcpl_get_data_int_fn)GetProcAddress((HMODULE)library, "NvCplGetDataInt");
+                nvcpl_get_data_int_fn get_data_int = (nvcpl_get_data_int_fn)halo::platform::library_symbol(library, "NvCplGetDataInt");
 
                 if (get_data_int != 0) {
                     int32_t value = 0;
@@ -926,7 +886,7 @@ uint8_t rasterizer_initialize_direct3d(void)
                         halo::shell::shell_display_fatal_error_dialog(0x8d, 0x7e, 0);
                     }
                 }
-                FreeLibrary((HMODULE)library);
+                halo::platform::library_close(library);
             }
         }
 
@@ -934,23 +894,20 @@ uint8_t rasterizer_initialize_direct3d(void)
             halo::shell::shell_display_fatal_error_dialog(0x6c, 0x75, 0);
         }
 
-        desktop = GetDesktopWindow();
-        hdc = GetDC((HWND)desktop);
-        if (rasterizer_fullscreen == 0 && GetDeviceCaps((HDC)hdc, BITSPIXEL) != 32) {
+        if (rasterizer_fullscreen == 0 && halo::platform::desktop_bits_per_pixel() != 32) {
             halo::shell::shell_display_fatal_error_dialog(0x83, 0x7e, 1);
         }
-        ReleaseDC(GetDesktopWindow(), (HDC)hdc);
 
         if (render_device().get_adapter_display_mode(rasterizer_direct3d, adapter, &desktop_mode) < 0) {
             adapter_usable = 0;
             break;
         }
         if (rasterizer_fullscreen != 0) {
-            SetWindowLongA((HWND)hwnd, GWL_STYLE, (int32_t)(WS_POPUP | WS_VISIBLE | WS_SYSMENU));
+            halo::platform::window_set_fullscreen_style(hwnd);
         }
         if (rasterizer_fullscreen == 0) {
 
-            GetWindowRect(GetDesktopWindow(), &desktop_rect);
+            halo::platform::desktop_bounds(reinterpret_cast<halo::platform::window_rect *>(&desktop_rect));
             if ((uint32_t)mode.height >= (uint32_t)desktop_rect.bottom ||
                 (uint32_t)mode.width >= (uint32_t)desktop_rect.right) {
                 if (desktop_rect.bottom > 600) {
@@ -1028,7 +985,7 @@ uint8_t rasterizer_initialize_direct3d(void)
         rasterizer_caps_flag_68a = 1;
     }
     if (rasterizer_fullscreen != 0 && rasterizer_device != 0) {
-        ShowCursor(0);
+        halo::platform::cursor_show(false);
     }
     rasterizer_device_lost = 0;
     rasterizer_pending_clear = 0;
@@ -1209,24 +1166,7 @@ uint8_t rasterizer_reset_device_if_needed(void)
  */
 void rasterizer_resize_game_window(int32_t height, int32_t width)
 {
-    win32_rect current;
-    win32_rect target;
-
-    GetWindowRect((HWND)halo::shell::globals().window, &current);
-    GetWindowRect(GetDesktopWindow(), &target);
-
-    target.left = (uint32_t)((target.right - target.left) - width) >> 1;
-    target.right = target.left + width;
-    target.top = (uint32_t)((target.bottom - target.top) - height) >> 1;
-    target.bottom = target.top + height;
-    AdjustWindowRect(&target, rasterizer_window_style, 0);
-
-    if (current.top != target.top || current.bottom != target.bottom ||
-        current.left != target.left || current.right != target.right) {
-        MoveWindow((HWND)halo::shell::globals().window, target.left, target.top, target.right - target.left,
-                   target.bottom - target.top, 1);
-        ShowWindow((HWND)halo::shell::globals().window, 5);
-    }
+    halo::platform::window_center(halo::shell::globals().window, width, height);
 
     game_window_bottom_right = (uint16_t)(int16_t)height | ((uint32_t)(uint16_t)(int16_t)width << 16);
     halo::rasterizer::fields::game_screen_rect_bottom = (int16_t)height - 8;
@@ -1449,16 +1389,7 @@ void rasterizer_shutdown(void)
 
     chimera__registry_check_3();
 
-    if (rasterizer_window_icon_dc != nullptr) {
-        ReleaseDC((HWND)halo::shell::globals().window, (HDC)rasterizer_window_icon_dc);
-        rasterizer_window_icon_dc = nullptr;
-    }
-    if (rasterizer_window_icon_bitmap != nullptr) {
-        DeleteObject(rasterizer_window_icon_bitmap);
-        rasterizer_window_icon_bitmap = nullptr;
-    }
-    ShowWindow((HWND)halo::shell::globals().window, 0);
-    DestroyWindow((HWND)halo::shell::globals().window);
+    halo::platform::window_destroy(halo::shell::globals().window);
     halo::shell::globals().window = nullptr;
 
     for (i = 0; i < 4; i++) {

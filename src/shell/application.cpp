@@ -42,6 +42,7 @@
 #include "halo/platform/time.hpp"
 #include "halo/platform/file.hpp"
 #include "halo/platform/memory.hpp"
+#include "halo/platform/system.hpp"
 
 static auto &shell_command_line = halo::link::ref<char *>(halo::shell::vars().shell_command_line);
 static auto &shell_window = halo::link::ref<void *>(halo::shell::vars().shell_window);
@@ -133,22 +134,22 @@ uint8_t EngineLifecycle::initialize()
     halo::cseries::profile_path::initialize();
 
     if (direct3d_create9 == 0) {
-        d3d9_module = LoadLibraryA("d3d9.dll");
-        direct3d_create9 = GetProcAddress((HMODULE)d3d9_module, "Direct3DCreate9");
+        d3d9_module = halo::platform::library_open("d3d9.dll");
+        direct3d_create9 = halo::platform::library_symbol(d3d9_module, "Direct3DCreate9");
 
         if (shell_nosound == 0) {
-            dsound_module = LoadLibraryA("dsound.dll");
-            direct_sound_create8 = GetProcAddress((HMODULE)dsound_module, "DirectSoundCreate8");
+            dsound_module = halo::platform::library_open("dsound.dll");
+            direct_sound_create8 = halo::platform::library_symbol(dsound_module, "DirectSoundCreate8");
         } else {
             dsound_module = 0;
             direct_sound_create8 = 0;
         }
 
-        dinput8_module = LoadLibraryA("dinput8.dll");
-        direct_input8_create = GetProcAddress((HMODULE)dinput8_module, "DirectInput8Create");
+        dinput8_module = halo::platform::library_open("dinput8.dll");
+        direct_input8_create = halo::platform::library_symbol(dinput8_module, "DirectInput8Create");
 
-        shfolder_module = LoadLibraryA("shfolder.dll");
-        sh_get_folder_path = GetProcAddress((HMODULE)shfolder_module, "SHGetFolderPathA");
+        shfolder_module = halo::platform::library_open("shfolder.dll");
+        sh_get_folder_path = halo::platform::library_symbol(shfolder_module, "SHGetFolderPathA");
     }
 
     halo::cseries::directory_create_recursive(profile_directory);
@@ -249,13 +250,11 @@ void Application::initialize_window_state(void *instance, char *command_line, in
     shell_window = 0;
     shell_instance = instance;
     shell_show_command = show_command;
-    shell_window_proc = (uint32_t)&GameWindow::procedure;
     halo::rasterizer::globals().window_handle = 0;
     shell_window_maximized = 0;
     shell_window_minimized = 0;
     memcpy(shell_window_class_name, "Halo", 5);
     memcpy(shell_window_title, "Halo", 5);
-    shell_arrow_cursor = LoadCursorA(0, (const char *)k_idc_arrow);
 }
 
 /**
@@ -304,7 +303,7 @@ void Application::measure_machine()
 bool Application::help_requested()
 {
     if (CommandLine::has_flag("-?", 0) || CommandLine::has_flag("-help", 0)) {
-        MessageBoxA(0, halo::shell::shell_usage_text(), "Halo", 0);
+        halo::platform::message_box(0, halo::shell::shell_usage_text(), "Halo", 0);
         return true;
     }
     return false;
@@ -321,8 +320,8 @@ void Application::load_direct3d_and_config()
     void (*disable_d3dspy)(void);
 
     halo::cache::cache_reserve_map_memory();
-    d3d9_module = LoadLibraryA("d3d9.dll");
-    direct3d_create9 = GetProcAddress((HMODULE)d3d9_module, "Direct3DCreate9");
+    d3d9_module = halo::platform::library_open("d3d9.dll");
+    direct3d_create9 = halo::platform::library_symbol(d3d9_module, "Direct3DCreate9");
     if (d3d9_module == 0 || direct3d_create9 == 0) {
         FatalError::show(k_string_d3d9_missing, k_help_file_directx, 1);
     }
@@ -340,7 +339,7 @@ void Application::load_direct3d_and_config()
     if (GetAsyncKeyState(k_vk_control) < 0) {
         FatalError::show(k_string_safe_mode_requested, k_help_file_general, 0);
     }
-    disable_d3dspy = (void (*)(void))GetProcAddress((HMODULE)d3d9_module, "DisableD3DSpy");
+    disable_d3dspy = (void (*)(void))halo::platform::library_symbol(d3d9_module, "DisableD3DSpy");
     if (disable_d3dspy != 0) {
         disable_d3dspy();
     }
@@ -356,19 +355,19 @@ void Application::load_audio_input_libraries()
         dsound_module = 0;
         direct_sound_create8 = 0;
     } else {
-        dsound_module = LoadLibraryA("dsound.dll");
-        direct_sound_create8 = GetProcAddress((HMODULE)dsound_module, "DirectSoundCreate8");
+        dsound_module = halo::platform::library_open("dsound.dll");
+        direct_sound_create8 = halo::platform::library_symbol(dsound_module, "DirectSoundCreate8");
         if (dsound_module == 0 || direct_sound_create8 == 0) {
             FatalError::show(k_string_dsound_missing, k_help_file_directx, 1);
         }
     }
-    dinput8_module = LoadLibraryA("dinput8.dll");
-    direct_input8_create = GetProcAddress((HMODULE)dinput8_module, "DirectInput8Create");
+    dinput8_module = halo::platform::library_open("dinput8.dll");
+    direct_input8_create = halo::platform::library_symbol(dinput8_module, "DirectInput8Create");
     if (dinput8_module == 0 || direct_input8_create == 0) {
         FatalError::show(k_string_dinput8_missing, k_help_file_directx, 1);
     }
-    shfolder_module = LoadLibraryA("shfolder.dll");
-    sh_get_folder_path = GetProcAddress((HMODULE)shfolder_module, "SHGetFolderPathA");
+    shfolder_module = halo::platform::library_open("shfolder.dll");
+    sh_get_folder_path = halo::platform::library_symbol(shfolder_module, "SHGetFolderPathA");
     if (shfolder_module == 0 || sh_get_folder_path == 0) {
         FatalError::show(k_string_shfolder_missing, k_help_file_general, 1);
     }
@@ -395,7 +394,7 @@ void Application::check_requirements()
             }
         }
     }
-    GetTempPathA(sizeof(temp_path), temp_path);
+    halo::platform::temp_directory(temp_path, sizeof(temp_path));
     halo::platform::disk_free_space(temp_path, reinterpret_cast<uint64_t *>(&free_bytes_available), nullptr, nullptr);
     if (free_bytes_available.parts.high_part <= 0 &&
         (free_bytes_available.parts.high_part < 0 ||
@@ -484,8 +483,8 @@ bool Application::run_session(void *instance, char *command_line, int32_t show_c
 
     if (integrity_ok == 0) {
         if (CommandLine::has_flag("-testcrash", 0) == 0) {
-            MessageBoxA(0, "Corrupted Halo.exe", "Halo", 0);
-            ExitProcess(1);
+            halo::platform::message_box(0, "Corrupted Halo.exe", "Halo", 0);
+            halo::platform::process_exit(1);
         }
         *(volatile uint8_t *)0 = 0;
     }

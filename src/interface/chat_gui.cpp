@@ -16,6 +16,7 @@
 #include <wchar.h>
 #include <windows.h>
 #include "halo/platform/time.hpp"
+#include "halo/platform/system.hpp"
 
 #ifdef interface
 #undef interface
@@ -120,7 +121,7 @@ bool ChatGui::handle_message(uint32_t message, uint32_t wparam)
         }
         // The window is an ANSI window, so typed characters arrive in the system code page.
         narrow = static_cast<char>(wparam);
-        if (MultiByteToWideChar(CP_ACP, 0, &narrow, 1, &character, 1) == 1 && edit_length_ < k_edit_chars - 1) {
+        if (halo::platform::ansi_to_wide(&narrow, 1, reinterpret_cast<uint16_t *>(&character), 1) == 1 && edit_length_ < k_edit_chars - 1) {
             edit_text_[edit_length_++] = character;
             edit_text_[edit_length_] = 0;
         }

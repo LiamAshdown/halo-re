@@ -30,6 +30,8 @@ static auto &input_event_queue_active = halo::link::ref<input_event_queue>(halo:
 #include "halo/platform/time.hpp"
 #include "halo/platform/thread.hpp"
 #include "halo/platform/memory.hpp"
+#include "halo/platform/system.hpp"
+#include "halo/shell/settings.hpp"
 
 #ifdef interface
 #undef interface
@@ -75,7 +77,7 @@ namespace halo::interface {
 void InterfaceMain::handle_quit_request()
 {
     if (ui_force_quit != 0) {
-        ExitProcess((uint32_t)-4998);
+        halo::platform::process_exit((uint32_t)-4998);
     }
     if (ui_split_screen == 0) {
         if (halo::networking::globals().join_error_code == -1) {
@@ -389,21 +391,13 @@ void MapList::free_all()
  */
 void * InterfaceMain::registry_get_product_id()
 {
-    LSTATUS status;
-    HKEY key;
-    DWORD size;
+    uint32_t size;
 
     if (product_id_read == 0) {
         size = 0x20;
         product_id_read = 1;
-        status = RegOpenKeyExA(reinterpret_cast<HKEY>(static_cast<uintptr_t>(halo::interface::k_hkey_local_machine)), "Software\\Microsoft\\Microsoft Games\\Halo", 0,
-                                halo::interface::k_key_read_32bit_view, (PHKEY)&key);
-        if (status == 0) {
-            status = RegQueryValueExA(key, "PID", 0, 0, (uint8_t *)&cached_product_id, &size);
-            if (status != 0) {
-                cached_product_id = 0;
-            }
-            RegCloseKey(key);
+        if (!halo::shell::SettingsStore::current().read_value(halo::shell::SettingsScope::machine, "PID", nullptr, &cached_product_id, &size)) {
+            cached_product_id = 0;
         }
     }
     return &cached_product_id;

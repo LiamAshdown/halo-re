@@ -9,6 +9,8 @@
 #include "halo/platform/file.hpp"
 #include "halo/platform/thread.hpp"
 #include "halo/platform/memory.hpp"
+#include "halo/platform/system.hpp"
+#include "halo/platform/window.hpp"
 
 static auto &shell_argv = halo::link::ref<char **>(halo::shell::vars().shell_argv);
 static auto &shell_argc = halo::link::ref<int32_t>(halo::shell::vars().shell_argc);
@@ -236,28 +238,7 @@ uint8_t CommandLine::has_flag(const char *flag_name, const char **out_value)
  */
 uint32_t Clipboard::get_text(char *buffer, uint32_t capacity)
 {
-    void *clipboard_handle;
-    char *locked_text;
-
-    if (IsClipboardFormatAvailable(1) != 0) {
-        OpenClipboard((HWND)shell_window);
-    }
-
-    clipboard_handle = GetClipboardData(1);
-    if (clipboard_handle == 0) {
-        halo::platform::last_error();
-    } else {
-        locked_text = (char *)GlobalLock(clipboard_handle);
-        if (locked_text != 0) {
-            strncpy(buffer, locked_text, capacity);
-            GlobalUnlock(clipboard_handle);
-            CloseClipboard();
-            return 1;
-        }
-    }
-
-    CloseClipboard();
-    return 0;
+    return halo::platform::clipboard_text(shell_window, buffer, capacity) ? 1 : 0;
 }
 
 /**
@@ -329,22 +310,7 @@ void HexParser::to_bytes(uint8_t *dest, const char *source)
  */
 uint8_t Sha1::hash(const uint8_t *data, uint32_t length, uint8_t *digest_out)
 {
-    uint32_t hash_handle;
-    uint32_t digest_length;
-    uint8_t ok;
-
-    hash_handle = 0;
-    ok = 0;
-    if (CryptCreateHash(crypt_provider, CALG_SHA1, 0, 0, (HCRYPTHASH *)&hash_handle) != 0) {
-        if (CryptHashData(hash_handle, data, length, 0) != 0) {
-            digest_length = k_sha1_digest_length;
-            ok = CryptGetHashParam(hash_handle, HP_HASHVAL, digest_out, (DWORD *)&digest_length, 0) != 0;
-        }
-    }
-    if (hash_handle != 0) {
-        CryptDestroyHash(hash_handle);
-    }
-    return ok;
+    return halo::platform::sha1(reinterpret_cast<void *>(static_cast<uintptr_t>(crypt_provider)), data, length, digest_out) ? 1 : 0;
 }
 
 /**
@@ -433,7 +399,8 @@ char *ProductId::build_string()
 
     product_id_digits = extract_digits(data.product_id);
 
-    if (CryptAcquireContextA((HCRYPTPROV *)&crypt_provider, 0, 0, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT) == 0) {
+    crypt_provider = static_cast<uint32_t>(reinterpret_cast<uintptr_t>(halo::platform::crypto_context_open()));
+    if (crypt_provider == 0) {
         return &k_empty_string;
     }
     if (Sha1::hash(data.hashed_key, k_digital_product_id_hashed_bytes, digest) == 0) {
@@ -444,7 +411,7 @@ char *ProductId::build_string()
     }
 
     sprintf(product_id_string, "%05d,%09d,0,% 19.19I64d", data.unknown_20, product_id_digits, hash_prefix);
-    CryptReleaseContext(crypt_provider, 0);
+    halo::platform::crypto_context_close(reinterpret_cast<void *>(static_cast<uintptr_t>(crypt_provider)));
     return product_id_string;
 }
 
@@ -711,7 +678,7 @@ void OperatingSystem::identify()
     os_version_info_a info;
 
     info.size = 0x94;
-    if (GetVersionExA((LPOSVERSIONINFOA)&info) != 0) {
+    if (halo::platform::os_version(&info) != 0) {
         if (info.platform_id != 1) {
             if (info.platform_id != 2) {
                 os_platform_value = k_os_platform_other;
@@ -845,8 +812,6 @@ int32_t WriteAccessCheck::run()
 void SingleInstance::check(int32_t mode)
 {
     os_version_info_a version;
-    window_placement placement;
-    void *window;
     int32_t first_index;
     int32_t last_index;
     int32_t i;
@@ -857,7 +822,7 @@ void SingleInstance::check(int32_t mode)
     shell_instance_index = -1;
 
     version.size = 0x94;
-    GetVersionExA((LPOSVERSIONINFOA)&version);
+    halo::platform::os_version(&version);
 
     if (mode == k_shell_instance_mode_multiple) {
         first_index = 1;
@@ -893,14 +858,7 @@ void SingleInstance::check(int32_t mode)
     }
 
     if (mode != k_shell_instance_mode_multiple) {
-        window = FindWindowA("Halo", "Halo");
-        if (window != 0) {
-            placement.length = sizeof(WINDOWPLACEMENT);
-            GetWindowPlacement((HWND)window, (WINDOWPLACEMENT *)&placement);
-            SetForegroundWindow((HWND)window);
-            if (placement.show_command == SW_SHOWMINIMIZED) {
-                ShowWindow((HWND)window, SW_RESTORE);
-            }
+        if (halo::platform::window_activate_existing("Halo", "Halo")) {
             _exit(1);
         }
     }

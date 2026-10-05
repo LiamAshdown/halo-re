@@ -1,5 +1,6 @@
 #include "halo/shell/platform.hpp"
 #include "halo/shell/layout.hpp"
+#include "halo/platform/system.hpp"
 
 namespace halo::shell {
 
@@ -38,6 +39,17 @@ public:
 
         key.create(hive_of(scope), k_settings_path, k_key_write, 0);
         key.set_string(name, text, size);
+    }
+
+    /**
+     * Creates the settings key with write access and sets one REG_DWORD value.
+     */
+    void write_dword(SettingsScope scope, const char *name, uint32_t value) const override
+    {
+        RegistryKey key;
+
+        key.create(hive_of(scope), k_settings_path, 0, k_key_write);
+        key.set_dword(name, value);
     }
 };
 
@@ -100,6 +112,14 @@ uint32_t RegistryKey::set_string(const char *name, const char *text, uint32_t si
 }
 
 /**
+ * Sets one REG_DWORD value of the open key.
+ */
+uint32_t RegistryKey::set_dword(const char *name, uint32_t value) const
+{
+    return RegSetValueExA((HKEY)handle, name, 0, REG_DWORD, (const uint8_t *)&value, sizeof(value));
+}
+
+/**
  * Closes the key if one is open.
  */
 void RegistryKey::close()
@@ -114,7 +134,7 @@ void RegistryKey::close()
  * Loads the library; check loaded() for the result.
  */
 DynamicLibrary::DynamicLibrary(const char *file_name)
-    : module(LoadLibraryA(file_name))
+    : module(halo::platform::library_open(file_name))
 {
 }
 
@@ -124,7 +144,7 @@ DynamicLibrary::DynamicLibrary(const char *file_name)
 DynamicLibrary::~DynamicLibrary()
 {
     if (module != 0) {
-        FreeLibrary((HMODULE)module);
+        halo::platform::library_close(module);
     }
 }
 
@@ -133,7 +153,7 @@ DynamicLibrary::~DynamicLibrary()
  */
 void *DynamicLibrary::symbol(const char *name) const
 {
-    return (void *)GetProcAddress((HMODULE)module, name);
+    return (void *)halo::platform::library_symbol(module, name);
 }
 
 }

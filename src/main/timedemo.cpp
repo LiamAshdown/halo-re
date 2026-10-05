@@ -31,6 +31,7 @@
 #include "halo/main/vars.hpp"
 #include "halo/shell/vars.hpp"
 #include "halo/platform/memory.hpp"
+#include "halo/platform/system.hpp"
 
 static auto &main_globals_data = halo::link::ref<main_globals>(halo::main::vars().main_globals_data);
 static auto &timedemo_globals_data = halo::link::ref<timedemo_globals>(halo::main::vars().timedemo_globals_data);
@@ -175,7 +176,7 @@ void Timedemo::benchmark_update(void)
     case _timedemo_step_report:
         main_globals_data.quit = 1;
         file = (FILE *)fopen("timedemo.txt", "a");
-        GetModuleFileNameA(0, module_path, 0x104);
+        halo::platform::executable_path(module_path, 0x104);
         fseek(file, 0, SEEK_END);
         GetDateFormatA(win32::k_locale_user_default, 0, 0, 0, date, 0x20);
         GetTimeFormatA(win32::k_locale_user_default, 0, 0, 0, time, 0x20);

@@ -6,6 +6,7 @@
 #pragma once
 
 #include <stdint.h>
+#include "halo/platform/window.hpp"
 
 
 
@@ -126,5 +127,9 @@ int32_t shell_load_localized_string(uint32_t buffer_capacity, void *module, char
 char * shell_parse_config_txt(uint32_t adapter_index, d3d9_interface *d3d);
 void shell_pump_windows_messages(void);
 int32_t __stdcall shell_winmain(void *hInstance, void *hPrevInstance, char *lpCmdLine, int32_t nCmdShow);
+
+
+/** The game window's message handlers, for halo::platform::window_create (GameWindow::events). */
+const halo::platform::window_events &game_window_events();
 
 }

@@ -19,6 +19,8 @@
 #include "halo/interface/api.hpp"
 #include "halo/core/libm.hpp"
 #include <string.h>
+#include "halo/shell/settings.hpp"
+#include "halo/platform/window.hpp"
 
 
 
@@ -81,7 +83,6 @@ void chimera__gamma(void)
     uint32_t i;
     int16_t ramp_value;
     float exponent;
-    HDC dc;
 
     if (rasterizer_gamma_disabled != 0 && rasterizer_gamma_captured != 0) {
         return;
@@ -100,9 +101,7 @@ void chimera__gamma(void)
         return;
     }
 
-    dc = GetDC(rasterizer_window_handle);
-    SetDeviceGammaRamp(dc, &rasterizer_game_gamma_ramp);
-    ReleaseDC(rasterizer_window_handle, dc);
+    halo::platform::gamma_ramp_set(rasterizer_window_handle, &rasterizer_game_gamma_ramp);
 }
 
 /**
@@ -112,9 +111,6 @@ void chimera__gamma(void)
  */
 void chimera__registry_check_3(void)
 {
-    HDC dc;
-    uint8_t zero_value[4] = {0, 0, 0, 0};
-    HKEY key;
 
     if (rasterizer_gamma_disabled == 0 && rasterizer_gamma_captured != 0) {
         if (rasterizer_gamma_high_bit_17 == 1 && rasterizer_fullscreen != 0 && rasterizer_device != 0) {
@@ -122,14 +118,9 @@ void chimera__registry_check_3(void)
             return;
         }
 
-        dc = GetDC(rasterizer_window_handle);
-        SetDeviceGammaRamp(dc, &rasterizer_desktop_gamma_ramp);
-        ReleaseDC(rasterizer_window_handle, dc);
+        halo::platform::gamma_ramp_set(rasterizer_window_handle, &rasterizer_desktop_gamma_ramp);
 
-        RegCreateKeyExA(HKEY_CURRENT_USER, k_halo_registry_key, 0,
-                         (LPSTR)0, 0, KEY_WRITE, (LPSECURITY_ATTRIBUTES)0, (PHKEY)&key, (LPDWORD)0);
-        RegSetValueExA(key, "gamma", 0, REG_DWORD, zero_value, 4);
-        RegCloseKey(key);
+        halo::shell::SettingsStore::current().write_dword(halo::shell::SettingsScope::user, "gamma", 0);
     }
 }
 /**
@@ -140,10 +131,8 @@ void chimera__registry_check_3(void)
 void chimera__registry_check_4(void)
 {
     int32_t i;
-    HKEY key;
-    DWORD value_size;
+    uint32_t value_size;
     int32_t gamma_flag;
-    HDC dc;
 
     int32_t nogamma_argument = 0;
     for (i = 0; i < halo::shell::globals().argc; i++) {
@@ -165,14 +154,12 @@ void chimera__registry_check_4(void)
 
     gamma_flag = 0;
     value_size = 4;
-    RegOpenKeyExA(HKEY_CURRENT_USER, k_halo_registry_key, 0, KEY_READ, (PHKEY)&key);
-    RegQueryValueExA(key, "gamma", (LPDWORD)0, (LPDWORD)0, (LPBYTE)&gamma_flag, &value_size);
-    RegCloseKey(key);
+    if (!halo::shell::SettingsStore::current().read_value(halo::shell::SettingsScope::user, "gamma", nullptr, &gamma_flag, &value_size)) {
+        gamma_flag = 0;
+    }
 
     if (gamma_flag == 0) {
-        dc = GetDC(rasterizer_window_handle);
-        GetDeviceGammaRamp(dc, &rasterizer_desktop_gamma_ramp);
-        ReleaseDC(rasterizer_window_handle, dc);
+        halo::platform::gamma_ramp_get(rasterizer_window_handle, &rasterizer_desktop_gamma_ramp);
     } else {
         int32_t j;
         for (j = 0; j < k_gamma_ramp_entries; j++) {
@@ -185,11 +172,7 @@ void chimera__registry_check_4(void)
 
     rasterizer_gamma_brightness_to_exponent(&rasterizer_desktop_gamma_ramp);
 
-    gamma_flag = 1;
-    RegCreateKeyExA(HKEY_CURRENT_USER, k_halo_registry_key, 0, (LPSTR)0,
-                     0, KEY_WRITE, (LPSECURITY_ATTRIBUTES)0, (PHKEY)&key, (LPDWORD)0);
-    RegSetValueExA(key, "gamma", 0, REG_DWORD, (const BYTE *)&gamma_flag, 4);
-    RegCloseKey(key);
+    halo::shell::SettingsStore::current().write_dword(halo::shell::SettingsScope::user, "gamma", 1);
 
     rasterizer_gamma_captured = 1;
 }

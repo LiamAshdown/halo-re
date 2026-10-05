@@ -34,6 +34,7 @@
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/platform/time.hpp"
+#include "halo/platform/window.hpp"
 
 namespace halo::input {
 
@@ -1094,7 +1095,7 @@ uint8_t DirectInput::mouse_device_create(void)
     int32_t hr;
     const char *description;
 
-    if (GetSystemMetrics(0x17) == 0) {
+    if (!halo::platform::mouse_buttons_swapped()) {
         input_state().mouse_button_map[0] = 0;
         input_state().mouse_button_map[1] = 2;
     } else {

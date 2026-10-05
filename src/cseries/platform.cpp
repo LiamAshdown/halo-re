@@ -10,6 +10,7 @@
 #include "halo/platform/time.hpp"
 #include "halo/platform/file.hpp"
 #include "halo/platform/memory.hpp"
+#include "halo/platform/system.hpp"
 
 
 namespace halo::cseries {
@@ -72,7 +73,7 @@ char halo::cseries::directory_create_recursive(const char *path)
 
     all_created = 1;
     cursor = buffer;
-    previous_error_mode = SetErrorMode(k_sem_noopenfileerrorbox);
+    previous_error_mode = halo::platform::set_error_mode(k_sem_noopenfileerrorbox);
     attributes = halo::platform::file_attributes(path);
     if (attributes != k_invalid_file_attributes) {
         return 1;
@@ -102,7 +103,7 @@ char halo::cseries::directory_create_recursive(const char *path)
     }
     all_created = 0;
 done:
-    SetErrorMode(previous_error_mode);
+    halo::platform::set_error_mode(previous_error_mode);
     return (char)all_created;
 }
 
