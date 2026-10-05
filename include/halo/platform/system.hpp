@@ -30,6 +30,12 @@ void *library_open(const char *file_name);
 void *library_symbol(void *library, const char *name);
 void library_close(void *library);
 
+/**
+ * SHGetFolderPathA for the folders the engine asks for (CSIDL_PERSONAL: the documents folder) where shfolder.dll does
+ * not exist; Windows builds keep calling SHGetFolderPathA. Writes the path (backslash separated) to out, 0 on success.
+ */
+int32_t __stdcall folder_path(void *owner, int32_t csidl, void *token, uint32_t flags, char *out);
+
 /** The path of the running executable (GetModuleFileNameA); returns its length. */
 uint32_t executable_path(char *buffer, uint32_t size);
 /** The directory for temporary files, ending in a separator (GetTempPathA); returns its length. */

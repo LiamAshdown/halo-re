@@ -151,8 +151,13 @@ uint8_t EngineLifecycle::initialize()
             direct_sound_create8 = 0;
         }
 
+#if defined(_WIN32)
         shfolder_module = halo::platform::library_open("shfolder.dll");
         sh_get_folder_path = halo::platform::library_symbol(shfolder_module, "SHGetFolderPathA");
+#else
+        shfolder_module = 0;
+        sh_get_folder_path = (void *)halo::platform::folder_path;
+#endif
     }
 
     halo::cseries::directory_create_recursive(profile_directory);
@@ -366,9 +371,14 @@ void Application::load_audio_input_libraries()
         dsound_module = 0;
         direct_sound_create8 = (void *)halo::platform::audio_device_create;
     }
+#if defined(_WIN32)
     shfolder_module = halo::platform::library_open("shfolder.dll");
     sh_get_folder_path = halo::platform::library_symbol(shfolder_module, "SHGetFolderPathA");
-    if (shfolder_module == 0 || sh_get_folder_path == 0) {
+#else
+    shfolder_module = 0;
+    sh_get_folder_path = (void *)halo::platform::folder_path;
+#endif
+    if (sh_get_folder_path == 0) {
         FatalError::show(k_string_shfolder_missing, k_help_file_general, 1);
     }
 }

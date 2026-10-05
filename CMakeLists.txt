@@ -55,7 +55,11 @@ set(CMAKE_EXE_LINKER_FLAGS_DEBUG "/INCREMENTAL:NO /DEBUG")
 
 # ---- the rewritten game functions, one file each
 file(GLOB GAME_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/src/*/*.c" "${CMAKE_SOURCE_DIR}/src/*/*.cpp")
-list(FILTER GAME_SOURCES EXCLUDE REGEX "/src/platform/[a-z0-9]+_posix\.cpp$")   # the POSIX platform layer is for Emscripten / Linux
+if(WIN32)
+    list(FILTER GAME_SOURCES EXCLUDE REGEX "/src/[a-z]+/[a-z0-9_]+_posix\.cpp$")   # the POSIX pieces are for Emscripten / Linux
+else()
+    list(FILTER GAME_SOURCES EXCLUDE REGEX "/src/[a-z]+/[a-z0-9_]+_win32\.cpp$")
+endif()
 add_library(halo_game OBJECT ${GAME_SOURCES})
 # the game code is compiled as C++20. No exceptions, no RTTI.
 set(CXX_GAME_SOURCES ${GAME_SOURCES})

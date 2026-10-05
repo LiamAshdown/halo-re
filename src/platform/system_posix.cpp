@@ -174,6 +174,20 @@ uint32_t executable_path(char *buffer, uint32_t size)
 #endif
 }
 
+int32_t __stdcall folder_path(void *owner, int32_t csidl, void *token, uint32_t flags, char *out)
+{
+    const char *home = getenv("HOME");
+    char path[512];
+
+    (void)owner;
+    (void)csidl;  // the documents folder is the only one the engine asks for
+    (void)token;
+    (void)flags;
+    snprintf(path, sizeof(path), "%s/Documents", home != nullptr ? home : "");
+    engine_path(path, out, 260);
+    return 0;
+}
+
 uint32_t temp_directory(char *buffer, uint32_t size)
 {
     return engine_path("/tmp/", buffer, size);
