@@ -1,0 +1,27 @@
+# docker compose -f deploy/compose.yaml up -d --build   (run from the repository root)
+# Needs HALO_DOMAIN set (in deploy/.env or the shell) and the Halo files in /srv/halo-data.
+services:
+  halo:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    volumes:
+      - /srv/halo-data:/data:ro
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      HALO_DOMAIN: ${HALO_DOMAIN:?set HALO_DOMAIN to your domain}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+    depends_on:
+      - halo
+    restart: unless-stopped
+
+volumes:
+  caddy_data:

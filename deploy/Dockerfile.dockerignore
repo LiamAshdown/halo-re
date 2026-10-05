@@ -1,0 +1,5 @@
+*
+!tools/serve_web.py
+!build/web/halo.html
+!build/web/halo.js
+!build/web/halo.wasm
