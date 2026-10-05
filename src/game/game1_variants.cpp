@@ -11,7 +11,6 @@
 #include "math.h"
 #include "game.h"
 #include <string.h>
-#include "win32.h"
 #include <wchar.h>
 #include "interface.h"
 #include "networking.h"

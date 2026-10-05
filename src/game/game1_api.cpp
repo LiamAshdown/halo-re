@@ -16,7 +16,6 @@
 #include "items.h"
 #include <stdint.h>
 #include "crt.h"
-#include "win32.h"
 #include "interface.h"
 
 #include "halo/game/game1_ctf.hpp"

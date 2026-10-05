@@ -1,3 +1,4 @@
+#include "win32.h"
 #include "halo/shell/hwreq.hpp"
 #include "halo/shell/layout.hpp"
 #include "halo/core/link.hpp"

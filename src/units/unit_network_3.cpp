@@ -4,7 +4,6 @@
 #include "halo/units/unit.hpp"
 #include "halo/units/flags.hpp"
 #include "halo/core/flag_bits.hpp"
-#include "win32.h"
 #include "halo/math/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/units/api.hpp"

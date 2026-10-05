@@ -1,3 +1,4 @@
+#include "win32.h"
 #include "halo/objects/flags.hpp"
 #include "halo/game/multiplayer_game_text.hpp"
 #include "halo/game/game2_engine_hud.hpp"

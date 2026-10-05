@@ -16,7 +16,6 @@
 #include "networking.h"
 #include "cache.h"
 #include "saved_games.h"
-#include "win32.h"
 #include "crt.h"
 #include <stdio.h>
 #include <wchar.h>

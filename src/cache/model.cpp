@@ -3,7 +3,6 @@
 
 #include "halo/cache/cache.hpp"
 
-#include "win32.h"
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"

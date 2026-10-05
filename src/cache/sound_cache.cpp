@@ -2,7 +2,6 @@
 
 #include "halo/cache/cache.hpp"
 
-#include "win32.h"
 #include "memory.h"
 #include <stdint.h>
 #include "crt.h"

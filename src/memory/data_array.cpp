@@ -2,7 +2,6 @@
 
 #include "crt.h"
 #include "tags.h"
-#include "win32.h"
 #include "halo/core/datum.hpp"
 #include "halo/platform/memory.hpp"
 

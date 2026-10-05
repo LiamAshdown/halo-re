@@ -1,3 +1,4 @@
+#include "win32.h"
 #include "halo/shell/platform.hpp"
 #include "halo/shell/layout.hpp"
 #include "halo/platform/system.hpp"

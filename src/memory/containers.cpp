@@ -1,6 +1,5 @@
 #include "halo/memory/memory.hpp"
 
-#include "win32.h"
 #include "tags.h"
 #include "crt.h"
 #include "halo/core/datum.hpp"

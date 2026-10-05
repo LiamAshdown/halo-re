@@ -23,7 +23,6 @@
 #include "cache.h"
 #include "units.h"
 #include "cutscene.h"
-#include "win32.h"
 #include "rasterizer.h"
 #include "render.h"
 #include "objects.h"

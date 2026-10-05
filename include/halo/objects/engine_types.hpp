@@ -5,7 +5,6 @@
  */
 #pragma once
 
-#include "win32.h"
 #include "crt.h"
 #include "tags.h"
 #include "memory.h"

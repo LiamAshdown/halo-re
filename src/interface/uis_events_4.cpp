@@ -3,7 +3,6 @@
  * the event record and an out-flag and returns whether the event was consumed.
  */
 
-#include "win32.h"
 #include "halo/interface/records.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/text/api.hpp"

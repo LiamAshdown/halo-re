@@ -2,7 +2,6 @@
  * @file src/networking/net2_util.cpp
  * Small string, time, mutex and pointer-array helpers.
  */
-#include "win32.h"
 #include "halo/core/time_constants.hpp"
 #include "tags.h"
 #include "memory.h"

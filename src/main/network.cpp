@@ -2,8 +2,8 @@
  * Asynchronous client connection by host name or address.
  */
 
-#include "crt.h"
 #include "win32.h"
+#include "crt.h"
 #include "tags.h"
 #include "memory.h"
 #include "interface.h"

@@ -1,3 +1,4 @@
+#include "win32.h"
 #include "halo/shell/system.hpp"
 #include "halo/core/win32_constants.hpp"
 #include "halo/shell/diagnostics.hpp"

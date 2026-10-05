@@ -1,3 +1,4 @@
+#include <cstring>
 #include "halo/game/gamerest_netgame.hpp"
 #include "halo/networking/game_mode.hpp"
 #include "halo/game/records.hpp"

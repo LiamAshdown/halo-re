@@ -2,7 +2,6 @@
  * @file src/networking/net2_remote_console.cpp
  * RCON requests, console glue, update server and registry lookups.
  */
-#include "win32.h"
 #include "halo/core/cstring.hpp"
 #include "halo/networking/game_mode.hpp"
 #include "halo/core/network_constants.hpp"

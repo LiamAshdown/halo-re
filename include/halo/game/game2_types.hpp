@@ -10,7 +10,6 @@
 #include "objects.h"
 #include "units.h"
 #include "networking.h"
-#include "win32.h"
 #include <stdint.h>
 #include "items.h"
 #include "effects.h"

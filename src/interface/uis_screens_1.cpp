@@ -2,7 +2,6 @@
  * Assorted UI screen-level behaviour: cursor, error modal, pause check, colours and option application.
  */
 
-#include "win32.h"
 #include "halo/interface/engine_state.hpp"
 #include "tags.h"
 #include "memory.h"

@@ -15,7 +15,6 @@
 #include "main.h"
 #include <stdio.h>
 #include <string.h>
-#include "win32.h"
 #include "rasterizer.h"
 #include "shell.h"
 #include <stdint.h> 

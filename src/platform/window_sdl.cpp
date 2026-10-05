@@ -14,7 +14,6 @@
 #include <SDL_syswm.h>
 
 #ifdef _WIN32
-#include "win32.h"
 #endif
 
 namespace halo::platform {

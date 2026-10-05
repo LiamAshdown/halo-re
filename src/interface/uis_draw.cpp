@@ -10,7 +10,6 @@
 #include "halo/core/tag_groups.hpp"
 #include "halo/text/api.hpp"
 #include "halo/bitmaps/api.hpp"
-#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"

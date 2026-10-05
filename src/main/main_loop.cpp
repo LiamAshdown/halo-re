@@ -14,7 +14,6 @@
 #include "main.h"
 #include "units.h"
 #include "cutscene.h"
-#include "win32.h"
 #include "networking.h"
 #include "saved_games.h"
 #include "input.h"

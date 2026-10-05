@@ -13,7 +13,6 @@
 #include "halo/shell/api.hpp"
 #include "memory.h"
 #include "math.h"
-#include "win32.h"
 #include <ctype.h>
 #include "halo/core/crt.hpp"
 #include "halo/cseries/api.hpp"

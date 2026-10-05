@@ -1,5 +1,4 @@
 #include "halo/rasterizer/render_device.hpp"
-#include "win32.h"
 #include "halo/interface/engine_state.hpp"
 #include "halo/rasterizer/globals.hpp"
 #include "halo/interface/ifr2_players.hpp"

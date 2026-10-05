@@ -3,7 +3,6 @@
 #include "halo/hs/hs3_machine.hpp"
 #include "halo/scenario/api.hpp"
 #include "game.h"
-#include "win32.h"
 #include <string.h>
 #include "halo/memory/api.hpp"
 #include "halo/core/datum.hpp"

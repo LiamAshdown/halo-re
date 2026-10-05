@@ -7,7 +7,6 @@
 #include "game.h"
 #include "objects.h"
 #include "units.h"
-#include "win32.h"
 #include "crt.h"
 
 namespace halo::game {

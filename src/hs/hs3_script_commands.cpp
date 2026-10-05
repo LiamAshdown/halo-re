@@ -1,7 +1,6 @@
 #include "halo/hs/records.hpp"
 #include "halo/hs/hs3_commands.hpp"
 #include "halo/scenario/api.hpp"
-#include "win32.h"
 #include "halo/input/api.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"

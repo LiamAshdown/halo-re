@@ -2,7 +2,6 @@
  * @file src/networking/net2_player_update_build.cpp
  * Builders and ordering checks for player update packets.
  */
-#include "win32.h"
 #include "halo/core/network_constants.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/networking/delta_message_types.hpp"

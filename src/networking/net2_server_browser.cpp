@@ -16,7 +16,6 @@
 #include <wchar.h>
 #include <wctype.h>
 #include "crt.h"
-#include "win32.h"
 #include "math.h"
 #include "cache.h"
 #include "game.h"

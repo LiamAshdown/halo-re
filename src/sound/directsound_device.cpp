@@ -3,6 +3,7 @@
  * DirectSound implementation of the AudioDevice interface.
  */
 
+#include "win32.h"
 #include "halo/sound/directsound.hpp"
 #include "internal/state.hpp"
 #include "halo/sound/api.hpp"

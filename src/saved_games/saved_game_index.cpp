@@ -1,7 +1,6 @@
 #include "halo/saved_games/globals.hpp"
 #include "crt.h"
 #include "halo/text/api.hpp"
-#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"

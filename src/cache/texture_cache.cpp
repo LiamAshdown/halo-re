@@ -5,7 +5,6 @@
 
 #include "memory.h"
 #include "math.h"
-#include "win32.h"
 #include "halo/cache/globals.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/cache/api.hpp"

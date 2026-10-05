@@ -1,6 +1,5 @@
 #include "halo/units/records.hpp"
 #include "halo/units/unit.hpp"
-#include "win32.h"
 #include "halo/cseries/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"

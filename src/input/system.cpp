@@ -2,7 +2,6 @@
  * Input system start-up, state reset and the per-frame tick.
  */
 
-#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"

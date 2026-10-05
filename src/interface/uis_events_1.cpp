@@ -8,7 +8,6 @@
 #include "halo/core/datum.hpp"
 #include "halo/interface/engine_state.hpp"
 #include "halo/main/main_globals_fields.hpp"
-#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"

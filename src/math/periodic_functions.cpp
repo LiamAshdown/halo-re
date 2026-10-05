@@ -8,7 +8,6 @@
 #include "halo/math/math.hpp"
 #include "halo/math/globals.hpp"
 
-#include "win32.h"
 #include "tags.h"
 #include "halo/platform/memory.hpp"
 

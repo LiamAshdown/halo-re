@@ -11,7 +11,6 @@
 #include "math.h"
 #include "game.h"
 #include "networking.h"
-#include "win32.h"
 #include <string.h>
 #include "halo/networking/net2_message_delta_parameters.hpp"
 #include "halo/networking/api.hpp"

@@ -2,7 +2,6 @@
 #include "halo/rasterizer/globals.hpp"
 #include "crt.h"
 #include "halo/models/api.hpp"
-#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"

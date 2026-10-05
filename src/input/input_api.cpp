@@ -16,7 +16,6 @@
 #include "ai.h"
 #include "crt.h"
 #include <string.h>
-#include "win32.h"
 #include <stdarg.h>
 #include "objects.h"
 #include "units.h"

@@ -5,7 +5,6 @@
 
 #include "tags.h"
 #include "memory.h"
-#include "win32.h"
 #include "crt.h"
 #include "hs.h"
 

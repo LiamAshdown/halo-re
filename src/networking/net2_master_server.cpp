@@ -5,7 +5,6 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
-#include "win32.h"
 #include "game.h"
 #include "networking.h"
 #include "halo/networking/browser_state.hpp"

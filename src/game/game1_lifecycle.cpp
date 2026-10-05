@@ -1,9 +1,9 @@
+#include <cstring>
 #include "halo/objects/flags.hpp"
 /**
  * Game engine lifetime: new game set-up, end-game sequence stages and per-frame effects.
  */
 
-#include "win32.h"
 #include "halo/networking/game_mode.hpp"
 #include "halo/game/records.hpp"
 #include "halo/rasterizer/render_device.hpp"

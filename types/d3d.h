@@ -5,7 +5,6 @@
 #ifndef HALO_D3D_H
 #define HALO_D3D_H
 
-#include "win32.h"
 #include <corecrt_math.h>   /* the CRT math functions d3dx9math.inl uses (<math.h> finds types/math.h) */
 #include <d3d9.h>
 #include <d3dx9.h>

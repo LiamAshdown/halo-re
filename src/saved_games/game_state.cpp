@@ -1,7 +1,6 @@
 #include "halo/hs/script_globals.hpp"
 #include "halo/main/main_globals_fields.hpp"
 #include "crt.h"
-#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"

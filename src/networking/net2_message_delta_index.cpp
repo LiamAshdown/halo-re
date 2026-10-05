@@ -5,7 +5,6 @@
 #include "message_delta_codec.h"
 #include "halo/core/cstring.hpp"
 #include "halo/core/datum.hpp"
-#include "win32.h"
 #include "halo/networking/net2_message_delta_index.hpp"
 #include "halo/networking/field_codec.hpp"
 #include "halo/memory/api.hpp"

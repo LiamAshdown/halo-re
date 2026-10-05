@@ -8,7 +8,6 @@
 #include "memory.h"
 #include "math.h"
 #include "bitmaps.h"
-#include "win32.h"
 #include "cache.h"
 #include "rasterizer.h"
 #include "game.h"

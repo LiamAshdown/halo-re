@@ -2,6 +2,7 @@
  * Network game menu behaviour: host setup, adapter details, client connection and wait timeouts.
  */
 
+#include "win32.h"
 #include "halo/core/datum.hpp"
 #include "crt.h"
 #include "halo/core/ui_tag_paths.hpp"

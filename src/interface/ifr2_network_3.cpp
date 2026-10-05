@@ -1,4 +1,3 @@
-#include "win32.h"
 #include "halo/core/ui_tag_paths.hpp"
 #include "halo/interface/records.hpp"
 #include "halo/core/slot_mask.hpp"

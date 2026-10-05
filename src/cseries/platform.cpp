@@ -1,6 +1,5 @@
 #include "halo/cseries/cseries.hpp"
 
-#include "win32.h"
 #include "tags.h"
 #include "math.h"
 #include <string.h>

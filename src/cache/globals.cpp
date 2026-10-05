@@ -5,7 +5,6 @@
 
 #include "tags.h"
 #include "halo/cache/cache.hpp"
-#include "win32.h"
 #include "crt.h"
 #include "memory.h"
 #include <string.h>

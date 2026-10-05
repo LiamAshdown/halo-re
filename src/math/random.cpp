@@ -8,7 +8,6 @@
 #include "halo/math/globals.hpp"
 
 #include "tags.h"
-#include "win32.h"
 #include "halo/cseries/api.hpp"
 #include "halo/platform/time.hpp"
 

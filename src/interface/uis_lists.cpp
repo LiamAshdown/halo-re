@@ -6,7 +6,6 @@
 #include "crt.h"
 #include "halo/interface/records.hpp"
 #include "halo/core/slot_mask.hpp"
-#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"

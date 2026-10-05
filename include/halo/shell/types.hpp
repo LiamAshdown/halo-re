@@ -6,7 +6,6 @@
 #include "rasterizer.h"
 #include "shell.h"
 #include "crt.h"
-#include "win32.h"
 
 /**
  * std::logic_error family object as the hardware requirements parser builds it: the vtable pointer selects

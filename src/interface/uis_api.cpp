@@ -4,7 +4,6 @@
  */
 
 #include "crt.h"
-#include "win32.h"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
