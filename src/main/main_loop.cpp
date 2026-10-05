@@ -588,16 +588,17 @@ namespace halo::main {
  */
 void MainLoop::loop(void)
 {
+    loop_begin();
+    while (loop_frame()) {
+    }
+    halo::main::main_loop_shutdown_cleanup();
+}
+
+/** The main loop's setup, run once before the first loop_frame(). */
+void MainLoop::loop_begin(void)
+{
     uint8_t local_time[0x10];
     int64_t counter;
-    uint32_t frame_average;
-    uint16_t fpu_control;
-    int16_t previous_frames;
-    int16_t connection;
-    float progress;
-    uint32_t previous_queue_time;
-    ui_input_event idle_event;
-    int32_t elapsed_ms;
     int32_t i;
 
     halo::platform::local_time(reinterpret_cast<system_time *>(local_time));
@@ -632,190 +633,206 @@ void MainLoop::loop(void)
     halo::interface::network_autojoin_from_command_line();
     halo::sound::globals().disabled = (uint8_t)halo::shell::globals().nosound;
     main_unknown_696570 = 0;
+}
 
-    for (;;) {
-        frame_average = halo::main::game_frame_rate_average_update();
-        if (checkfpu != 0) {
-            fpu_control = k_x87_control_word;
+/**
+ * One pass of the main loop: services the requests, polls input, updates the network, runs and renders the frame.
+ * Returns false when the game is quitting (the caller then runs main_loop_shutdown_cleanup). A browser build calls
+ * this from its frame callback instead of looping.
+ */
+bool MainLoop::loop_frame(void)
+{
+    int64_t counter;
+    uint32_t frame_average;
+    uint16_t fpu_control;
+    int16_t previous_frames;
+    int16_t connection;
+    float progress;
+    uint32_t previous_queue_time;
+    ui_input_event idle_event;
+    int32_t elapsed_ms;
+
+    frame_average = halo::main::game_frame_rate_average_update();
+    if (checkfpu != 0) {
+        fpu_control = k_x87_control_word;
 #if defined(_MSC_VER)
-            __asm { finit }
-            __asm { fldcw fpu_control }
+        __asm { finit }
+        __asm { fldcw fpu_control }
 #else
-            __asm__ __volatile__("finit\n\tfldcw %0" : : "m"(fpu_control));
+        __asm__ __volatile__("finit\n\tfldcw %0" : : "m"(fpu_control));
 #endif
-        }
+    }
 
-        if (main_globals_data.switch_structure_bsp_index != -1) {
-            halo::main::main_switch_structure_bsp_and_notify();
+    if (main_globals_data.switch_structure_bsp_index != -1) {
+        halo::main::main_switch_structure_bsp_and_notify();
+    }
+    if (main_globals_data.lost_map != 0 && halo::game::globals().game_time->paused == 0) {
+        previous_frames = main_globals_data.lost_map_frames;
+        main_globals_data.lost_map_frames = (int16_t)(previous_frames + 1);
+        if (previous_frames > k_main_revert_delay_frames) {
+            main_globals_data.lost_map = 0;
+            main_globals_data.lost_map_frames = 0;
+            halo::saved_games::game_state_perform_revert();
         }
-        if (main_globals_data.lost_map != 0 && halo::game::globals().game_time->paused == 0) {
-            previous_frames = main_globals_data.lost_map_frames;
-            main_globals_data.lost_map_frames = (int16_t)(previous_frames + 1);
-            if (previous_frames > k_main_revert_delay_frames) {
-                main_globals_data.lost_map = 0;
-                main_globals_data.lost_map_frames = 0;
-                halo::saved_games::game_state_perform_revert();
-            }
+    }
+    if (main_globals_data.won_map != 0) {
+        halo::main::campaign_level_advance();
+    }
+    if (main_globals_data.respawn_coop_players != 0 && halo::game::globals().game_time->paused == 0 &&
+        halo::cutscene::globals().cinematic_globals->in_progress == 0) {
+        previous_frames = main_globals_data.respawn_coop_frames;
+        main_globals_data.respawn_coop_frames = (int16_t)(previous_frames + 1);
+        if (previous_frames > k_main_respawn_delay_frames &&
+            halo::game::game_engine_attach_players_to_new_bsp() != 0) {
+            main_globals_data.respawn_coop_players = 0;
+            main_globals_data.respawn_coop_frames = 0;
         }
-        if (main_globals_data.won_map != 0) {
-            halo::main::campaign_level_advance();
-        }
-        if (main_globals_data.respawn_coop_players != 0 && halo::game::globals().game_time->paused == 0 &&
-            halo::cutscene::globals().cinematic_globals->in_progress == 0) {
-            previous_frames = main_globals_data.respawn_coop_frames;
-            main_globals_data.respawn_coop_frames = (int16_t)(previous_frames + 1);
-            if (previous_frames > k_main_respawn_delay_frames &&
-                halo::game::game_engine_attach_players_to_new_bsp() != 0) {
-                main_globals_data.respawn_coop_players = 0;
-                main_globals_data.respawn_coop_frames = 0;
-            }
-        }
-        if (main_globals_data.save_map_write_pending != 0) {
-            game_state_before_save_proc();
-            main_globals_data.time_is_running = 0;
-            main_globals_data.reset_frame_timers = 0;
-            game_state_revert_available = halo::saved_games::game_state_queue_write(1) != 0;
-            main_globals_data.reset_frame_timers = 1;
-            halo::interface::hud_display_checkpoint_message(0);
-            main_globals_data.save_map_write_pending = 0;
-        }
-        if (main_globals_data.level_transition != 0) {
-            halo::main::main_level_transition_update();
-        }
-        if (main_globals_data.revert_map != 0) {
+    }
+    if (main_globals_data.save_map_write_pending != 0) {
+        game_state_before_save_proc();
+        main_globals_data.time_is_running = 0;
+        main_globals_data.reset_frame_timers = 0;
+        game_state_revert_available = halo::saved_games::game_state_queue_write(1) != 0;
+        main_globals_data.reset_frame_timers = 1;
+        halo::interface::hud_display_checkpoint_message(0);
+        main_globals_data.save_map_write_pending = 0;
+    }
+    if (main_globals_data.level_transition != 0) {
+        halo::main::main_level_transition_update();
+    }
+    if (main_globals_data.revert_map != 0) {
+        halo::saved_games::game_state_perform_revert();
+        ui_pause_pending_count_00718fa0 = k_ui_pause_pending_ticks;
+        main_globals_data.revert_map = 0;
+    }
+    if (main_globals_data.revert_map_if_allowed != 0) {
+        if (halo::saved_games::globals().game_state_write_in_progress == 0 && halo::cutscene::globals().cinematic_globals->skip_in_progress != 0) {
             halo::saved_games::game_state_perform_revert();
             ui_pause_pending_count_00718fa0 = k_ui_pause_pending_ticks;
             main_globals_data.revert_map = 0;
         }
-        if (main_globals_data.revert_map_if_allowed != 0) {
-            if (halo::saved_games::globals().game_state_write_in_progress == 0 && halo::cutscene::globals().cinematic_globals->skip_in_progress != 0) {
-                halo::saved_games::game_state_perform_revert();
-                ui_pause_pending_count_00718fa0 = k_ui_pause_pending_ticks;
-                main_globals_data.revert_map = 0;
-            }
-            main_globals_data.revert_map_if_allowed = 0;
+        main_globals_data.revert_map_if_allowed = 0;
+    }
+    if (main_globals_data.reset_map != 0 && halo::game::globals().game_time->paused == 0) {
+        halo::scenario::structure_bsp_switcher::switch_to(0);
+        halo::game::game_stop_current_map();
+        halo::input::GameActions::reset_state_and_axis_configs();
+        memset(&input_globals.states[0], 0, sizeof(input_globals.states[0]));
+        input_globals.system_key_states[0] = 0;
+        input_globals.system_key_states[1] = 0;
+        input_globals.idle = 1;
+        input_globals.system_key_states[2] = 0;
+        halo::game::game_start_new_map();
+        halo::main::main_ensure_local_players();
+        halo::game::game_engine_init_tick_record_for_mode();
+        halo::game::game_engine_reset_all_players();
+        ui_pause_pending_count_00718fa0 = k_ui_pause_pending_ticks;
+        main_globals_data.reset_map = 0;
+    }
+    if (main_globals_data.save_core != 0) {
+        if (halo::saved_games::game_state_write_profile_file(k_game_state_size, (char *)k_core_dump_file_name, halo::saved_games::globals().game_state_base) != 0) {
+            halo::main::console_print_error_va(0, "saved '%s'", k_core_dump_file_name);
+        } else {
+            halo::main::console_print_error_va(0, "error writing '%s'", k_core_dump_file_name);
         }
-        if (main_globals_data.reset_map != 0 && halo::game::globals().game_time->paused == 0) {
-            halo::scenario::structure_bsp_switcher::switch_to(0);
-            halo::game::game_stop_current_map();
-            halo::input::GameActions::reset_state_and_axis_configs();
-            memset(&input_globals.states[0], 0, sizeof(input_globals.states[0]));
-            input_globals.system_key_states[0] = 0;
-            input_globals.system_key_states[1] = 0;
-            input_globals.idle = 1;
-            input_globals.system_key_states[2] = 0;
-            halo::game::game_start_new_map();
-            halo::main::main_ensure_local_players();
-            halo::game::game_engine_init_tick_record_for_mode();
-            halo::game::game_engine_reset_all_players();
-            ui_pause_pending_count_00718fa0 = k_ui_pause_pending_ticks;
-            main_globals_data.reset_map = 0;
-        }
-        if (main_globals_data.save_core != 0) {
-            if (halo::saved_games::game_state_write_profile_file(k_game_state_size, (char *)k_core_dump_file_name, halo::saved_games::globals().game_state_base) != 0) {
-                halo::main::console_print_error_va(0, "saved '%s'", k_core_dump_file_name);
-            } else {
-                halo::main::console_print_error_va(0, "error writing '%s'", k_core_dump_file_name);
-            }
-            main_globals_data.save_core = 0;
-        }
-        if (main_globals_data.load_core != 0) {
-            halo::saved_games::game_state_load_core((char *)k_core_dump_file_name);
-            main_globals_data.load_core = 0;
-        }
-        if (main_globals_data.return_to_main_menu != 0) {
-            halo::main::main_menu_return_and_reset();
-        }
-        if (main_globals_data.unknown_058 != 0) {
-            main_globals_data.unknown_058 = 0;
-        }
-        if (main_globals_data.skip_ticks != 0) {
-            halo::main::game_engine_flush_pending_simulation_ticks();
-        }
-        if (main_globals_data.cache_file_open_pending != 0) {
-            if (halo::cache::globals().map_download_in_progress != 0) {
-                if (halo::cache::cache_file_download_status_get(&progress, 0) == 1) {
-                    halo::cache::cache_file_download_finish();
-                }
-            }
-            if (halo::cache::globals().map_download_in_progress == 0) {
-                halo::cache::cache_file_open_by_name(main_globals_data.pending_cache_file_name, 0);
-                main_globals_data.cache_file_open_pending = 0;
+        main_globals_data.save_core = 0;
+    }
+    if (main_globals_data.load_core != 0) {
+        halo::saved_games::game_state_load_core((char *)k_core_dump_file_name);
+        main_globals_data.load_core = 0;
+    }
+    if (main_globals_data.return_to_main_menu != 0) {
+        halo::main::main_menu_return_and_reset();
+    }
+    if (main_globals_data.unknown_058 != 0) {
+        main_globals_data.unknown_058 = 0;
+    }
+    if (main_globals_data.skip_ticks != 0) {
+        halo::main::game_engine_flush_pending_simulation_ticks();
+    }
+    if (main_globals_data.cache_file_open_pending != 0) {
+        if (halo::cache::globals().map_download_in_progress != 0) {
+            if (halo::cache::cache_file_download_status_get(&progress, 0) == 1) {
+                halo::cache::cache_file_download_finish();
             }
         }
-        if (main_globals_data.connect_pending != 0) {
-            halo::main::network_game_client_connect_to_resolved_address();
-        }
-
-        connection = main_globals_data.game_connection;
-        halo::input::InputDevices::poll();
-        if (halo::game::globals().time_force_single_tick == 0) {
-            halo::input::InputSystem::update_tick();
-        }
-        halo::shell::shell_pump_windows_messages();
-        if (main_globals_data.quit != 0) {
-            break;
-        }
-
-        if (input_event_queue_active.enabled != 0) {
-            previous_queue_time = input_event_queue_active.start_time;
-            halo::platform::read_performance_counter(&counter);
-            input_event_queue_active.start_time = (uint32_t)((counter * 1000) / halo::cseries::globals().performance_frequency);
-            if (input_event_queue_active.last_event_time < previous_queue_time && input_event_queue_active.enabled != 0) {
-                memset(&idle_event, 0, sizeof(idle_event));
-                halo::input::UiEvents::queue_push_event(0, &idle_event);
-            }
-        }
-        if (connection == _game_connection_network_server) {
-            halo::networking::network_session_host_update();
-            if (network_console_connection_id != -1) {
-                gcd_think();
-            }
-        }
-        halo::networking::network_update();
-        if (connection == _game_connection_network_client ||
-            connection == _game_connection_network_server ||
-            (ui_split_screen == 1 && ui_root_widget[0] != 0 &&
-             strcmp(ui_root_widget[0]->name, k_main_menu_widget_name) == 0)) {
-            if (network_bandwidth_graph_globals.sample_interval_ms !=
-                network_bandwidth_graph_default_interval_ms) {
-                network_bandwidth_graph_globals.sample_interval_ms =
-                    network_bandwidth_graph_default_interval_ms;
-                halo::networking::network_bandwidth_graph_instance_history_reset(&network_bandwidth_graph_globals);
-            }
-            halo::networking::network_bandwidth_graph_tick(&network_bandwidth_graph_globals);
-            halo::networking::network_bandwidth_rate_compute(&network_bandwidth_graph_globals);
-        }
-
-        if (update_and_render_frame(connection, frame_average)) {
-            break;
-        }
-
-        if (main_globals_data.quit != 0) {
-            break;
-        }
-        if (main_globals_data.reset_frame_timers != 0) {
-            main_globals_data.reset_frame_timers = 0;
-            halo::platform::read_performance_counter(&counter);
-            main_globals_data.frame_counter_low = (uint32_t)counter;
-            main_globals_data.frame_counter_high = (uint32_t)(counter >> 32);
-            main_globals_data.render_counter_low = (uint32_t)counter;
-            main_globals_data.render_counter_high = (uint32_t)(counter >> 32);
-            main_globals_data.frame_time_ms = (uint32_t)((counter * 1000) / halo::cseries::globals().performance_frequency);
-            main_globals_data.time_is_running = 1;
-        }
-        if (shell_application_inactive != 0) {
-            halo::platform::wait_for_messages((main_globals_data.game_connection > 0 && main_globals_data.game_connection <= 2) ? 20 : 100);
-        }
-        halo::platform::read_performance_counter(&counter);
-        elapsed_ms = (int32_t)((counter * 1000) / halo::cseries::globals().performance_frequency) -
-            frame_rate_average_data.sample_time_ms;
-        frame_rate_average_data.history[0] = elapsed_ms;
-        if ((uint32_t)elapsed_ms > k_main_frame_time_clamp_ms) {
-            frame_rate_average_data.history[0] = k_main_frame_time_clamp_ms;
+        if (halo::cache::globals().map_download_in_progress == 0) {
+            halo::cache::cache_file_open_by_name(main_globals_data.pending_cache_file_name, 0);
+            main_globals_data.cache_file_open_pending = 0;
         }
     }
-    halo::main::main_loop_shutdown_cleanup();
+    if (main_globals_data.connect_pending != 0) {
+        halo::main::network_game_client_connect_to_resolved_address();
+    }
+
+    connection = main_globals_data.game_connection;
+    halo::input::InputDevices::poll();
+    if (halo::game::globals().time_force_single_tick == 0) {
+        halo::input::InputSystem::update_tick();
+    }
+    halo::shell::shell_pump_windows_messages();
+    if (main_globals_data.quit != 0) {
+        return false;
+    }
+
+    if (input_event_queue_active.enabled != 0) {
+        previous_queue_time = input_event_queue_active.start_time;
+        halo::platform::read_performance_counter(&counter);
+        input_event_queue_active.start_time = (uint32_t)((counter * 1000) / halo::cseries::globals().performance_frequency);
+        if (input_event_queue_active.last_event_time < previous_queue_time && input_event_queue_active.enabled != 0) {
+            memset(&idle_event, 0, sizeof(idle_event));
+            halo::input::UiEvents::queue_push_event(0, &idle_event);
+        }
+    }
+    if (connection == _game_connection_network_server) {
+        halo::networking::network_session_host_update();
+        if (network_console_connection_id != -1) {
+            gcd_think();
+        }
+    }
+    halo::networking::network_update();
+    if (connection == _game_connection_network_client ||
+        connection == _game_connection_network_server ||
+        (ui_split_screen == 1 && ui_root_widget[0] != 0 &&
+         strcmp(ui_root_widget[0]->name, k_main_menu_widget_name) == 0)) {
+        if (network_bandwidth_graph_globals.sample_interval_ms !=
+            network_bandwidth_graph_default_interval_ms) {
+            network_bandwidth_graph_globals.sample_interval_ms =
+                network_bandwidth_graph_default_interval_ms;
+            halo::networking::network_bandwidth_graph_instance_history_reset(&network_bandwidth_graph_globals);
+        }
+        halo::networking::network_bandwidth_graph_tick(&network_bandwidth_graph_globals);
+        halo::networking::network_bandwidth_rate_compute(&network_bandwidth_graph_globals);
+    }
+
+    if (update_and_render_frame(connection, frame_average)) {
+        return false;
+    }
+
+    if (main_globals_data.quit != 0) {
+        return false;
+    }
+    if (main_globals_data.reset_frame_timers != 0) {
+        main_globals_data.reset_frame_timers = 0;
+        halo::platform::read_performance_counter(&counter);
+        main_globals_data.frame_counter_low = (uint32_t)counter;
+        main_globals_data.frame_counter_high = (uint32_t)(counter >> 32);
+        main_globals_data.render_counter_low = (uint32_t)counter;
+        main_globals_data.render_counter_high = (uint32_t)(counter >> 32);
+        main_globals_data.frame_time_ms = (uint32_t)((counter * 1000) / halo::cseries::globals().performance_frequency);
+        main_globals_data.time_is_running = 1;
+    }
+    if (shell_application_inactive != 0) {
+        halo::platform::wait_for_messages((main_globals_data.game_connection > 0 && main_globals_data.game_connection <= 2) ? 20 : 100);
+    }
+    halo::platform::read_performance_counter(&counter);
+    elapsed_ms = (int32_t)((counter * 1000) / halo::cseries::globals().performance_frequency) -
+        frame_rate_average_data.sample_time_ms;
+    frame_rate_average_data.history[0] = elapsed_ms;
+    if ((uint32_t)elapsed_ms > k_main_frame_time_clamp_ms) {
+        frame_rate_average_data.history[0] = k_main_frame_time_clamp_ms;
+    }
+    return true;
 }
 
 }

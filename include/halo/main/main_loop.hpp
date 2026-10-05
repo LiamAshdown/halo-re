@@ -14,6 +14,8 @@ struct MainLoop {
     static void timer_reset(void);
     static void ensure_local_players(void);
     static void loop(void);
+    static void loop_begin(void);
+    static bool loop_frame(void);
     static void loop_frame_pacer(void);
     static void loop_shutdown_cleanup(void);
     static void menu_music_stop(void);
