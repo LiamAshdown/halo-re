@@ -80,7 +80,7 @@ void UiControlsMenu::controls_4wide_selector_refresh(widget_instance *widget)
         saved_player_profile profile_copy;
 
         profile_copy = profile_globals_block[0].profile;
-        halo::interface::set_profile_name(widget, profile_copy.name);
+        halo::interface::set_profile_name(display->next_sibling->next_sibling, profile_copy.name);  // EBX in 0x4a4fa9
     }
 
     cursor = widget->first_child;

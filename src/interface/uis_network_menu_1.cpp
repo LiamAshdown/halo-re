@@ -78,7 +78,7 @@ void UiNetworkMenu::network_adapter_details_refresh(widget_instance *widget)
         saved_player_profile profile_copy;
 
         profile_copy = profile_globals_block[0].profile;
-        halo::interface::set_profile_name(widget, profile_copy.name);
+        halo::interface::set_profile_name(widget->extended_description->first_child, profile_copy.name);  // EBX in 0x4a468c
     }
 
     row = widget->extended_description->first_child->next_sibling;
@@ -294,7 +294,7 @@ void UiNetworkMenu::network_host_setup_refresh(widget_instance *widget)
         saved_player_profile profile_copy;
 
         profile_copy = profile_globals_block[0].profile;
-        halo::interface::set_profile_name(widget, profile_copy.name);
+        halo::interface::set_profile_name(tab_group->first_child->next_sibling, profile_copy.name);  // EBX in 0x4a2efe
     }
 }
 
