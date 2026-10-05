@@ -45,6 +45,7 @@
 #include "halo/platform/memory.hpp"
 #include "halo/platform/system.hpp"
 #include "halo/platform/fault.hpp"
+#include "halo/rasterizer/gl_device.hpp"
 
 static auto &shell_command_line = halo::link::ref<char *>(halo::shell::vars().shell_command_line);
 static auto &shell_window = halo::link::ref<void *>(halo::shell::vars().shell_window);
@@ -134,8 +135,13 @@ uint8_t EngineLifecycle::initialize()
     halo::cseries::profile_path::initialize();
 
     if (direct3d_create9 == 0) {
+#if HALO_D3D9
         d3d9_module = halo::platform::library_open("d3d9.dll");
         direct3d_create9 = halo::platform::library_symbol(d3d9_module, "Direct3DCreate9");
+#else
+        d3d9_module = 0;
+        direct3d_create9 = (void *)halo::rasterizer::gl_direct3d_create;
+#endif
 
         if (shell_nosound == 0) {
             dsound_module = 0;
@@ -317,11 +323,16 @@ void Application::load_direct3d_and_config()
     void (*disable_d3dspy)(void);
 
     halo::cache::cache_reserve_map_memory();
+#if HALO_D3D9
     d3d9_module = halo::platform::library_open("d3d9.dll");
     direct3d_create9 = halo::platform::library_symbol(d3d9_module, "Direct3DCreate9");
     if (d3d9_module == 0 || direct3d_create9 == 0) {
         FatalError::show(k_string_d3d9_missing, k_help_file_directx, 1);
     }
+#else
+    d3d9_module = 0;
+    direct3d_create9 = (void *)halo::rasterizer::gl_direct3d_create;
+#endif
     direct3d9 = (d3d9_interface *)((direct3d_create9_fn)direct3d_create9)(k_d3d_sdk_version);
     if (direct3d9 != 0) {
         config_error = ConfigLoader::parse(0, direct3d9);
@@ -336,7 +347,7 @@ void Application::load_direct3d_and_config()
     if (GetAsyncKeyState(k_vk_control) < 0) {
         FatalError::show(k_string_safe_mode_requested, k_help_file_general, 0);
     }
-    disable_d3dspy = (void (*)(void))halo::platform::library_symbol(d3d9_module, "DisableD3DSpy");
+    disable_d3dspy = d3d9_module != 0 ? (void (*)(void))halo::platform::library_symbol(d3d9_module, "DisableD3DSpy") : 0;
     if (disable_d3dspy != 0) {
         disable_d3dspy();
     }

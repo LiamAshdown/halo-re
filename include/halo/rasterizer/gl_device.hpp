@@ -4,8 +4,11 @@
 
 namespace halo::rasterizer {
 
-/** True when the OpenGL backend was requested with HALO_RENDERER=gl. */
+/** True when the OpenGL backend is in use: requested with HALO_RENDERER=gl, or the only one built (HALO_D3D9 0). */
 bool gl_renderer_requested();
+
+/** Direct3DCreate9 of builds without Direct3D 9: the factory object answering adapter and capability queries. */
+void *__stdcall gl_direct3d_create(uint32_t sdk_version);
 
 /**
  * OpenGL implementation of the RenderDevice interface (work in progress, see docs/OPENGL_PORT.md).

@@ -94,6 +94,8 @@ void cursor_position(int32_t *x, int32_t *y);
  * for OpenGL ES 3.0 (what WebGL 2 is) instead of the desktop default.
  */
 bool gl_context_create(window_handle window, bool es);
+/** The size in pixels of the primary display's desktop. */
+void desktop_size(uint32_t *width, uint32_t *height);
 /** The size in pixels of the window's OpenGL back buffer. */
 void gl_drawable_size(window_handle window, uint32_t *width, uint32_t *height);
 /** Shows the frame drawn into the window's back buffer. */

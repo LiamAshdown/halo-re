@@ -70,10 +70,8 @@ struct State {
     int16_t (&system_keys)[k_input_system_key_count];
     ui_key_event (&key_events)[k_input_key_event_capacity];
     input_guid &guid_sys_keyboard;
-    di_data_format &c_dfDIKeyboard;
     int16_t (&mouse_button_map)[k_input_mouse_button_count];
     input_guid &guid_sys_mouse;
-    di_data_format &c_dfDIMouse2;
     int16_t (&virtual_key_to_key)[0x100];
     int16_t (&character_to_key)[0x80];
     uint8_t (&mouse_axis_frames)[k_input_mouse_axis_count][2];

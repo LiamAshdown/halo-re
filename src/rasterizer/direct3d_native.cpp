@@ -1,11 +1,10 @@
 /**
  * @file src/rasterizer/direct3d_native.cpp
- * Functions that need the real Direct3D 9 and D3DX headers.
+ * Effect, vertex declaration and loading-screen setup around the D3DX calls (halo::rasterizer::d3dx).
  */
 
 #include "halo/render/d3d9.hpp"
 #include "internal/state.hpp"
-#include "d3d.h"
 #include "halo/shell/api.hpp"
 #include "halo/rasterizer/constants.hpp"
 #include "halo/rasterizer/d3dx.hpp"
@@ -37,8 +36,7 @@ uint8_t rasterizer_dx9_shaders_initialize(void)
     int i;
     void **handles;
 
-    saved_locale = GetThreadLocale();
-    SetThreadLocale(k_locale_english_us);
+    saved_locale = d3dx::locale_begin(k_locale_english_us);
 
     rasterizer_effect_defines[0].name = "PS_2_0_TARGET";
     rasterizer_effect_defines[0].definition = "ps_2_a";
@@ -48,7 +46,7 @@ uint8_t rasterizer_dx9_shaders_initialize(void)
     rasterizer_effect_defines[1].name = 0;
     rasterizer_effect_defines[1].definition = 0;
 
-    hr = D3DXCreateEffectPool((LPD3DXEFFECTPOOL *)&rasterizer_effect_pool);
+    hr = d3dx::create_effect_pool(&rasterizer_effect_pool);
     if (hr < 0) {
         success = 0;
     } else {
@@ -58,7 +56,7 @@ uint8_t rasterizer_dx9_shaders_initialize(void)
             halo::shell::shell_display_fatal_error_dialog(0x89, 0x7e, 1);
         }
     }
-    SetThreadLocale(saved_locale);
+    d3dx::locale_end(saved_locale);
     if (success == 0) {
         halo::shell::shell_display_fatal_error_dialog(0x69, 0x7e, 1);
         return success;
@@ -245,8 +243,7 @@ uint8_t rasterizer_dx9_vertex_declarations_create(void)
     rasterizer_vertex_declarations[17].usage = k_usage_dynamic_write_only;
     rasterizer_vertex_declarations[18].usage = k_usage_dynamic_write_only;
 
-    D3DXFVFFromDeclarator((const D3DVERTEXELEMENT9 *)vertex_elements_model_processed,
-        (DWORD *)&rasterizer_vertex_declarations[15].fvf);
+    d3dx::fvf_from_declarator(vertex_elements_model_processed, (uint32_t *)&rasterizer_vertex_declarations[15].fvf);
 
     rasterizer_vertex_declarations[17].fvf = halo::d3d9::k_fvf_xyzrhw_diffuse_tex1;
     rasterizer_vertex_declarations[18].fvf = halo::d3d9::k_fvf_xyzrhw_diffuse_specular_tex1;
@@ -287,8 +284,7 @@ void rasterizer_render_loading_screen(int32_t mode)
         }
         hr = render_device().create_offscreen_plain_surface(k_loading_screen_width, k_loading_screen_height, halo::d3d9::k_format_x8r8g8b8, halo::d3d9::k_pool_default, &splash, 0);
         if (hr >= 0) {
-            hr = D3DXLoadSurfaceFromResourceA((LPDIRECT3DSURFACE9)splash, 0, 0, (HMODULE)halo::shell::globals().module_handle, MAKEINTRESOURCEA(k_loading_screen_resource_id), 0,
-                                              halo::rasterizer::d3dx::k_default, 0, 0);
+            hr = d3dx::load_surface_from_resource(splash, halo::shell::globals().module_handle, k_loading_screen_resource_id);
             if (hr >= 0) {
                 render_device().get_render_target(0, &render_target);
 

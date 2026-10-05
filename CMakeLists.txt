@@ -5,7 +5,8 @@
 # or from an "x86 Native Tools Command Prompt":
 #   cmake -S . -B build/cmake-ninja -G Ninja && cmake --build build/cmake-ninja
 #
-# Needs Visual Studio 2022 (C and MASM, x86) and the DirectX SDK (June 2010) for d3dx9. The exe runs against an
+# Needs Visual Studio 2022 (C and MASM, x86) and the DirectX SDK (June 2010) for d3dx9; -DHALO_D3D9=OFF builds the
+# OpenGL renderer only and needs no DirectX SDK (it is what the browser build uses). The exe runs against an
 # installed Halo PC (maps, Keystone.dll): HALO_FOLDER. Graphics need the converted shaders\fx.bin
 # (python tools/convert_fx.py) in override\shaders\ next to the exe: HALO_FX_OVERRIDE, copied after the build.
 #
@@ -19,6 +20,7 @@ if(NOT MSVC OR NOT CMAKE_SIZEOF_VOID_P EQUAL 4)
     message(FATAL_ERROR "halo_rebuilt is 32-bit MSVC only: use -A Win32 (Visual Studio) or an x86 tools prompt (Ninja)")
 endif()
 
+option(HALO_D3D9 "Build the Direct3D 9 renderer (needs the DirectX SDK); OFF builds the OpenGL renderer only" ON)
 if(DEFINED ENV{DXSDK_DIR})
     file(TO_CMAKE_PATH "$ENV{DXSDK_DIR}" _dxsdk_default)
 else()
@@ -28,9 +30,17 @@ set(DXSDK_DIR "${_dxsdk_default}" CACHE PATH "DirectX SDK (June 2010) folder")
 set(HALO_FOLDER "C:/Program Files (x86)/Microsoft Games/Halo" CACHE PATH "Installed Halo PC folder the exe runs against")
 set(HALO_FX_OVERRIDE "${CMAKE_SOURCE_DIR}/build/standalone/override/shaders/fx.bin" CACHE FILEPATH
     "shaders\\fx.bin converted by tools/convert_fx.py, copied to override/shaders/ next to the exe")
-if(NOT EXISTS "${DXSDK_DIR}/Include/d3dx9.h")
-    message(FATAL_ERROR "DirectX SDK not found at DXSDK_DIR=${DXSDK_DIR}")
+if(HALO_D3D9)
+    if(NOT EXISTS "${DXSDK_DIR}/Include/d3dx9.h")
+        message(FATAL_ERROR "DirectX SDK not found at DXSDK_DIR=${DXSDK_DIR} (or configure with -DHALO_D3D9=OFF)")
+    endif()
+    set(DXSDK_INCLUDE "${DXSDK_DIR}/Include")
+    set(D3D9_LIBRARIES dxguid d3d9 d3dx9)
+else()
+    set(DXSDK_INCLUDE "")
+    set(D3D9_LIBRARIES "")
 endif()
+add_compile_definitions(HALO_D3D9=$<BOOL:${HALO_D3D9}>)
 
 # One set of flags for every configuration (/Od keeps the generated code simple; no /RTC)
 set(CMAKE_MSVC_RUNTIME_LIBRARY MultiThreaded)
@@ -51,7 +61,7 @@ set(CXX_GAME_SOURCES ${GAME_SOURCES})
 list(FILTER CXX_GAME_SOURCES EXCLUDE REGEX "/src/gamespy/")   # GameSpy stays vendored C
 set_source_files_properties(${CXX_GAME_SOURCES} PROPERTIES LANGUAGE CXX)
 target_link_libraries(halo_game PRIVATE mojoshader)
-target_include_directories(halo_game PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/third_party" "${CMAKE_SOURCE_DIR}/third_party/SDL2/include" "${CMAKE_SOURCE_DIR}/standalone/data" "${CMAKE_SOURCE_DIR}/types" "${DXSDK_DIR}/Include")
+target_include_directories(halo_game PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/third_party" "${CMAKE_SOURCE_DIR}/third_party/SDL2/include" "${CMAKE_SOURCE_DIR}/standalone/data" "${CMAKE_SOURCE_DIR}/types" ${DXSDK_INCLUDE})
 target_compile_options(halo_game PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/std:c++20> $<$<COMPILE_LANGUAGE:CXX>:/permissive-> $<$<COMPILE_LANGUAGE:CXX>:/GR-> /W3 /Od /GS- /Oy- /Gy /wd4996
     "/FI${CMAKE_SOURCE_DIR}/include/halo/msvc_compat.h")
 
@@ -76,29 +86,33 @@ set(SA "${CMAKE_SOURCE_DIR}/standalone")
 # the engine globals as extern "C" definitions (standalone/data/*.cpp), compiled with the game code's flags and headers
 file(GLOB DATA_SOURCES CONFIGURE_DEPENDS "${SA}/data/*.cpp")
 add_library(halo_data OBJECT ${DATA_SOURCES})
-target_include_directories(halo_data PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/types" "${DXSDK_DIR}/Include")
+target_include_directories(halo_data PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/types" ${DXSDK_INCLUDE})
 target_compile_options(halo_data PRIVATE /std:c++20 /permissive- /GR- /W3 /Od /GS- /Oy- /Gy /wd4996
     "/FI${CMAKE_SOURCE_DIR}/include/halo/msvc_compat.h")
 set(SUPPORT_SOURCES
     "${SA}/loader.cpp"
-    "${SA}/d3dx_compat.cpp"
     "${SA}/bridges.cpp")
+if(HALO_D3D9)
+    list(APPEND SUPPORT_SOURCES "${SA}/d3dx_compat.cpp")
+endif()
 add_executable(halo_rebuilt WIN32 ${SUPPORT_SOURCES}
     $<TARGET_OBJECTS:halo_game> $<TARGET_OBJECTS:halo_data>)
 target_compile_options(halo_rebuilt PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/std:c++20> $<$<COMPILE_LANGUAGE:CXX>:/permissive-> $<$<COMPILE_LANGUAGE:CXX>:/GR->)
 
 set_source_files_properties(${SUPPORT_SOURCES} PROPERTIES COMPILE_OPTIONS "/O2;/GS-")
-set_source_files_properties("${SA}/d3dx_compat.cpp" PROPERTIES INCLUDE_DIRECTORIES "${DXSDK_DIR}/Include")
+set_source_files_properties("${SA}/d3dx_compat.cpp" PROPERTIES INCLUDE_DIRECTORIES "${DXSDK_INCLUDE}")
 target_include_directories(halo_rebuilt PRIVATE "${SA}" "${CMAKE_SOURCE_DIR}/include")
 
 file(TO_NATIVE_PATH "${HALO_FOLDER}" _halo_folder)
 string(REPLACE "\\" "\\\\" _halo_folder "${_halo_folder}")
 set_source_files_properties("${SA}/loader.cpp" PROPERTIES COMPILE_DEFINITIONS "HALO_FOLDER=\"${_halo_folder}\"")
 
-target_link_directories(halo_rebuilt PRIVATE "${DXSDK_DIR}/Lib/x86")
+if(HALO_D3D9)
+    target_link_directories(halo_rebuilt PRIVATE "${DXSDK_DIR}/Lib/x86")
+endif()
 target_link_libraries(halo_rebuilt PRIVATE
     kernel32 user32 gdi32 advapi32 ole32 oleaut32 winmm ws2_32 shell32 version shlwapi comdlg32
-    dsound dinput8 dxguid d3d9 d3dx9 opengl32 legacy_stdio_definitions wininet
+    ${D3D9_LIBRARIES} dsound legacy_stdio_definitions wininet  # dsound: GetDeviceID in the Windows hardware probe
     stb_vorbis mojoshader "${CMAKE_SOURCE_DIR}/third_party/SDL2/lib/x86/SDL2.lib")
 # ---- SDL2 (zlib, third_party/SDL2, see its README.halo.md): window, events and input for halo::platform
 add_custom_command(TARGET halo_rebuilt POST_BUILD

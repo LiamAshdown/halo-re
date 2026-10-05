@@ -361,7 +361,7 @@ bool gl_renderer_requested()
     static const int requested = []() {
         const char *value = getenv("HALO_RENDERER");
 
-        return value != nullptr && (value[0] == 'g' || value[0] == 'G') ? 1 : 0;
+        return !HALO_D3D9 || (value != nullptr && (value[0] == 'g' || value[0] == 'G')) ? 1 : 0;
     }();
 
     return requested != 0;

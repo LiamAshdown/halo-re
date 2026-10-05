@@ -453,6 +453,19 @@ bool gl_context_create(window_handle window, bool es)
     return context != nullptr && SDL_GL_MakeCurrent(g_window, context) == 0;
 }
 
+void desktop_size(uint32_t *width, uint32_t *height)
+{
+    SDL_DisplayMode mode;
+
+    *width = 0;
+    *height = 0;
+    SDL_SetMainReady();
+    if (SDL_InitSubSystem(SDL_INIT_VIDEO) == 0 && SDL_GetDesktopDisplayMode(0, &mode) == 0) {
+        *width = (uint32_t)mode.w;
+        *height = (uint32_t)mode.h;
+    }
+}
+
 void gl_drawable_size(window_handle window, uint32_t *width, uint32_t *height)
 {
     int w = 0;
