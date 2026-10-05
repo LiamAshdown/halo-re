@@ -2,19 +2,107 @@
 
 /**
  * @file include/halo/rasterizer/gl_api.hpp
- * The OpenGL entry points the GL backend uses beyond OpenGL 1.1, loaded at run time. Every call the backend makes goes
- * through this table (and only uses calls that also exist in OpenGL ES 3 / WebGL 2 where possible), so a GLES3 build
- * only has to swap the loader.
+ * The OpenGL types, constants and entry points the GL backend uses, all loaded at run time through the platform's GL
+ * context (OpenGL 1.1 included), so no system GL header is needed and the same code builds for desktop GL, OpenGL ES 3
+ * and WebGL 2. The backend only uses calls that also exist in OpenGL ES 3 / WebGL 2 where possible.
  */
 
-#include <windows.h>
-#include <GL/gl.h>
 #include <stddef.h>
 #include <stdint.h>
 
+#if defined(_WIN32)
+#define HALO_GL_APIENTRY __stdcall
+#else
+#define HALO_GL_APIENTRY
+#endif
+
+typedef uint32_t GLenum;
+typedef uint8_t GLboolean;
+typedef uint32_t GLbitfield;
+typedef int32_t GLint;
+typedef uint32_t GLuint;
+typedef int32_t GLsizei;
+typedef float GLfloat;
+typedef double GLdouble;
+typedef uint8_t GLubyte;
 typedef char GLchar;
 typedef ptrdiff_t GLsizeiptr;
 typedef ptrdiff_t GLintptr;
+
+/* OpenGL 1.1 */
+#define GL_FALSE 0
+#define GL_TRUE 1
+#define GL_NO_ERROR 0
+#define GL_POINTS 0x0000
+#define GL_LINES 0x0001
+#define GL_LINE_STRIP 0x0003
+#define GL_TRIANGLES 0x0004
+#define GL_TRIANGLE_STRIP 0x0005
+#define GL_TRIANGLE_FAN 0x0006
+#define GL_DEPTH_BUFFER_BIT 0x00000100
+#define GL_STENCIL_BUFFER_BIT 0x00000400
+#define GL_COLOR_BUFFER_BIT 0x00004000
+#define GL_ZERO 0
+#define GL_ONE 1
+#define GL_SRC_COLOR 0x0300
+#define GL_ONE_MINUS_SRC_COLOR 0x0301
+#define GL_SRC_ALPHA 0x0302
+#define GL_ONE_MINUS_SRC_ALPHA 0x0303
+#define GL_DST_ALPHA 0x0304
+#define GL_ONE_MINUS_DST_ALPHA 0x0305
+#define GL_DST_COLOR 0x0306
+#define GL_ONE_MINUS_DST_COLOR 0x0307
+#define GL_SRC_ALPHA_SATURATE 0x0308
+#define GL_FRONT 0x0404
+#define GL_BACK 0x0405
+#define GL_FRONT_AND_BACK 0x0408
+#define GL_CW 0x0900
+#define GL_CCW 0x0901
+#define GL_CULL_FACE 0x0B44
+#define GL_DEPTH_TEST 0x0B71
+#define GL_STENCIL_TEST 0x0B90
+#define GL_DITHER 0x0BD0
+#define GL_BLEND 0x0BE2
+#define GL_SCISSOR_TEST 0x0C11
+#define GL_UNPACK_ROW_LENGTH 0x0CF2
+#define GL_UNPACK_ALIGNMENT 0x0CF5
+#define GL_PACK_ALIGNMENT 0x0D05
+#define GL_TEXTURE_2D 0x0DE1
+#define GL_TEXTURE_BORDER_COLOR 0x1004
+#define GL_BYTE 0x1400
+#define GL_UNSIGNED_BYTE 0x1401
+#define GL_SHORT 0x1402
+#define GL_UNSIGNED_SHORT 0x1403
+#define GL_INT 0x1404
+#define GL_UNSIGNED_INT 0x1405
+#define GL_FLOAT 0x1406
+#define GL_INVERT 0x150A
+#define GL_RGBA 0x1908
+#define GL_POINT 0x1B00
+#define GL_LINE 0x1B01
+#define GL_FILL 0x1B02
+#define GL_KEEP 0x1E00
+#define GL_REPLACE 0x1E01
+#define GL_INCR 0x1E02
+#define GL_DECR 0x1E03
+#define GL_VENDOR 0x1F00
+#define GL_RENDERER 0x1F01
+#define GL_VERSION 0x1F02
+#define GL_NEAREST 0x2600
+#define GL_LINEAR 0x2601
+#define GL_NEAREST_MIPMAP_NEAREST 0x2700
+#define GL_LINEAR_MIPMAP_NEAREST 0x2701
+#define GL_NEAREST_MIPMAP_LINEAR 0x2702
+#define GL_LINEAR_MIPMAP_LINEAR 0x2703
+#define GL_TEXTURE_MAG_FILTER 0x2800
+#define GL_TEXTURE_MIN_FILTER 0x2801
+#define GL_TEXTURE_WRAP_S 0x2802
+#define GL_TEXTURE_WRAP_T 0x2803
+#define GL_REPEAT 0x2901
+#define GL_POLYGON_OFFSET_FILL 0x8037
+#define GL_ONE_MINUS_CONSTANT_COLOR 0x8002
+
+/* later versions and extensions */
 
 #define GL_BGRA 0x80E1
 #define GL_UNSIGNED_INT_8_8_8_8_REV 0x8367
@@ -78,6 +166,39 @@ typedef ptrdiff_t GLintptr;
 #define GL_FRAMEBUFFER_SRGB 0x8DB9
 
 #define HALO_GL_FUNCTIONS(X) \
+    X(void, glBindTexture, (GLenum target, GLuint texture)) \
+    X(void, glClear, (GLbitfield mask)) \
+    X(void, glClearColor, (GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha)) \
+    X(void, glClearDepth, (GLdouble depth)) \
+    X(void, glClearStencil, (GLint s)) \
+    X(void, glColorMask, (GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha)) \
+    X(void, glCullFace, (GLenum mode)) \
+    X(void, glDeleteTextures, (GLsizei n, const GLuint *textures)) \
+    X(void, glDepthFunc, (GLenum func)) \
+    X(void, glDepthMask, (GLboolean flag)) \
+    X(void, glDepthRange, (GLdouble n, GLdouble f)) \
+    X(void, glDisable, (GLenum cap)) \
+    X(void, glDrawArrays, (GLenum mode, GLint first, GLsizei count)) \
+    X(void, glDrawElements, (GLenum mode, GLsizei count, GLenum type, const void *indices)) \
+    X(void, glEnable, (GLenum cap)) \
+    X(void, glFrontFace, (GLenum mode)) \
+    X(void, glGenTextures, (GLsizei n, GLuint *textures)) \
+    X(GLenum, glGetError, (void)) \
+    X(const GLubyte *, glGetString, (GLenum name)) \
+    X(void, glPixelStorei, (GLenum pname, GLint param)) \
+    X(void, glPolygonMode, (GLenum face, GLenum mode)) \
+    X(void, glPolygonOffset, (GLfloat factor, GLfloat units)) \
+    X(void, glReadPixels, (GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, void *pixels)) \
+    X(void, glScissor, (GLint x, GLint y, GLsizei width, GLsizei height)) \
+    X(void, glStencilFunc, (GLenum func, GLint ref, GLuint mask)) \
+    X(void, glStencilMask, (GLuint mask)) \
+    X(void, glStencilOp, (GLenum fail, GLenum zfail, GLenum zpass)) \
+    X(void, glTexImage2D, (GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void *pixels)) \
+    X(void, glTexParameterf, (GLenum target, GLenum pname, GLfloat param)) \
+    X(void, glTexParameterfv, (GLenum target, GLenum pname, const GLfloat *params)) \
+    X(void, glTexParameteri, (GLenum target, GLenum pname, GLint param)) \
+    X(void, glTexSubImage2D, (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void *pixels)) \
+    X(void, glViewport, (GLint x, GLint y, GLsizei width, GLsizei height)) \
     X(void, glActiveTexture, (GLenum texture)) \
     X(GLuint, glCreateShader, (GLenum type)) \
     X(void, glShaderSource, (GLuint shader, GLsizei count, const GLchar *const *string, const GLint *length)) \
@@ -137,7 +258,7 @@ typedef ptrdiff_t GLintptr;
     X(void, glGenVertexArrays, (GLsizei n, GLuint *arrays)) \
     X(void, glBindVertexArray, (GLuint array))
 
-#define HALO_GL_DECLARE(ret, name, args) extern ret(APIENTRY *name) args;
+#define HALO_GL_DECLARE(ret, name, args) extern ret(HALO_GL_APIENTRY *name) args;
 HALO_GL_FUNCTIONS(HALO_GL_DECLARE)
 #undef HALO_GL_DECLARE
 

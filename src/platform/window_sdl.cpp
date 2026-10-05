@@ -448,6 +448,17 @@ bool gl_context_create(window_handle window)
     return context != nullptr && SDL_GL_MakeCurrent(g_window, context) == 0;
 }
 
+void gl_drawable_size(window_handle window, uint32_t *width, uint32_t *height)
+{
+    int w = 0;
+    int h = 0;
+
+    (void)window;
+    SDL_GL_GetDrawableSize(g_window, &w, &h);
+    *width = (uint32_t)w;
+    *height = (uint32_t)h;
+}
+
 void gl_swap(window_handle window)
 {
     (void)window;

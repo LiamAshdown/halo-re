@@ -8,6 +8,8 @@
 #include "gl_internal.hpp"
 #include "halo/shell/standalone.hpp"
 #include "halo/platform/window.hpp"
+#include "halo/platform/time.hpp"
+#include "halo/platform/system.hpp"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -74,9 +76,9 @@ void frame_presented()
 
         return value != nullptr ? static_cast<uint32_t>(atoi(value)) : 38000u;
     }();
-    static const DWORD started = GetTickCount();
+    static const uint32_t started = halo::platform::tick_milliseconds();
 
-    if (automatic && g_trace_frame == 0 && g_programmable_draws >= 45 && GetTickCount() - started >= not_before_ms) {
+    if (automatic && g_trace_frame == 0 && g_programmable_draws >= 45 && halo::platform::tick_milliseconds() - started >= not_before_ms) {
         g_trace_frame = g_frame_number + 2;
         g_trace_budget = 100000;
         halo::shell::standalone_log("gl: probe armed for frame %u", g_trace_frame);
@@ -285,7 +287,7 @@ gl_surface *make_level_surface(gl_texture *texture, uint32_t face, uint32_t leve
     return surface;
 }
 
-bool create_context(HWND window)
+bool create_context(void *window)
 {
     g_state.window = window;
     if (!halo::platform::gl_context_create(window)) {
@@ -293,9 +295,11 @@ bool create_context(HWND window)
         return false;
     }
     g_state.context = window;
-    halo::shell::standalone_log("gl: context ready, %s / %s / %s", reinterpret_cast<const char *>(glGetString(GL_VENDOR)),
-        reinterpret_cast<const char *>(glGetString(GL_RENDERER)), reinterpret_cast<const char *>(glGetString(GL_VERSION)));
     g_state.modern = gl_load_api();
+    if (glGetString != nullptr) {
+        halo::shell::standalone_log("gl: context ready, %s / %s / %s", reinterpret_cast<const char *>(glGetString(GL_VENDOR)),
+            reinterpret_cast<const char *>(glGetString(GL_RENDERER)), reinterpret_cast<const char *>(glGetString(GL_VERSION)));
+    }
     if (!g_state.modern) {
         halo::shell::standalone_log("gl: this driver lacks OpenGL 3 entry points; drawing is disabled");
     } else {
@@ -382,9 +386,52 @@ int32_t GlDevice::reset(d3d_arg present_parameters)
     return 0;
 }
 
+/**
+ * HALO_GL_SNAPSHOT=ms[,ms...]: writes the back buffer to gl_snapshot_<ms>.ppm beside the executable at the first present after each time
+ * (milliseconds since the first present), for checking frames without a screen capture.
+ */
+void snapshot_back_buffer()
+{
+    static const char *times = getenv("HALO_GL_SNAPSHOT");
+    static const uint32_t started = halo::platform::tick_milliseconds();
+    uint32_t elapsed = halo::platform::tick_milliseconds() - started;
+    char name[600];
+    char *slash;
+    FILE *file;
+    uint8_t *pixels;
+    uint32_t width;
+    uint32_t height;
+
+    if (times == nullptr || *times == '\0' || elapsed < static_cast<uint32_t>(atoi(times)) || g_state.window == nullptr) {
+        return;
+    }
+    halo::platform::gl_drawable_size(g_state.window, &width, &height);
+    halo::platform::executable_path(name, 512);
+    slash = strrchr(name, '/') > strrchr(name, 92) ? strrchr(name, '/') : strrchr(name, 92);  // 92: backslash
+    snprintf(slash != nullptr ? slash + 1 : name, 64, "gl_snapshot_%u.ppm", static_cast<uint32_t>(atoi(times)));
+    times = strchr(times, ',') != nullptr ? strchr(times, ',') + 1 : "";
+    pixels = static_cast<uint8_t *>(malloc(width * height * 4));
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
+    glReadPixels(0, 0, static_cast<GLsizei>(width), static_cast<GLsizei>(height), GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+    file = fopen(name, "wb");
+    if (file != nullptr) {
+        fprintf(file, "P6\n%u %u\n255\n", width, height);
+        for (uint32_t y = height; y-- > 0;) {
+            for (uint32_t x = 0; x < width; x++) {
+                fwrite(pixels + (y * width + x) * 4, 1, 3, file);
+            }
+        }
+        fclose(file);
+        halo::shell::standalone_log("gl: wrote %s", name);
+    }
+    free(pixels);
+}
+
 int32_t GlDevice::present(d3d_arg, d3d_arg, d3d_arg, d3d_arg)
 {
     if (g_state.context != nullptr) {
+        snapshot_back_buffer();
         halo::platform::gl_swap(g_state.window);
     }
     g_frame_number++;
@@ -395,8 +442,8 @@ int32_t GlDevice::present(d3d_arg, d3d_arg, d3d_arg, d3d_arg)
 int32_t GlDevice::create_device(d3d_arg, uint32_t, uint32_t, d3d_arg focus_window, uint32_t, d3d_arg present_parameters, d3d_arg out_device)
 {
     const uint32_t *parameters = static_cast<const uint32_t *>(present_parameters.get());
-    HWND window = parameters != nullptr && parameters[7] != 0 ? reinterpret_cast<HWND>(static_cast<uintptr_t>(parameters[7]))
-                                                              : reinterpret_cast<HWND>(focus_window.get());
+    void *window = parameters != nullptr && parameters[7] != 0 ? reinterpret_cast<void *>(static_cast<uintptr_t>(parameters[7]))
+                                                               : focus_window.get();
 
     if (parameters != nullptr) {
         g_state.width = parameters[0];

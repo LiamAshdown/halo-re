@@ -11,6 +11,8 @@
 
 #include <mojoshader.h>
 
+#include <stdlib.h>
+
 namespace halo::rasterizer::gl {
 
 constexpr uint32_t k_magic = 0x424f4c47;  // "GLOB"
@@ -110,7 +112,7 @@ struct gl_query : gl_object {
 };
 
 struct device_state {
-    HWND window;
+    void *window;  // the platform window (halo::platform::window_handle)
     void *context;  // non-null once the platform made the window's OpenGL context current
     uint32_t width;
     uint32_t height;
