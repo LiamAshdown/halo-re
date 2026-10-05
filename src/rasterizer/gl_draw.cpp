@@ -303,6 +303,8 @@ void set_defaults()
 
 namespace {
 
+void webgl_issue(const char *format, ...);
+
 GLenum texture_target(const gl_texture *texture)
 {
     return texture->kind == kind_cube_texture ? GL_TEXTURE_CUBE_MAP : texture->kind == kind_volume_texture ? GL_TEXTURE_3D : GL_TEXTURE_2D;
@@ -497,6 +499,9 @@ void apply_sampler(gl_texture *texture, uint32_t unit)
         min_filter = linear_min ? GL_LINEAR_MIPMAP_NEAREST : GL_NEAREST_MIPMAP_NEAREST;
     }
     mag_filter = state[SAMP_MAGFILTER] >= 2 ? GL_LINEAR : GL_NEAREST;
+    if ((texture->format == 114 || texture->format == 115 || texture->format == 116) && (linear_min || mag_filter == GL_LINEAR)) {
+        webgl_issue("linear filtering of 32-bit float texture format %u (needs OES_texture_float_linear)", texture->format);
+    }
     glTexParameteri(target, GL_TEXTURE_MIN_FILTER, static_cast<GLint>(min_filter));
     glTexParameteri(target, GL_TEXTURE_MAG_FILTER, static_cast<GLint>(mag_filter));
     glTexParameteri(target, GL_TEXTURE_WRAP_S, static_cast<GLint>(wrap_mode(state[SAMP_ADDRESSU])));
@@ -2129,6 +2134,47 @@ void upload_uniforms(program *p, const draw_setup &setup, float viewport_width, 
     }
 }
 
+/**
+ * HALO_GL_WEBGL_CHECKS=1: logs (once each) what desktop GL allows but WebGL 2 rejects at draw time, so it shows up in
+ * native runs: sampling the render target being drawn (a feedback loop), vertex attributes not aligned to their
+ * component size, and linear filtering of 32-bit float textures (needs OES_texture_float_linear).
+ */
+void webgl_issue(const char *format, ...)
+{
+    static const bool enabled = getenv("HALO_GL_WEBGL_CHECKS") != nullptr;
+    static uint64_t seen[256];
+    static uint32_t seen_count;
+    char text[256];
+    va_list args;
+    uint64_t hash;
+
+    if (!enabled) {
+        return;
+    }
+    va_start(args, format);
+    vsnprintf(text, sizeof(text), format, args);
+    va_end(args);
+    hash = hash_words(reinterpret_cast<const uint32_t *>(text), strlen(text) / 4);
+    for (uint32_t i = 0; i < seen_count; i++) {
+        if (seen[i] == hash) return;
+    }
+    if (seen_count < 256) {
+        seen[seen_count++] = hash;
+    }
+    halo::shell::standalone_log("gl webgl: %s", text);
+}
+
+void check_feedback(uint32_t unit)
+{
+    const gl_texture *texture = static_cast<const gl_texture *>(g_pipe.texture[unit]);
+
+    if (texture != nullptr && texture->framebuffer != 0 && texture->framebuffer == g_bound_framebuffer) {
+        webgl_issue("feedback loop: unit %u samples the bound render target (format %u %ux%u, vs %u ps %u)", unit, texture->format,
+            texture->width, texture->height, g_pipe.vertex_shader != nullptr ? g_pipe.vertex_shader->id : 0,
+            g_pipe.pixel_shader != nullptr ? g_pipe.pixel_shader->id : 0);
+    }
+}
+
 void bind_textures(const draw_setup &setup)
 {
     const gl_shader *ps = g_pipe.pixel_shader;
@@ -2140,12 +2186,14 @@ void bind_textures(const draw_setup &setup)
 
             if (sampler.index >= 0 && sampler.index < 16) {
                 bind_texture_unit(static_cast<uint32_t>(sampler.index), wanted);
+                check_feedback(static_cast<uint32_t>(sampler.index));
             }
         }
     } else {
         for (uint32_t i = 0; i < setup.ff_ps.stage_count; i++) {
             if (setup.ff_ps.has_texture[i]) {
                 bind_texture_unit(i, setup.ff_ps.sampler_kind[i] == 1 ? GL_TEXTURE_CUBE_MAP : setup.ff_ps.sampler_kind[i] == 2 ? GL_TEXTURE_3D : GL_TEXTURE_2D);
+                check_feedback(i);
             }
         }
     }
@@ -2255,6 +2303,15 @@ void draw_geometry(uint32_t type, int32_t base_vertex, uint32_t vertex_count, ui
         }
         if (e.type == 4) {
             bgra_slots |= 1 << slot;
+        }
+        {
+            uint32_t component = format.type == GL_FLOAT || format.type == 0x8368 || format.type == 0x8D9F ? 4
+                               : format.type == GL_SHORT || format.type == GL_UNSIGNED_SHORT || format.type == k_gl_half_float ? 2 : 1;
+
+            if (offset % component != 0 || stride % component != 0) {
+                webgl_issue("vertex attribute slot %d type %u at offset %u stride %u is not %u-byte aligned", slot, e.type,
+                    static_cast<uint32_t>(offset), stride, component);
+            }
         }
         glEnableVertexAttribArray(static_cast<GLuint>(slot));
         glVertexAttribPointer(static_cast<GLuint>(slot), format.size, format.type, format.normalized, static_cast<GLsizei>(stride), reinterpret_cast<const void *>(offset));
