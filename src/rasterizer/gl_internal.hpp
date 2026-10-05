@@ -173,6 +173,19 @@ void note_programmable_draw();
 void frame_presented();
 void trace_draw(const char *name, uint32_t type, uint32_t count);
 
+/* gl_essl.cpp */
+struct essl_attribute {
+    const char *name;
+    int slot;
+};
+/**
+ * GLSL 1.10 source as GLSL ES 3.00 (malloc'd). A vertex stage gets the attributes' slots (vec4 attributes are declared as
+ * <name>_raw and swizzled by the u_bgra slot mask) and the fragment stage's inputs to declare as outputs; a fragment stage
+ * returns its inputs ("vec4 io_5_0;" lines, malloc'd) through fragment_inputs.
+ */
+char *essl_from_glsl(const char *source, bool vertex, const essl_attribute *attributes, uint32_t attribute_count, const char *required_outputs,
+    char **fragment_inputs);
+
 /* gl_draw.cpp */
 void draw_init();
 void draw_shutdown_object(gl_object *object);

@@ -863,6 +863,7 @@ struct program {
     GLint wvp;               // u_wvp
     GLint world_view;        // u_world_view
     GLint rhw_scale;         // u_rhw_scale
+    GLint bgra;              // u_bgra: attribute slots holding D3DCOLOR (B, G, R, A bytes)
     GLint texture_factor;    // u_texture_factor
     GLint constant_color[8]; // u_constant[i]
     GLint texture_matrix[8]; // u_texmat[i]
@@ -1248,39 +1249,70 @@ program *add_program()
     return &g_programs[g_program_count++];
 }
 
-void bind_attribute_names(GLuint prog, const MOJOSHADER_parseData *parse)
+/** The vertex attributes of a program and their slots: the translated shader's, or the fixed-function stage's. */
+uint32_t program_attributes(const MOJOSHADER_parseData *parse, essl_attribute *out, char (*names)[24])
 {
-    for (int i = 0; i < parse->attribute_count; i++) {
-        // vs_1_x registers are declared too (dcl_texcoord1 v8, ...): Direct3D 9 matches them to declaration elements by usage
-        int slot = attribute_slot(static_cast<uint32_t>(parse->attributes[i].usage), static_cast<uint32_t>(parse->attributes[i].index));
+    uint32_t count = 0;
 
-        if (slot >= 0) {
-            glBindAttribLocation(prog, static_cast<GLuint>(slot), parse->attributes[i].name);
+    if (parse != nullptr) {
+        for (int i = 0; i < parse->attribute_count && count < 32; i++) {
+            // vs_1_x registers are declared too (dcl_texcoord1 v8, ...): Direct3D 9 matches them to declaration elements by usage
+            int slot = attribute_slot(static_cast<uint32_t>(parse->attributes[i].usage), static_cast<uint32_t>(parse->attributes[i].index));
+
+            if (slot >= 0) {
+                out[count++] = {parse->attributes[i].name, slot};
+            }
         }
+        return count;
     }
+    out[count++] = {"a_position", 0};
+    out[count++] = {"a_normal", 3};
+    out[count++] = {"a_color0", 4};
+    out[count++] = {"a_color1", 5};
+    for (int i = 0; i < 8; i++) {
+        snprintf(names[i], sizeof(names[i]), "a_texcoord%d", i);
+        out[count++] = {names[i], 6 + i};
+    }
+    return count;
 }
 
-void bind_ff_attribute_names(GLuint prog)
+void bind_attribute_names(GLuint prog, const essl_attribute *attributes, uint32_t count)
 {
-    glBindAttribLocation(prog, 0, "a_position");
-    glBindAttribLocation(prog, 3, "a_normal");
-    glBindAttribLocation(prog, 4, "a_color0");
-    glBindAttribLocation(prog, 5, "a_color1");
-    for (int i = 0; i < 8; i++) {
-        char name[24];
+    for (uint32_t i = 0; i < count; i++) {
+        char name[64];
 
-        snprintf(name, sizeof(name), "a_texcoord%d", i);
-        glBindAttribLocation(prog, static_cast<GLuint>(6 + i), name);
+        snprintf(name, sizeof(name), "%s_raw", attributes[i].name);  // essl_from_glsl's name for the attribute input
+        glBindAttribLocation(prog, static_cast<GLuint>(attributes[i].slot), name);
     }
 }
 
 void finish_program(program *p, const gl_shader *vs, const gl_shader *ps, const char *vertex_source, const char *pixel_source, const ff_vertex_state *ff_vs,
     const ff_pixel_state *ff_ps)
 {
-    GLuint vertex = compile_stage(GL_VERTEX_SHADER, vertex_source, "vertex shader");
-    GLuint fragment = compile_stage(GL_FRAGMENT_SHADER, pixel_source, "pixel shader");
+    essl_attribute attributes[32];
+    char ff_names[8][24];
+    uint32_t attribute_count = program_attributes(vs != nullptr ? vs->parse : nullptr, attributes, ff_names);
+    char *fragment_inputs = nullptr;
+    char *pixel_es = essl_from_glsl(pixel_source, false, nullptr, 0, nullptr, &fragment_inputs);
+    char *vertex_es = essl_from_glsl(vertex_source, true, attributes, attribute_count, fragment_inputs, nullptr);
+    GLuint vertex = compile_stage(GL_VERTEX_SHADER, vertex_es, "vertex shader");
+    GLuint fragment = compile_stage(GL_FRAGMENT_SHADER, pixel_es, "pixel shader");
     GLint status = 0;
 
+    if (trace_enabled_for_programs()) {
+        char name[260];
+        FILE *dump;
+
+        snprintf(name, sizeof(name), "%sgl_prog_vs%u_ps%u_es.txt", getenv("HALO_GL_PROGRAMS"), vs != nullptr ? vs->id : 0, ps != nullptr ? ps->id : 0);
+        dump = fopen(name, "wb");
+        if (dump != nullptr) {
+            fprintf(dump, "--- vertex\n%s\n--- pixel\n%s", vertex_es, pixel_es);
+            fclose(dump);
+        }
+    }
+    free(fragment_inputs);
+    free(pixel_es);
+    free(vertex_es);
     (void)ff_vs;
     (void)ff_ps;
     p->vertex_shader = vs;
@@ -1291,11 +1323,7 @@ void finish_program(program *p, const gl_shader *vs, const gl_shader *ps, const 
     p->name = glCreateProgram();
     glAttachShader(p->name, vertex);
     glAttachShader(p->name, fragment);
-    if (vs != nullptr && vs->parse != nullptr) {
-        bind_attribute_names(p->name, vs->parse);
-    } else {
-        bind_ff_attribute_names(p->name);
-    }
+    bind_attribute_names(p->name, attributes, attribute_count);
     glLinkProgram(p->name);
     glDeleteShader(vertex);
     glDeleteShader(fragment);
@@ -1318,6 +1346,7 @@ void finish_program(program *p, const gl_shader *vs, const gl_shader *ps, const 
     p->wvp = glGetUniformLocation(p->name, "u_wvp");
     p->world_view = glGetUniformLocation(p->name, "u_world_view");
     p->rhw_scale = glGetUniformLocation(p->name, "u_rhw_scale");
+    p->bgra = glGetUniformLocation(p->name, "u_bgra");
     p->texture_factor = glGetUniformLocation(p->name, "u_texture_factor");
     p->world = glGetUniformLocation(p->name, "u_world");
     p->eye = glGetUniformLocation(p->name, "u_eye");
@@ -1582,7 +1611,7 @@ bool attribute_format_for(uint32_t type, attribute_format *out)
     case 1: *out = {2, GL_FLOAT, GL_FALSE}; return true;
     case 2: *out = {3, GL_FLOAT, GL_FALSE}; return true;
     case 3: *out = {4, GL_FLOAT, GL_FALSE}; return true;
-    case 4: *out = {GL_BGRA, GL_UNSIGNED_BYTE, GL_TRUE}; return true;
+    case 4: *out = {4, GL_UNSIGNED_BYTE, GL_TRUE}; return true;  // D3DCOLOR: the shader swaps B and R (u_bgra)
     case 5: *out = {4, GL_UNSIGNED_BYTE, GL_FALSE}; return true;
     case 6: *out = {2, GL_SHORT, GL_FALSE}; return true;
     case 7: *out = {4, GL_SHORT, GL_FALSE}; return true;
@@ -2126,6 +2155,7 @@ void draw_geometry(uint32_t type, int32_t base_vertex, uint32_t vertex_count, ui
     program *p;
     uint32_t used_streams = 0;
     uint32_t enabled_now = 0;
+    int bgra_slots = 0;
     uint32_t index_size = index_format == 102 ? 4 : 2;
     GLenum index_type = index_format == 102 ? GL_UNSIGNED_INT : GL_UNSIGNED_SHORT;
     uint32_t stream_stride_override;
@@ -2212,6 +2242,9 @@ void draw_geometry(uint32_t type, int32_t base_vertex, uint32_t vertex_count, ui
             offset = static_cast<uintptr_t>(g_pipe.stream_offset[e.stream]) + e.offset
                 + static_cast<uintptr_t>(static_cast<int64_t>(base_vertex + static_cast<int32_t>(start_vertex)) * static_cast<int64_t>(stride));
         }
+        if (e.type == 4) {
+            bgra_slots |= 1 << slot;
+        }
         glEnableVertexAttribArray(static_cast<GLuint>(slot));
         glVertexAttribPointer(static_cast<GLuint>(slot), format.size, format.type, format.normalized, static_cast<GLsizei>(stride), reinterpret_cast<const void *>(offset));
         enabled_now |= 1u << slot;
@@ -2224,6 +2257,9 @@ void draw_geometry(uint32_t type, int32_t base_vertex, uint32_t vertex_count, ui
         }
     }
     g_enabled_attributes = enabled_now;
+    if (p->bgra >= 0) {
+        glUniform1i(p->bgra, bgra_slots);
+    }
 
     if (indexed) {
         const void *offset;
