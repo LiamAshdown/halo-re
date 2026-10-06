@@ -10,14 +10,19 @@
  * Hosting and joining: while a single-player campaign level runs with co-op switched on (the CO-OP row of Choose
  * Difficulty, src/interface/coop_option.cpp), the game is open for co-op. It answers the server
  * browser's search (GameSpy qr2 on k_query_port) as a "Co-op" row with the level and one of two players; picking the
- * row (join_from_browser) sends the host HELLO. The host answers WELCOME with the level and difficulty, and both start
- * that level from its beginning (a joiner cannot yet take over a level in progress).
+ * row (join_from_browser) sends the host HELLO. The host takes a snapshot of its game state between two frames and makes
+ * both machines start from it: it applies the snapshot to itself (the after-load callbacks a revert runs), answers
+ * WELCOME, and streams the snapshot in STATE chunks; the joiner loads the level, applies the snapshot the same way and
+ * resumes at its tick. Both then add the joiner's player, dead, so the co-op respawn brings it in beside the host.
  * For testing in one browser: -coop host starts b30 by itself, -coop join broadcasts HELLO to whichever host answers,
  * and -coop list is a second game (own profile, see web/shell.html) that joins through the server browser.
  *
  * Transport (web build): UDP on k_port over the page server's virtual LAN. Messages start with u32 magic, u8 type,
  * u8 slot, u16 epoch; the epoch counts level starts and reverts, so actions from before one are ignored after it.
- *   WELCOME u8 player count, i16 difficulty, the level path (NUL terminated)
+ *   WELCOME u8 player count, i16 difficulty, the level path (NUL terminated), then the snapshot: i32 tick, u32 size,
+ *           u32 game seed, u32 simulation effect seed, i32 camera script end tick, u16 epoch
+ *   STATE   u16 chunk index, the chunk (k_chunk_size bytes, the last one shorter)
+ *   STATE_ACK i32 chunks received in order
  *   INPUT   i32 ack (the last contiguous tick received from the receiver), i32 first tick, u8 count, count actions
  *   HASH    i32 tick, u32 hash
  */
@@ -25,6 +30,7 @@
 #include "halo/game/api.hpp"
 #include "halo/game/lockstep.hpp"
 #include "halo/game/records.hpp"
+#include "halo/saved_games/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/game1_local_control.hpp"
 #include "halo/main/api.hpp"
@@ -71,7 +77,7 @@ constexpr int32_t k_hash_interval = 30;
 constexpr int32_t k_hash_ring = 64;
 constexpr int32_t k_actions_per_packet = 64;
 constexpr uint32_t k_peer_timeout_ms = 10000;          // nothing from the partner this long: carry on without them
-constexpr uint32_t k_peer_loading_timeout_ms = 120000; // before their first action of a level (they may be downloading it)
+constexpr uint32_t k_peer_loading_timeout_ms = 300000; // before their first action of a level (they may be downloading its map)
 constexpr char k_test_level[] = "levels\\b30\\b30";
 constexpr uint32_t k_skip_cinematic_flag = 0x80000000u;  // in player_action::control_flags; units use the low 16 bits
 constexpr uint32_t k_held_control_flags_mask = 0x4d0;    // UpdateClient::queue_apply_tick: these act on the press only
@@ -81,7 +87,9 @@ constexpr uint32_t k_restart_flag = 0x10000000u;         // menu: restart the le
 constexpr uint32_t k_lockstep_flags = k_skip_cinematic_flag | k_back_flag | k_revert_flag | k_restart_flag;
 constexpr char k_coop_gametype[] = "Co-op";
 
-enum : uint8_t { k_hello = 1, k_welcome = 2, k_input = 3, k_hash = 4 };
+enum : uint8_t { k_hello = 1, k_welcome = 2, k_input = 3, k_hash = 4, k_state = 5, k_state_ack = 6 };
+constexpr uint32_t k_chunk_size = 8000;     // under the page server's 8 KB datagram limit
+constexpr int32_t k_chunks_per_frame = 6;   // ~3 MB/s at 60 frames: inside the page server's per-page rate
 enum class role { none, host, joiner };
 
 struct session {
@@ -116,6 +124,18 @@ struct session {
     int32_t desyncs = 0;
     int16_t difficulty = 0;
     char level[0x100] = {};
+
+    // the snapshot a join starts from: the host sends it, the joiner receives it
+    uint8_t *snapshot = nullptr;
+    uint32_t snapshot_size = 0;
+    int32_t snapshot_chunks_done = 0;  // host: chunks the joiner has in order; joiner: chunks received in order
+    int32_t snapshot_tick = 0;
+    uint32_t snapshot_game_seed = 0;
+    uint32_t snapshot_effect_seed = 0;
+    int32_t snapshot_camera_end_tick = 0;
+    bool awaiting_snapshot = false;    // joiner: connected, but the game it joins has not been applied yet
+    int32_t snapshot_chunks_sent = 0;  // host: chunks sent so far (a window ahead of what the joiner has)
+    uint32_t snapshot_progress_ms = 0; // host: when the joiner last acknowledged more
     bool skip_pressed = false;  // a local cinematic skip waiting for the next stamped action
     uint32_t menu_request = 0;  // k_revert_flag / k_restart_flag waiting for the next stamped action
     bool peer_lost = false;     // the partner left: their player stands idle and nothing is sent
@@ -134,6 +154,7 @@ auto &profile_globals_block = halo::link::ref<saved_player_profile_slot [k_maxim
 auto &pending_difficulty = halo::link::ref<int16_t>(halo::ui::vars().pending_difficulty);
 auto &split_screen_quit_prompt_string = halo::link::ref<uint16_t>(halo::ui::vars().split_screen_quit_prompt_string);
 random_seed g_tick_effect_seed;  // halo::math::simulation_effect_seed under lockstep
+int32_t g_camera_script_end_tick;
 
 int32_t game_tick()
 {
@@ -226,6 +247,56 @@ void reset_actions(int32_t start_tick)
         g.my_hash_tick[i] = -1;
         g.their_hash_tick[i] = -1;
     }
+}
+
+int32_t snapshot_chunk_count()
+{
+    return static_cast<int32_t>((g.snapshot_size + k_chunk_size - 1) / k_chunk_size);
+}
+
+/** The joining player, added on both machines right after the snapshot: dead, so the co-op respawn places it. */
+void add_joining_player(bool local)
+{
+    datum_index player = halo::game::player_new_network(k_datum_index_none, 0, local ? 0 : -1, 0);
+
+    if (player != k_datum_index_none) {
+        halo::game::player_at(player)->deaths = 1;
+        if (local) {
+            halo::game::globals().local_player_globals->local_players[0] = player;
+        }
+    }
+}
+
+/** What both machines do once the snapshot is the game state: the streams, the tick, and the joining player. */
+void start_from_snapshot(bool joiner)
+{
+    halo::math::globals().random_seed_global = g.snapshot_game_seed;
+    g_tick_effect_seed = g.snapshot_effect_seed;
+    g_camera_script_end_tick = g.snapshot_camera_end_tick;
+    if (joiner) {
+        // the snapshot is the host's view: its player was the local one
+        datum_index *local_players = halo::game::globals().local_player_globals->local_players;
+
+        if (local_players[0] != k_datum_index_none) {
+            halo::game::player_at(local_players[0])->local_player_index = -1;
+            local_players[0] = k_datum_index_none;
+        }
+        halo::game::globals().player_control->local_players[0].unit = k_datum_index_none;
+    }
+    reset_actions(g.snapshot_tick);
+    add_joining_player(joiner);
+    printf("lockstep: playing together from tick %d\n", g.snapshot_tick);
+}
+
+/** The host only lets a player in when nothing the main loop acts on between frames is pending. */
+bool join_allowed()
+{
+    const main_globals &main = halo::main::globals().main_globals;
+
+    return main.lost_map == 0 && main.won_map == 0 && main.revert_map == 0 && main.revert_map_if_allowed == 0 &&
+        main.reset_map == 0 && main.level_transition == 0 && main.save_map == 0 && main.save_map_write_pending == 0 &&
+        main.respawn_coop_players == 0 && main.switch_structure_bsp_index == -1 &&
+        halo::game::globals().game_time->initialized != 0;
 }
 
 #if defined(__EMSCRIPTEN__)
@@ -523,6 +594,12 @@ void pump()
 
         if (type == k_hello && g.kind == role::host) {
             if (!g.connected) {
+                uint32_t size = 0;
+                const uint8_t *live = halo::saved_games::game_state_snapshot_bytes(&size);
+
+                if (!join_allowed() || (g.snapshot = static_cast<uint8_t *>(malloc(size))) == nullptr) {
+                    continue;  // the joiner asks again shortly
+                }
                 g.connected = true;
                 g.peer_address = from.sin_addr.s_addr;
                 g.peer_port = from.sin_port;
@@ -530,27 +607,93 @@ void pump()
                 g.local_slot = 0;
                 g.difficulty = halo::main::globals().game_globals->difficulty;
                 strncpy(g.level, halo::main::globals().main_globals.scenario_path, sizeof(g.level) - 1);
+
+                memcpy(g.snapshot, live, size);
+                g.snapshot_size = size;
+                g.snapshot_chunks_done = 0;
+                g.snapshot_chunks_sent = 0;
+                g.snapshot_progress_ms = halo::platform::tick_milliseconds();
+                g.snapshot_tick = game_tick();
+                g.snapshot_game_seed = halo::math::globals().random_seed_global;
+                g.snapshot_effect_seed = g_tick_effect_seed;
+                g.snapshot_camera_end_tick = g_camera_script_end_tick;
+                g.epoch++;
+                // the host starts from the snapshot too, so both machines have run the same after-load callbacks
+                halo::saved_games::game_state_apply_snapshot(g.snapshot);
+                start_from_snapshot(false);
             }
             if (from.sin_addr.s_addr == g.peer_address) {
-                uint8_t reply[16 + sizeof(g.level)];
+                uint8_t reply[48 + sizeof(g.level)];
                 uint8_t *at = header(reply, k_welcome, 1);
                 uint8_t players = static_cast<uint8_t>(g.player_count);
 
                 put(at, &players, 1);
                 put(at, &g.difficulty, 2);
                 put(at, g.level, strlen(g.level) + 1);
+                put(at, &g.snapshot_tick, 4);
+                put(at, &g.snapshot_size, 4);
+                put(at, &g.snapshot_game_seed, 4);
+                put(at, &g.snapshot_effect_seed, 4);
+                put(at, &g.snapshot_camera_end_tick, 4);
+                put(at, &g.epoch, 2);
                 send_to(g.peer_address, g.peer_port, reply, at - reply);
-                queue_level(g.level, g.difficulty);
             }
-        } else if (type == k_welcome && g.kind == role::joiner && !g.connected && size >= 12 && buffer[size - 1] == 0) {
+        } else if (type == k_welcome && g.kind == role::joiner && !g.connected && size >= 12) {
+            const uint8_t *end = buffer + size;
+            const uint8_t *level = buffer + 11;
+            const uint8_t *nul = static_cast<const uint8_t *>(memchr(level, 0, end - level));
+
+            if (nul == nullptr || end - (nul + 1) < 22) {
+                continue;
+            }
+            const uint8_t *at = nul + 1;
+            uint32_t snapshot_size;
+
+            memcpy(&snapshot_size, at + 4, 4);
+            if (snapshot_size == 0 || snapshot_size > (64u << 20) || (g.snapshot = static_cast<uint8_t *>(malloc(snapshot_size))) == nullptr) {
+                continue;
+            }
             g.connected = true;
             g.peer_address = from.sin_addr.s_addr;
             g.peer_port = from.sin_port;
             g.local_slot = slot;
             g.player_count = buffer[8];
             memcpy(&g.difficulty, buffer + 9, 2);
-            strncpy(g.level, reinterpret_cast<char *>(buffer + 11), sizeof(g.level) - 1);
+            strncpy(g.level, reinterpret_cast<const char *>(level), sizeof(g.level) - 1);
+            memcpy(&g.snapshot_tick, at, 4);
+            g.snapshot_size = snapshot_size;
+            memcpy(&g.snapshot_game_seed, at + 8, 4);
+            memcpy(&g.snapshot_effect_seed, at + 12, 4);
+            memcpy(&g.snapshot_camera_end_tick, at + 16, 4);
+            memcpy(&g.epoch, at + 20, 2);
+            g.snapshot_chunks_done = 0;
+            g.awaiting_snapshot = true;
+            printf("lockstep: joining %s, receiving the game (%u KB)\n", g.level, snapshot_size / 1024);
             queue_level(g.level, g.difficulty);
+        } else if (type == k_state && g.awaiting_snapshot && from.sin_addr.s_addr == g.peer_address && epoch == g.epoch &&
+                   size >= 10) {
+            uint16_t index;
+
+            memcpy(&index, buffer + 8, 2);
+            if (index == g.snapshot_chunks_done) {
+                uint32_t offset = index * k_chunk_size;
+                uint32_t length = static_cast<uint32_t>(size - 10);
+
+                if (offset < g.snapshot_size && length <= g.snapshot_size - offset) {
+                    memcpy(g.snapshot + offset, buffer + 10, length);
+                    g.snapshot_chunks_done++;
+                }
+            }
+        } else if (type == k_state_ack && g.kind == role::host && g.snapshot != nullptr && from.sin_addr.s_addr == g.peer_address &&
+                   epoch == g.epoch && size >= 12) {
+            int32_t done;
+
+            memcpy(&done, buffer + 8, 4);
+            if (done > g.snapshot_chunks_done) {
+                g.snapshot_chunks_done = done;
+                g.snapshot_progress_ms = halo::platform::tick_milliseconds();
+            }
+            g.last_heard_ms = halo::platform::tick_milliseconds();
         } else if (g.connected && from.sin_addr.s_addr == g.peer_address && epoch == g.epoch && in_level()) {
             g.last_heard_ms = halo::platform::tick_milliseconds();
             g.heard_this_level = g.heard_this_level || type == k_input;
@@ -692,7 +835,49 @@ void frame_begin()
     }
     answer_queries();
     pump();
-    if (in_level()) {
+    if (g.kind == role::host && g.snapshot != nullptr) {
+        // a window of chunks ahead of what the joiner has, each sent once; resent from what it has when nothing moves
+        // for half a second (a joiner still loading the level reads nothing, and must not find a pile of repeats)
+        int32_t count = snapshot_chunk_count();
+        uint32_t now_ms = halo::platform::tick_milliseconds();
+
+        if (g.snapshot_chunks_sent < g.snapshot_chunks_done || now_ms - g.snapshot_progress_ms > 500) {
+            g.snapshot_chunks_sent = g.snapshot_chunks_done;
+            g.snapshot_progress_ms = now_ms;
+        }
+        for (int32_t i = g.snapshot_chunks_sent; i < count && i < g.snapshot_chunks_done + k_chunks_per_frame; i++, g.snapshot_chunks_sent++) {
+            uint8_t packet[16 + k_chunk_size];
+            uint8_t *at = header(packet, k_state, 0);
+            uint16_t index = static_cast<uint16_t>(i);
+            uint32_t offset = i * k_chunk_size;
+            uint32_t length = g.snapshot_size - offset < k_chunk_size ? g.snapshot_size - offset : k_chunk_size;
+
+            put(at, &index, 2);
+            put(at, g.snapshot + offset, length);
+            send_to(g.peer_address, g.peer_port, packet, at - packet);
+        }
+        if (g.snapshot_chunks_done >= count) {
+            free(g.snapshot);
+            g.snapshot = nullptr;
+        }
+    }
+    if (g.awaiting_snapshot) {
+        uint8_t ack[16];
+        uint8_t *at = header(ack, k_state_ack, static_cast<uint8_t>(g.local_slot));
+
+        put(at, &g.snapshot_chunks_done, 4);
+        send_to(g.peer_address, g.peer_port, ack, at - ack);
+        // the level is loaded (it was queued on WELCOME) and the whole game has arrived: take it over
+        if (g.snapshot_chunks_done >= snapshot_chunk_count() && halo::main::globals().main_globals.main_menu_scenario_loaded == 0 &&
+            halo::main::globals().main_globals.level_transition == 0 && halo::game::globals().game_time->initialized != 0) {
+            halo::saved_games::game_state_apply_snapshot(g.snapshot);
+            free(g.snapshot);
+            g.snapshot = nullptr;
+            g.awaiting_snapshot = false;
+            start_from_snapshot(true);
+        }
+    }
+    if (in_level() && !g.awaiting_snapshot) {
         send_inputs();
     }
     g.frames++;
@@ -708,7 +893,7 @@ void frame_begin()
 void on_new_map(uint32_t game_seed)
 {
     g_tick_effect_seed = game_seed ^ 0x5eed5eedu;
-    if (g.connected) {
+    if (g.connected && !g.awaiting_snapshot) {  // a joiner's epoch is the host's, from WELCOME
         g.epoch++;
         reset_actions(0);
     }
@@ -807,10 +992,6 @@ bool in_tick()
     return g.in_tick;
 }
 
-namespace {
-int32_t g_camera_script_end_tick;
-}
-
 void camera_script_started(float seconds)
 {
     g_camera_script_end_tick = game_tick() + static_cast<int32_t>(seconds * 30.0f);
@@ -837,6 +1018,9 @@ int32_t schedule_ticks(int32_t wanted)
 {
     if (!in_level()) {
         return wanted;
+    }
+    if (g.awaiting_snapshot) {
+        return 0;  // the level it joins is not this one's own start but the host's snapshot, still arriving
     }
     int32_t now = game_tick();
 
@@ -984,7 +1168,7 @@ void tick_end()
 #if defined(__EMSCRIPTEN__)
     int32_t tick = game_tick();
 
-    if (in_level() && tick % k_hash_interval == 0) {
+    if (in_level() && !g.awaiting_snapshot && tick % k_hash_interval == 0) {
         int32_t index = (tick / k_hash_interval) % k_hash_ring;
         uint8_t buffer[16];
         uint8_t *at = header(buffer, k_hash, static_cast<uint8_t>(g.local_slot));

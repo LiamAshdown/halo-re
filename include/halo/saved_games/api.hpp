@@ -88,6 +88,9 @@ data_array * game_state_new(const char *name, int16_t maximum_count, int16_t ele
 memory_pool * game_state_new_pool(const char *name, int32_t pool_size);
 void * game_state_open_persistent_storage(char *name);
 void game_state_perform_revert(void);
+/** The live game state blob, and making a blob (possibly another machine's) the game state the way a revert does. */
+const uint8_t *game_state_snapshot_bytes(uint32_t *size);
+void game_state_apply_snapshot(const uint8_t *bytes);
 void game_state_perform_save(uint8_t is_checkpoint);
 uint8_t game_state_queue_write(uint8_t final_flag);
 uint8_t game_state_read_checkpoint_summary(uint8_t *corrupt_flag, int16_t *out_difficulty, char *out_scenario_name);

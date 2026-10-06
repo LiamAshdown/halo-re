@@ -701,3 +701,30 @@ uint8_t write_profile_file(int32_t size, char *name, const void *buffer)
 }
 
 }  // namespace halo::saved_games::game_state
+
+namespace halo::saved_games {
+
+/** The live game state, as a checkpoint holds it (game_state_size bytes at the fixed game-state address). */
+const uint8_t *game_state_snapshot_bytes(uint32_t *size)
+{
+    *size = game_state_size;
+    return game_state_snapshot_source;
+}
+
+/**
+ * Makes `bytes` (a snapshot from game_state_snapshot_bytes, possibly another machine's) the game state, the way a
+ * revert does with the checkpoint file: the revert callback, the copy, then the after-load callbacks.
+ */
+void game_state_apply_snapshot(const uint8_t *bytes)
+{
+    while (game_state_write_in_progress != 0) {
+        halo::platform::sleep_milliseconds(0);
+    }
+    game_state_revert_proc();
+    if (bytes != game_state_snapshot_source) {
+        memcpy(game_state_snapshot_source, bytes, game_state_size);
+    }
+    halo::saved_games::game_state::dispatch_load_callbacks();
+}
+
+}  // namespace halo::saved_games
