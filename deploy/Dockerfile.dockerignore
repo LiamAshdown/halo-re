@@ -1,5 +1,6 @@
 *
 !tools/serve_web.py
+!tools/halo_ui_assets.py
 !build/web/halo.html
 !build/web/halo.js
 !build/web/halo.wasm

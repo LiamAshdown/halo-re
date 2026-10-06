@@ -4,6 +4,7 @@
 
   /          the web build (halo.html, halo.js, halo.wasm)
   /halo/     the Halo install, read-only, case-insensitive, with range requests
+  /halo-ui/  the game's loading-screen background, font and strings, extracted from the install
   /net       WebSocket virtual LAN (10.66.x.y) between connected pages; see src/platform/net_web.cpp
 
 Listens on 127.0.0.1 by default; put an HTTPS reverse proxy in front to host it publicly.
@@ -97,6 +98,23 @@ def build_manifest(halo_root, fx_override):
             files.append({'path': path, 'size': size})
     files.sort(key=lambda f: f['path'].lower())
     return json.dumps({'files': files}).encode()
+
+
+def ui_asset_files(halo_root):
+    """The game's own loading-screen assets for the page (background, large UI font, loading strings), or none."""
+    try:
+        import halo_ui_assets
+        assets = halo_ui_assets.extract(halo_root)
+    except Exception as error:  # the page falls back to plain text
+        print('halo-re: no UI assets for the page (%s)' % error)
+        return {}
+    font = {key: value for key, value in assets['font'].items() if key != 'atlas_png'}
+    return {
+        '/halo-ui/background.png': (assets['background_png'], 'image/png'),
+        '/halo-ui/font.png': (assets['font']['atlas_png'], 'image/png'),
+        '/halo-ui/font.json': (json.dumps(font).encode(), 'application/json'),
+        '/halo-ui/loading.json': (json.dumps(assets['loading_strings']).encode(), 'application/json'),
+    }
 
 
 def parse_range(header, size):
@@ -406,6 +424,7 @@ def main():
     Handler.virtual_files = {
         '/halo/manifest.json': (build_manifest(Handler.halo_root, Handler.fx_override), 'application/json'),
     }
+    Handler.virtual_files.update(ui_asset_files(Handler.halo_root))
 
     server = ThreadingHTTPServer((args.host, args.port), Handler)
     print('halo-re: http://%s:%d/  (Halo files from %s)' % (args.host, args.port, Handler.halo_root))

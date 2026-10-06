@@ -22,7 +22,7 @@ On the VPS:
 
 ## 2. Upload the server (after each web build)
 
-    tar -czf halo-re.tgz deploy tools/serve_web.py build/web/halo.html build/web/halo.js build/web/halo.wasm
+    tar -czf halo-re.tgz deploy tools/serve_web.py tools/halo_ui_assets.py build/web/halo.html build/web/halo.js build/web/halo.wasm
     scp halo-re.tgz root@YOUR_VPS_IP:/tmp/
 
 On the VPS (Docker installed: `curl -fsSL https://get.docker.com | sh`):

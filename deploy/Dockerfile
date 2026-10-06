@@ -3,7 +3,7 @@
 FROM python:3.13-slim
 
 WORKDIR /app
-COPY tools/serve_web.py .
+COPY tools/serve_web.py tools/halo_ui_assets.py ./
 COPY build/web/halo.html build/web/halo.js build/web/halo.wasm web/
 
 USER nobody

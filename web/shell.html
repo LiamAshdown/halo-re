@@ -5,85 +5,36 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>halo-re</title>
 <style>
-  :root {
-    --blue: #7fb2e5; --blue-bright: #cfe6ff; --blue-dim: #3d6488; --frame: #2a4a6a;
-    --font: Bahnschrift, 'DIN Alternate', 'Arial Narrow', 'Roboto Condensed', system-ui, sans-serif;
-  }
-  html, body { margin: 0; height: 100%; overflow: hidden; background: #000; color: var(--blue); font: 15px var(--font); }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #000; color: #fff; font: 14px system-ui, sans-serif; }
   /* Scale the game's fixed-size drawing buffer up to the viewport, letterboxed to keep its aspect. */
   #canvas { display: block; width: 100vw; height: 100vh; object-fit: contain; outline: none; }
-
-  /* The start and loading screens (placeholder until the game's own loading screen assets are drawn here). */
-  .screen { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #000; }
-  .menu { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 14px; min-height: 90px; }
-  #play {
-    font: inherit; font-size: 26px; letter-spacing: 0.35em; padding: 6px 0.2em 6px 0.55em; background: none; border: 0; cursor: pointer;
-    color: var(--blue); text-shadow: 0 0 10px rgba(110, 170, 240, 0.5); transition: color 0.15s, text-shadow 0.15s;
-  }
-  #play::before, #play::after { content: ''; display: inline-block; width: 0.9em; opacity: 0; transition: opacity 0.15s; }
-  #play::before { content: '\203A'; margin-right: 0.3em; }
-  #play::after { content: '\2039'; margin-left: -0.05em; }
-  #play:hover:not(:disabled), #play:focus-visible { color: var(--blue-bright); text-shadow: 0 0 16px rgba(140, 200, 255, 0.9); outline: none; }
-  #play:hover:not(:disabled)::before, #play:hover:not(:disabled)::after, #play:focus-visible::before, #play:focus-visible::after { opacity: 1; }
-  #play:disabled { color: var(--blue-dim); text-shadow: none; cursor: default; }
-  #status { font-size: 12px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--blue-dim); min-height: 1.3em; text-align: center; max-width: 90vw; }
-
-  /* Halo-style segmented progress bar: full screen while the game starts, a small panel in the corner later. */
-  #loading { display: none; pointer-events: none; }
-  #loading.active { display: flex; }
-  #loading .panel { position: relative; z-index: 1; width: min(520px, 80vw); }
-  #loading .label { display: flex; justify-content: space-between; font-size: 13px; letter-spacing: 0.3em; text-transform: uppercase; margin-bottom: 8px; }
-  #loading .bar { height: 12px; padding: 3px; border: 1px solid var(--frame); background: rgba(5, 15, 28, 0.7); box-shadow: 0 0 12px rgba(80, 140, 210, 0.15) inset; }
-  #loading .fill {
-    height: 100%; width: 0; transition: width 0.2s;
-    background: repeating-linear-gradient(90deg, var(--blue) 0 9px, transparent 9px 12px);
-    filter: drop-shadow(0 0 4px rgba(120, 180, 255, 0.6));
-  }
-  #loading.corner { inset: auto 16px 16px auto; background: rgba(3, 8, 14, 0.85); border: 1px solid var(--frame); padding: 10px 14px; }
-  #loading.corner::after { display: none; }
-  #loading.corner .panel { width: 220px; }
-  #loading.corner .label { font-size: 11px; letter-spacing: 0.2em; }
-  #loading.corner .bar { height: 6px; padding: 2px; }
-
-  #fullscreen {
-    position: fixed; top: 12px; right: 14px; display: none; font: inherit; font-size: 12px; letter-spacing: 0.25em; text-transform: uppercase;
-    padding: 6px 10px; background: rgba(3, 8, 14, 0.6); color: var(--blue); border: 1px solid var(--frame); cursor: pointer; opacity: 0.55;
-  }
-  #fullscreen:hover { opacity: 1; color: var(--blue-bright); }
+  /* The start and loading screen, drawn like the game's own (640x480, letterboxed the same way). */
+  #screen { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: #000; }
+  #screen.hidden { display: none; }
+  #screen.ready { cursor: pointer; }
+  #ui { width: min(100vw, 133.333vh); height: min(75vw, 100vh); }
+  /* Later loads (a new map) show a single line in the corner. */
+  #corner { position: fixed; right: 12px; bottom: 10px; display: none; pointer-events: none; }
+  #corner.shown { display: block; }
+  #fullscreen { position: fixed; top: 10px; right: 12px; display: none; font: inherit; font-size: 12px; padding: 5px 9px; background: #000a; color: #ccc; border: 1px solid #444; cursor: pointer; opacity: 0.5; }
+  #fullscreen:hover { opacity: 1; }
   #fullscreen.shown { display: block; }
   :fullscreen #fullscreen { display: none; }
-
-  #notice { display: none; z-index: 2; text-align: center; padding: 16px; }
+  #notice { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: #000d; text-align: center; padding: 16px; }
   #notice.shown { display: flex; }
-  #notice .panel { position: relative; z-index: 1; max-width: 560px; padding: 28px 32px; border: 1px solid var(--frame); background: rgba(3, 8, 14, 0.85); }
-  #notice h2 { margin: 0 0 12px; font-weight: 400; font-size: 20px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--blue-bright); }
-  #notice p { margin: 0 0 10px; line-height: 1.5; }
-  #notice small { display: block; color: var(--blue-dim); overflow-wrap: anywhere; margin-bottom: 16px; }
-  #notice button {
-    font: inherit; font-size: 15px; letter-spacing: 0.3em; text-transform: uppercase; padding: 8px 20px; cursor: pointer;
-    background: none; color: var(--blue); border: 1px solid var(--frame);
-  }
-  #notice button:hover { color: var(--blue-bright); border-color: var(--blue-dim); }
+  #notice div { max-width: 540px; }
+  #notice h2 { margin: 0 0 10px; font-weight: 500; font-size: 20px; }
+  #notice p { margin: 0 0 8px; color: #ccc; line-height: 1.5; }
+  #notice small { display: block; color: #777; overflow-wrap: anywhere; margin-bottom: 14px; }
+  #notice button { font: inherit; padding: 8px 20px; background: none; color: #fff; border: 1px solid #666; cursor: pointer; }
 </style>
 </head>
 <body>
 <canvas id="canvas" tabindex="-1" oncontextmenu="event.preventDefault()"></canvas>
-<div id="start" class="screen">
-  <div class="menu">
-    <button id="play" disabled>PLAY</button>
-    <div id="status">Preparing</div>
-  </div>
-</div>
-<div id="loading" class="screen">
-  <div class="panel">
-    <div class="label"><span id="loading-text">Loading</span><span id="loading-amount"></span></div>
-    <div class="bar"><div class="fill"></div></div>
-  </div>
-</div>
+<div id="screen"><canvas id="ui" width="640" height="480"></canvas></div>
+<canvas id="corner" width="300" height="24"></canvas>
 <button id="fullscreen" title="Fullscreen also hands Ctrl shortcuts to the game (Chrome/Edge)">Fullscreen</button>
-<div id="notice" class="screen">
-  <div class="panel"><h2 id="notice-title"></h2><p id="notice-text"></p><small id="notice-detail"></small><button id="notice-reload">Reload</button></div>
-</div>
+<div id="notice"><div><h2 id="notice-title"></h2><p id="notice-text"></p><small id="notice-detail"></small><button id="notice-reload">Reload</button></div></div>
 <script>
   // Something the visitor can act on instead of a black screen: an unsupported browser, or the game stopping.
   const confirmLeave = (event) => { event.preventDefault(); event.returnValue = ''; };
@@ -120,10 +71,6 @@
     }
     return '';
   };
-  // The module starts on a click: browsers only allow sound and pointer lock after one.
-  const status = document.getElementById('status');
-  const play = document.getElementById('play');
-  const problem = unsupported();
   const gameStopped = (message) => {
     if (/profile files/.test(message)) {
       notice("Halo couldn't open its save files",
@@ -133,6 +80,58 @@
       notice('The game stopped', 'Reload the page to start again.', message);
     }
   };
+
+  // The game's own loading screen, as interface code draws it (0x497410): the shell background full screen and white
+  // centred lines in the large UI font, 70 and 20 pixels above the bottom of a 640x480 screen. The server extracts
+  // those assets from the Halo install (/halo-ui/); without them the lines are drawn in a plain font.
+  const ui = { background: null, atlas: null, font: null, chars: new Map(), strings: [] };
+  const image = (src) => new Promise((resolve, reject) => { const i = new Image(); i.onload = () => resolve(i); i.onerror = reject; i.src = src; });
+  const uiReady = Promise.all([
+    image('halo-ui/background.png'), image('halo-ui/font.png'),
+    fetch('halo-ui/font.json').then((r) => r.json()), fetch('halo-ui/loading.json').then((r) => r.json()),
+  ]).then(([background, atlas, font, strings]) => {
+    Object.assign(ui, { background, atlas, font, strings });
+    font.characters.forEach((c) => ui.chars.set(c.character, c));
+  }).catch(() => {});
+  const glyph = (ch) => ui.chars.get(ch.charCodeAt(0)) || ui.chars.get(63);
+  const textWidth = (text) => [...text].reduce((width, ch) => width + (glyph(ch)?.character_width || 0), 0);
+  const drawText = (ctx, text, centreX, top) => {
+    if (!ui.font) {
+      ctx.font = '15px sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#fff'; ctx.fillText(text, centreX, top + 15);
+      return;
+    }
+    let pen = Math.round(centreX - textWidth(text) / 2);
+    const baseline = top + ui.font.ascending_height;
+    for (const ch of text) {
+      const g = glyph(ch);
+      if (!g) continue;
+      if (g.bitmap_width > 0 && g.bitmap_height > 0) {
+        ctx.drawImage(ui.atlas, g.atlas_x, g.atlas_y, g.bitmap_width, g.bitmap_height,
+          pen - g.bitmap_origin_x, baseline - g.bitmap_origin_y, g.bitmap_width, g.bitmap_height);
+      }
+      pen += g.character_width;
+    }
+  };
+  const screen = document.getElementById('screen');
+  const screenCtx = document.getElementById('ui').getContext('2d');
+  const drawScreen = (line) => {
+    screenCtx.fillStyle = '#000';
+    screenCtx.fillRect(0, 0, 640, 480);
+    if (ui.background) screenCtx.drawImage(ui.background, 0, 0, 640, 480, 0, 0, 640, 480);  // the art is the texture's top-left 640x480
+    drawText(screenCtx, line, 320, 480 - 70);
+    if (ui.strings[9]) drawText(screenCtx, ui.strings[9], 320, 480 - 20);  // the ESRB online-play notice
+  };
+  const corner = document.getElementById('corner');
+  const cornerCtx = corner.getContext('2d');
+  const drawCorner = (line) => {
+    cornerCtx.clearRect(0, 0, corner.width, corner.height);
+    if (!ui.font) { cornerCtx.font = '14px sans-serif'; cornerCtx.textAlign = 'right'; cornerCtx.fillStyle = '#fff'; cornerCtx.fillText(line, corner.width, 17); return; }
+    drawText(cornerCtx, line, corner.width - textWidth(line) / 2, 0);
+  };
+
+  // Start: the screen says Click to play once the runtime and the file list are in. The module starts on a click:
+  // browsers only allow sound and pointer lock after one.
+  const problem = unsupported();
   var Module = {
     canvas: document.getElementById('canvas'),
     noInitialRun: true,  // main() runs on the click, once the manifest is in
@@ -145,56 +144,60 @@
     },
     onAbort: (what) => crashed(what),
     onExit: (code) => { if (code !== 0) gameStopped(`Exit code ${code}`); },
-    setStatus: () => {},
   };
-  if (problem) {
-    notice('Can\'t run here', problem, '', false);
-  }
-  let ready = 0;  // 1 runtime initialised, 2 manifest loaded: Play needs both
-  const enable = () => { if (++ready === 2 && !problem) { status.textContent = ''; play.disabled = false; play.focus(); } };
+  if (problem) notice('Can\'t run here', problem, '', false);
+  let state = 'preparing';  // preparing, ready, loading, playing
+  uiReady.then(() => { if (state === 'preparing' || state === 'ready') drawScreen(state === 'ready' ? 'Click to play' : 'Preparing...'); });
+  drawScreen('Preparing...');
+  let ready = 0;  // 1 runtime initialised, 2 manifest loaded: playing needs both
+  const enable = () => {
+    if (++ready === 2 && !problem) {
+      state = 'ready';
+      screen.classList.add('ready');
+      drawScreen('Click to play');
+    }
+  };
   Module.onRuntimeInitialized = enable;
   fetch('halo/manifest.json')
     .then((response) => { if (!response.ok) throw new Error(response.status); return response.text(); })
-    .then((manifest) => {
-      Module.haloManifest = manifest;
-      enable();
-    })
-    .catch(() => { status.textContent = 'Game files unavailable'; });
+    .then((manifest) => { Module.haloManifest = manifest; enable(); })
+    .catch(() => { drawScreen('Game files are unavailable.'); });
   // Each start's player identity for the host's duplicate CD key check: fresh random key characters every time, since
   // a duplicated tab copies sessionStorage. Not a product key: nothing here checks one.
   const playerKey = () => {
     const alphabet = 'BCDFGHJKMPQRTVWXY2346789';
     return Array.from(crypto.getRandomValues(new Uint8Array(25)), (byte) => alphabet[byte % alphabet.length]).join('');
   };
-  // Loading bar, fed by web/pre.js. The first load's size isn't known up front, so the bar measures against
-  // the last completed startup (remembered per browser) or a typical first load.
-  const loading = document.getElementById('loading');
-  const loadingText = document.getElementById('loading-text');
-  const loadingAmount = document.getElementById('loading-amount');
-  const loadingFill = loading.querySelector('.fill');
+
+  // Loading progress, fed by web/pre.js. The first load's size isn't known up front, so it measures against the last
+  // completed startup (remembered per browser) or a typical first load; it ends when downloads go quiet for 2 s.
   const mb = (bytes) => (bytes / 1048576).toFixed(0);
   const storedTotal = () => { try { return Number(localStorage.getItem('halo-startup-bytes')) || 0; } catch { return 0; } };
-  let expected = storedTotal() || 70 * 1048576;
-  let downloaded = 0, cached = 0, firstLoad = true, idleTimer = 0;
+  const expected = storedTotal() || 70 * 1048576;
+  let downloaded = 0, cached = 0, idleTimer = 0;
   new BroadcastChannel('halo-progress').onmessage = ({ data }) => {
     downloaded += data.downloaded || 0;
     cached += data.cached || 0;
     const total = downloaded + cached;
-    loading.classList.add('active');
-    loadingText.textContent = downloaded ? 'Downloading' : 'Loading';
-    loadingAmount.textContent = firstLoad ? Math.min(99, Math.floor(total / expected * 100)) + '%' : mb(total) + ' MB';
-    loadingFill.style.width = firstLoad ? Math.min(99, total / expected * 100) + '%' : '100%';
+    const verb = downloaded ? 'Downloading game data' : 'Loading game data';
+    if (state === 'loading') {
+      drawScreen(`${verb}... ${Math.min(99, Math.floor(total / expected * 100))}%`);
+    } else if (state === 'playing') {
+      corner.classList.add('shown');
+      drawCorner(`${verb}... ${mb(total)} MB`);
+    }
     clearTimeout(idleTimer);
-    idleTimer = setTimeout(() => {  // quiet for 2 s: this load is done
-      if (firstLoad) {
+    idleTimer = setTimeout(() => {
+      if (state === 'loading') {
         try { localStorage.setItem('halo-startup-bytes', String(total)); } catch {}
-        firstLoad = false;
-        loading.classList.add('corner');
+        state = 'playing';
+        screen.classList.add('hidden');
       }
-      loading.classList.remove('active');
+      corner.classList.remove('shown');
       downloaded = cached = 0;
     }, 2000);
   };
+
   // Fullscreen locks every key except Esc, so Ctrl+W and friends reach the game (Chrome/Edge) while Esc still frees
   // the mouse. Elsewhere the leave-page prompt catches an accidental close.
   const lockedKeys = [
@@ -236,7 +239,7 @@
     setTimeout(() => window.dispatchEvent(new KeyboardEvent('keyup', key)), 100);  // held long enough for a game tick
   };
   document.addEventListener('pointerlockchange', () => {
-    const playing = !document.getElementById('start') && !document.getElementById('notice').classList.contains('shown');
+    const playing = state === 'playing' && !document.getElementById('notice').classList.contains('shown');
     if (!document.pointerLockElement && playing && performance.now() - lastRealEscape > 200) {
       pressEscape();
     }
@@ -250,21 +253,23 @@
       return lock ? new Promise(() => {}) : undefined;
     });
   });
-  play.addEventListener('click', async () => {
+  const start = async () => {
+    if (state !== 'ready') return;
     if (!await takeGameLock()) {
       notice('Halo is already open', 'Close Halo in your other tabs or windows, then reload this page.');
       return;
     }
+    state = 'loading';
+    screen.classList.remove('ready');
+    drawScreen('Loading game data...');
     Module.haloCdKey = playerKey();
-    loading.classList.add('active');
-    loadingText.textContent = 'Loading';
-    loadingAmount.textContent = '';
-    document.getElementById('start').remove();
     fullscreenButton.classList.add('shown');
     window.addEventListener('beforeunload', confirmLeave);
     Module.canvas.focus();
     Module.callMain([]);
-  });
+  };
+  screen.addEventListener('click', start);
+  window.addEventListener('keydown', (event) => { if (state === 'ready' && (event.code === 'Enter' || event.code === 'Space')) start(); });
 </script>
 {{{ SCRIPT }}}
 </body>
