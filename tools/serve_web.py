@@ -55,6 +55,17 @@ WS_GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
 WS_BINARY, WS_CLOSE, WS_PING, WS_PONG = 0x2, 0x8, 0x9, 0xa
 
 
+# Crawlers may index the page, not the game files, the relay or the extracted UI assets.
+ROBOTS_TXT = b"""User-agent: *
+Allow: /$
+Allow: /og.png
+Allow: /favicon.ico
+Disallow: /halo/
+Disallow: /halo-ui/
+Disallow: /net
+"""
+
+
 def net_log(text):
     if NET_LOG:
         print('net: ' + text, flush=True)
@@ -109,12 +120,36 @@ def ui_asset_files(halo_root):
         print('halo-re: no UI assets for the page (%s)' % error)
         return {}
     font = {key: value for key, value in assets['font'].items() if key != 'atlas_png'}
-    return {
+    files = {
         '/halo-ui/background.png': (assets['background_png'], 'image/png'),
         '/halo-ui/font.png': (assets['font']['atlas_png'], 'image/png'),
         '/halo-ui/font.json': (json.dumps(font).encode(), 'application/json'),
         '/halo-ui/loading.json': (json.dumps(assets['loading_strings']).encode(), 'application/json'),
+        '/og.png': (share_image(halo_ui_assets, assets['background_png']), 'image/png'),
     }
+    # The full-screen modal error dialog: its draw list, bitmaps and the fonts its text uses (fonts by tag name).
+    dialog = assets['error_dialog']
+    files['/halo-ui/error/dialog.json'] = (json.dumps({
+        'draw_list': dialog['draw_list'], 'header_widget': dialog['header_widget'], 'message_widget': dialog['message_widget'],
+        'fonts': {path: path.split('\\')[-1] for path in dialog['fonts']},
+    }).encode(), 'application/json')
+    for name, png in dialog['pngs'].items():
+        files['/halo-ui/error/%s.png' % name] = (png, 'image/png')
+    for path, dialog_font in dialog['fonts'].items():
+        name = path.split('\\')[-1]
+        files['/halo-ui/fonts/%s.png' % name] = (dialog_font['atlas_png'], 'image/png')
+        files['/halo-ui/fonts/%s.json' % name] = (
+            json.dumps({key: value for key, value in dialog_font.items() if key != 'atlas_png'}).encode(), 'application/json')
+    return files
+
+
+def share_image(halo_ui_assets, background_png):
+    """The link-preview image: a 640x336 (1.91:1) crop of the main menu art, the ring over the planet."""
+    width, _, rgba = halo_ui_assets._png_decode(background_png)
+    top, crop_width, crop_height = 72, 640, 336  # the art fills the texture's top-left 640x480
+    stride = width * 4
+    rows = [rgba[(top + y) * stride:(top + y) * stride + crop_width * 4] for y in range(crop_height)]
+    return halo_ui_assets.png_rgba(crop_width, crop_height, b''.join(rows))
 
 
 def parse_range(header, size):
@@ -425,6 +460,11 @@ def main():
         '/halo/manifest.json': (build_manifest(Handler.halo_root, Handler.fx_override), 'application/json'),
     }
     Handler.virtual_files.update(ui_asset_files(Handler.halo_root))
+    Handler.virtual_files['/robots.txt'] = (ROBOTS_TXT, 'text/plain')
+    favicon = resolve_case_insensitive(Handler.halo_root, 'favicon.ico')  # Halo's own icon, where browsers look first
+    if favicon and os.path.isfile(favicon):
+        with open(favicon, 'rb') as f:
+            Handler.virtual_files['/favicon.ico'] = (f.read(), 'image/x-icon')
 
     server = ThreadingHTTPServer((args.host, args.port), Handler)
     print('halo-re: http://%s:%d/  (Halo files from %s)' % (args.host, args.port, Handler.halo_root))

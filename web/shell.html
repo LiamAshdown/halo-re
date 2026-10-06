@@ -3,7 +3,29 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>halo-re</title>
+<title>Halo: Combat Evolved in your browser | exenu</title>
+<meta name="description" content="Play Halo PC multiplayer straight from your browser: no download or install. Multiplayer supported.">
+<link rel="canonical" href="https://exenu.co.uk/">
+<link rel="icon" href="favicon.ico">
+<meta name="theme-color" content="#000000">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="exenu">
+<meta property="og:url" content="https://exenu.co.uk/">
+<meta property="og:title" content="Halo: Combat Evolved in your browser">
+<meta property="og:description" content="Play Halo Combat Evolved through the browser. Multiplayer supported.">
+<meta property="og:image" content="https://exenu.co.uk/og.png">
+<meta property="og:image:width" content="640">
+<meta property="og:image:height" content="336">
+<meta property="og:image:alt" content="The Halo ring over a purple planet, from Halo's main menu">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Halo: Combat Evolved in your browser">
+<meta name="twitter:description" content="Play Halo Combat Evolved through the browser. Multiplayer supported.">
+<meta name="twitter:image" content="https://exenu.co.uk/og.png">
+<script type="application/ld+json">
+  {"@context": "https://schema.org", "@type": "VideoGame", "name": "Halo: Combat Evolved (browser)", "url": "https://exenu.co.uk/",
+   "description": "Play Halo PC multiplayer straight from your browser, up to 16 players per game.", "gamePlatform": "Web browser",
+   "playMode": ["MultiPlayer", "SinglePlayer"], "operatingSystem": "Any (Chrome, Edge or Firefox on desktop)"}
+</script>
 <style>
   html, body { margin: 0; height: 100%; overflow: hidden; background: #000; color: #fff; font: 14px system-ui, sans-serif; }
   /* Scale the game's fixed-size drawing buffer up to the viewport, letterboxed to keep its aspect. */
@@ -27,57 +49,63 @@
   #notice p { margin: 0 0 8px; color: #ccc; line-height: 1.5; }
   #notice small { display: block; color: #777; overflow-wrap: anywhere; margin-bottom: 14px; }
   #notice button { font: inherit; padding: 8px 20px; background: none; color: #fff; border: 1px solid #666; cursor: pointer; }
+  /* Read by search engines and screen readers; the screens themselves are drawn on canvases. */
+  .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 </style>
 </head>
 <body>
+<main class="visually-hidden">
+  <h1>Halo: Combat Evolved in your browser</h1>
+  <p>Play Halo PC multiplayer straight from your browser, with up to 16 players per game and nothing to download or install.
+    Create a game or join one from the server list, on the original multiplayer maps.</p>
+  <p>Needs a desktop or laptop with a keyboard and mouse and a current Chrome, Edge or Firefox.</p>
+</main>
 <canvas id="canvas" tabindex="-1" oncontextmenu="event.preventDefault()"></canvas>
 <div id="screen"><canvas id="ui" width="640" height="480"></canvas></div>
 <canvas id="corner" width="300" height="24"></canvas>
 <button id="fullscreen" title="Fullscreen also hands Ctrl shortcuts to the game (Chrome/Edge)">Fullscreen</button>
 <div id="notice"><div><h2 id="notice-title"></h2><p id="notice-text"></p><small id="notice-detail"></small><button id="notice-reload">Reload</button></div></div>
 <script>
-  // Something the visitor can act on instead of a black screen: an unsupported browser, or the game stopping.
+  // Something the visitor can act on instead of a black screen: an unsupported browser, or the game stopping. It is
+  // shown in the game's own error dialog (showNotice, below); the technical detail goes to the console.
   const confirmLeave = (event) => { event.preventDefault(); event.returnValue = ''; };
-  const notice = (title, text, detail = '', reload = true) => {
-    if (document.getElementById('notice').classList.contains('shown')) return;
-    document.getElementById('notice-title').textContent = title;
-    document.getElementById('notice-text').textContent = text;
-    document.getElementById('notice-detail').textContent = detail;
-    document.getElementById('notice-reload').style.display = reload ? '' : 'none';
-    document.getElementById('notice').classList.add('shown');
+  var shownNotice = null;  // {header, message, reload} once a notice is up
+  const notice = (header, message, detail = '', reload = true) => {
+    if (shownNotice) return;
+    shownNotice = { header, message, reload };
+    if (detail) console.warn('notice:', detail);
     window.removeEventListener('beforeunload', confirmLeave);
     if (document.pointerLockElement) document.exitPointerLock();
     if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    showNotice();
   };
   document.getElementById('notice-reload').addEventListener('click', () => location.reload());
-  const crashed = (detail) => notice('The game stopped unexpectedly', 'Reload the page to start again.', String(detail || '').slice(0, 300));
+  const crashed = (detail) => notice('OOPS!', 'The game stopped unexpectedly. Click OK to reload.', String(detail || '').slice(0, 300));
   const isCrash = (text) => /^Aborted\(|RuntimeError|unreachable executed|memory access out of bounds/.test(String(text));
   window.addEventListener('error', (event) => {
     if (/requires (Chrome|Firefox|Safari)/.test(event.message)) {  // emscripten's own browser version check
-      notice('This browser is too old', 'Use a current version of Chrome, Edge or Firefox.', event.message, false);
+      notice('ATTENTION', 'This browser is too old for Halo. Use a current Chrome, Edge or Firefox.', event.message, false);
     } else if (isCrash(event.message) || event.error instanceof WebAssembly.RuntimeError) {
       crashed(event.message);
     }
   });
   const unsupported = () => {
     if (/Android|iPhone|iPad|iPod|Mobi/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 0 && !matchMedia('(pointer: fine)').matches)) {
-      return 'Halo needs a keyboard and mouse: open this page on a desktop or laptop.';
+      return 'Halo needs a keyboard and mouse. Open this page on a desktop or laptop.';
     }
     if (!window.crossOriginIsolated || typeof SharedArrayBuffer === 'undefined' || !('transferControlToOffscreen' in HTMLCanvasElement.prototype)) {
-      return 'This browser lacks features the game needs (threads and offscreen rendering). Use a current Chrome, Edge or Firefox.';
+      return 'This browser lacks features Halo needs. Use a current Chrome, Edge or Firefox.';
     }
     if (!document.createElement('canvas').getContext('webgl2')) {
-      return 'WebGL 2 is unavailable: turn on hardware acceleration in your browser settings, or update your graphics drivers.';
+      return 'WebGL 2 is unavailable. Turn on hardware acceleration, or update your graphics drivers.';
     }
     return '';
   };
   const gameStopped = (message) => {
     if (/profile files/.test(message)) {
-      notice("Halo couldn't open its save files",
-        'It is probably already open in another tab or window: close it there, then reload. Private or incognito windows ' +
-        "can't store save files either.", message);
+      notice('ATTENTION', "Halo couldn't open its save files. Close Halo in your other tabs, then click OK.", message);
     } else {
-      notice('The game stopped', 'Reload the page to start again.', message);
+      notice('OOPS!', 'The game stopped. Click OK to reload.', message);
     }
   };
 
@@ -115,6 +143,7 @@
   const screen = document.getElementById('screen');
   const screenCtx = document.getElementById('ui').getContext('2d');
   const drawScreen = (line) => {
+    if (shownNotice) return;
     screenCtx.fillStyle = '#000';
     screenCtx.fillRect(0, 0, 640, 480);
     if (ui.background) screenCtx.drawImage(ui.background, 0, 0, 640, 480, 0, 0, 640, 480);  // the art is the texture's top-left 640x480
@@ -128,6 +157,110 @@
     if (!ui.font) { cornerCtx.font = '14px sans-serif'; cornerCtx.textAlign = 'right'; cornerCtx.fillStyle = '#fff'; cornerCtx.fillText(line, corner.width, 17); return; }
     drawText(cornerCtx, line, corner.width - textWidth(line) / 2, 0);
   };
+
+  // The game's full-screen modal error dialog (ui\shell\error\error_modal_fullscreen), drawn from its widget tree
+  // as extracted by the server: each widget's background stretched over its bounds (only the texels the engine
+  // samples, uv_max), and its text in its font and colour, clipped to its text rect. Text doesn't wrap in the game, so
+  // the message is wrapped here to the box; the header box is narrow, hence the game's own short headers.
+  const dialog = { def: null, images: {}, fonts: {} };
+  const loadFont = (name) => Promise.all([image(`halo-ui/fonts/${name}.png`), fetch(`halo-ui/fonts/${name}.json`).then((r) => r.json())])
+    .then(([atlas, font]) => ({ atlas, font, chars: new Map(font.characters.map((c) => [c.character, c])) }));
+  const dialogReady = fetch('halo-ui/error/dialog.json').then((r) => r.json()).then(async (def) => {
+    const pngs = [...new Set(def.draw_list.map((w) => w.background?.png).filter(Boolean))];
+    const fonts = [...new Set(Object.values(def.fonts))];
+    const [images, loaded] = await Promise.all([Promise.all(pngs.map((n) => image(`halo-ui/error/${n}.png`))), Promise.all(fonts.map(loadFont))]);
+    pngs.forEach((n, i) => { dialog.images[n] = images[i]; });
+    fonts.forEach((n, i) => { dialog.fonts[n] = loaded[i]; });
+    dialog.def = def;
+  }).catch(() => {});
+  const fontGlyph = (f, ch) => f.chars.get(ch.charCodeAt(0)) || f.chars.get(63);
+  const fontWidth = (f, text) => [...text].reduce((width, ch) => width + (fontGlyph(f, ch)?.character_width || 0), 0);
+  const wrapText = (f, text, width) => {
+    const lines = [];
+    for (const paragraph of text.split('\n')) {
+      let line = '';
+      for (const word of paragraph.split(' ')) {
+        const next = line ? line + ' ' + word : word;
+        if (line && fontWidth(f, next) > width) { lines.push(line); line = word; } else { line = next; }
+      }
+      lines.push(line);
+    }
+    return lines;
+  };
+  const drawLines = (ctx, f, lines, [top, left, bottom, right], argb, justification) => {
+    const layer = document.createElement('canvas');
+    layer.width = 640; layer.height = 480;
+    const l = layer.getContext('2d');
+    l.beginPath(); l.rect(left, top, right - left, bottom - top); l.clip();
+    lines.forEach((line, i) => {
+      const width = fontWidth(f, line);
+      let pen = justification === 'center' ? Math.round((left + right - width) / 2) : justification === 'right' ? right - width : left + f.font.leading_width;
+      const baseline = top + f.font.ascending_height + i * f.font.line_height;
+      for (const ch of line) {
+        const g = fontGlyph(f, ch);
+        if (!g) continue;
+        if (g.bitmap_width > 0 && g.bitmap_height > 0) {
+          l.drawImage(f.atlas, g.atlas_x, g.atlas_y, g.bitmap_width, g.bitmap_height, pen - g.bitmap_origin_x, baseline - g.bitmap_origin_y, g.bitmap_width, g.bitmap_height);
+        }
+        pen += g.character_width;
+      }
+    });
+    l.globalCompositeOperation = 'source-in';  // the atlas is white; tint it with the widget's text colour
+    l.fillStyle = '#' + argb.slice(3);
+    l.fillRect(0, 0, 640, 480);
+    ctx.drawImage(layer, 0, 0);
+  };
+  const okButton = () => dialog.def?.draw_list.find((w) => w.name === 'error_modal_button_ok');
+  function showNotice() {  // a declaration, so notices raised before this point in the page still find it
+    const shown = shownNotice;
+    const screenEl = document.getElementById('screen');
+    screenEl.classList.remove('hidden', 'ready');
+    document.getElementById('corner').classList.remove('shown');
+    dialogReady.then(() => {
+      if (!dialog.def) {  // no dialog assets: the plain page version
+        document.getElementById('notice-title').textContent = shown.header;
+        document.getElementById('notice-text').textContent = shown.message;
+        document.getElementById('notice-reload').style.display = shown.reload ? '' : 'none';
+        document.getElementById('notice').classList.add('shown');
+        return;
+      }
+      const ctx = document.getElementById('ui').getContext('2d');
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, 640, 480);
+      for (const w of dialog.def.draw_list) {
+        if (w.hidden || (!shown.reload && w.name.startsWith('error_modal_button'))) continue;
+        const [top, left, bottom, right] = w.bounds;
+        const bg = w.background && dialog.images[w.background.png];
+        if (bg) {
+          ctx.drawImage(bg, 0, 0, bg.naturalWidth * w.background.uv_max[0], bg.naturalHeight * w.background.uv_max[1], left, top, right - left, bottom - top);
+        }
+        if (w.text) {
+          const f = dialog.fonts[dialog.def.fonts[w.text.font]];
+          if (!f) continue;
+          const rect = [...w.text.text_rect];
+          let lines = (w.text.string || '').split(/\r?\n/);
+          if (w.name === dialog.def.header_widget) {
+            lines = [shown.header];
+          } else if (w.name === dialog.def.message_widget) {
+            // the same margin on the right as on the left, and above the button bar when OK is shown
+            lines = wrapText(f, shown.message, rect[3] - rect[1] - 2 * (rect[1] - left) - f.font.leading_width);
+            if (shown.reload && okButton()) rect[2] = Math.min(rect[2], okButton().bounds[0] - 4);
+          }
+          drawLines(ctx, f, lines, rect, w.text.color_hex, w.text.justification);
+        }
+      }
+    });
+  }
+  // OK (a click on the button, or Enter) reloads, as the notices say.
+  document.getElementById('screen').addEventListener('click', (event) => {
+    const button = okButton();
+    if (!shownNotice?.reload || !button) return;
+    const box = document.getElementById('ui').getBoundingClientRect();
+    const x = (event.clientX - box.left) / box.width * 640, y = (event.clientY - box.top) / box.height * 480;
+    const [top, left, bottom, right] = button.bounds;
+    if (x >= left && x <= right && y >= top && y <= bottom) location.reload();
+  });
+  window.addEventListener('keydown', (event) => { if (shownNotice?.reload && event.code === 'Enter') location.reload(); });
 
   // Start: the screen says Click to play once the runtime and the file list are in. The module starts on a click:
   // browsers only allow sound and pointer lock after one.
@@ -145,7 +278,7 @@
     onAbort: (what) => crashed(what),
     onExit: (code) => { if (code !== 0) gameStopped(`Exit code ${code}`); },
   };
-  if (problem) notice('Can\'t run here', problem, '', false);
+  if (problem) notice('ATTENTION', problem, '', false);
   let state = 'preparing';  // preparing, ready, loading, playing
   uiReady.then(() => { if (state === 'preparing' || state === 'ready') drawScreen(state === 'ready' ? 'Click to play' : 'Preparing...'); });
   drawScreen('Preparing...');
@@ -239,7 +372,7 @@
     setTimeout(() => window.dispatchEvent(new KeyboardEvent('keyup', key)), 100);  // held long enough for a game tick
   };
   document.addEventListener('pointerlockchange', () => {
-    const playing = state === 'playing' && !document.getElementById('notice').classList.contains('shown');
+    const playing = state === 'playing' && !shownNotice;
     if (!document.pointerLockElement && playing && performance.now() - lastRealEscape > 200) {
       pressEscape();
     }
@@ -254,9 +387,9 @@
     });
   });
   const start = async () => {
-    if (state !== 'ready') return;
+    if (state !== 'ready' || shownNotice) return;
     if (!await takeGameLock()) {
-      notice('Halo is already open', 'Close Halo in your other tabs or windows, then reload this page.');
+      notice('ATTENTION', 'Halo is already open in another tab or window. Close it there, then click OK.');
       return;
     }
     state = 'loading';
@@ -269,7 +402,7 @@
     Module.callMain([]);
   };
   screen.addEventListener('click', start);
-  window.addEventListener('keydown', (event) => { if (state === 'ready' && (event.code === 'Enter' || event.code === 'Space')) start(); });
+  window.addEventListener('keydown', (event) => { if (state === 'ready' && !shownNotice && (event.code === 'Enter' || event.code === 'Space')) start(); });
 </script>
 {{{ SCRIPT }}}
 </body>
