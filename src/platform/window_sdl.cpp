@@ -483,7 +483,7 @@ bool gl_context_create(window_handle window, bool es)
     attributes.alpha = false;
     attributes.depth = true;
     attributes.stencil = true;
-    attributes.antialias = false;
+    attributes.antialias = true;
     attributes.preserveDrawingBuffer = false;
     sync_canvas_size();
     g_webgl = emscripten_webgl_create_context("#canvas", &attributes);
@@ -535,10 +535,10 @@ bool gl_context_create(window_handle window, bool es)
 void desktop_size(uint32_t *width, uint32_t *height)
 {
 #if defined(__EMSCRIPTEN__)
-    // no desktop in a browser, and SDL on the game's worker cannot see the screen: the page's screen in CSS pixels,
+    // no desktop in a browser, and SDL on the game's worker cannot see the screen: the page's screen in device pixels,
     // clamped to the display modes the game knows (gl_direct3d.cpp), stands in for it
-    int w = MAIN_THREAD_EM_ASM_INT({ return screen.width | 0; });
-    int h = MAIN_THREAD_EM_ASM_INT({ return screen.height | 0; });
+    int w = MAIN_THREAD_EM_ASM_INT({ return Math.round(screen.width * (devicePixelRatio || 1)); });
+    int h = MAIN_THREAD_EM_ASM_INT({ return Math.round(screen.height * (devicePixelRatio || 1)); });
 
     *width = static_cast<uint32_t>(w < 640 ? 640 : w > 3840 ? 3840 : w);
     *height = static_cast<uint32_t>(h < 480 ? 480 : h > 2160 ? 2160 : h);

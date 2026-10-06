@@ -518,6 +518,20 @@ void apply_sampler(gl_texture *texture, uint32_t unit)
     }
     if (state[SAMP_MAGFILTER] == 3 || state[SAMP_MINFILTER] == 3) {
         glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, static_cast<float>(state[SAMP_MAXANISOTROPY] > 1 ? state[SAMP_MAXANISOTROPY] : 1));
+    } else if (mip && linear_min) {
+        // the game asks for anisotropy only on a few surfaces; every trilinear texture gets it so ground and walls
+        // stay sharp at grazing angles
+        static float max_anisotropy = -1.0f;
+
+        if (max_anisotropy < 0.0f) {
+            glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max_anisotropy);
+            while (glGetError() != GL_NO_ERROR) {
+            }
+            max_anisotropy = max_anisotropy > 16.0f ? 16.0f : max_anisotropy;
+        }
+        if (max_anisotropy > 1.0f) {
+            glTexParameterf(target, GL_TEXTURE_MAX_ANISOTROPY_EXT, max_anisotropy);
+        }
     }
     if ((state[SAMP_ADDRESSU] == 4 || state[SAMP_ADDRESSV] == 4) && !g_state.es) {
         uint32_t c = state[SAMP_BORDERCOLOR];
@@ -571,6 +585,38 @@ GLuint make_depth_buffer(uint32_t width, uint32_t height)
     glBindRenderbuffer(GL_RENDERBUFFER, buffer);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, static_cast<GLsizei>(width), static_cast<GLsizei>(height));
     return buffer;
+}
+
+/**
+ * The browser's back buffer is multisampled, and WebGL 2 only blits out of a multisampled framebuffer at 1:1. This
+ * resolves the back buffer into a plain framebuffer of the same size so the copy that follows may scale.
+ */
+GLuint resolve_back_buffer(uint32_t width, uint32_t height)
+{
+    static GLuint framebuffer;
+    static GLuint color;
+    static uint32_t resolved_width;
+    static uint32_t resolved_height;
+
+    if (framebuffer == 0) {
+        glGenFramebuffers(1, &framebuffer);
+        glGenRenderbuffers(1, &color);
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    if (width != resolved_width || height != resolved_height) {
+        glBindRenderbuffer(GL_RENDERBUFFER, color);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, static_cast<GLsizei>(width), static_cast<GLsizei>(height));
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, color);
+        resolved_width = width;
+        resolved_height = height;
+    }
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer);
+    glDisable(GL_SCISSOR_TEST);
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    glBlitFramebuffer(0, 0, static_cast<GLint>(width), static_cast<GLint>(height), 0, 0, static_cast<GLint>(width),
+        static_cast<GLint>(height), GL_COLOR_BUFFER_BIT, GL_NEAREST);
+    return framebuffer;
 }
 
 }  // namespace
@@ -701,6 +747,11 @@ void stretch_rect_impl(gl_surface *source, const int32_t *source_rect, gl_surfac
         int32_t sy1 = source_fb == 0 ? static_cast<int32_t>(sh) - sr[3] : sr[3];
         int32_t dy0, dy1;
 
+#if defined(__EMSCRIPTEN__)
+        if (source_fb == 0) {
+            source_fb = resolve_back_buffer(sw, sh);  // keeps the back buffer's bottom-up rows, so sy0/sy1 still hold
+        }
+#endif
         glBindFramebuffer(GL_READ_FRAMEBUFFER, source_fb);
         dest_fb = framebuffer_for_target(dest->back_buffer ? nullptr : dest, &dw, &dh);
         // framebuffer_for_target leaves the framebuffer it prepared bound to GL_FRAMEBUFFER; make the read binding stick

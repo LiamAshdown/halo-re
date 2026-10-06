@@ -120,6 +120,7 @@ typedef ptrdiff_t GLintptr;
 #define GL_TEXTURE_BASE_LEVEL 0x813C
 #define GL_TEXTURE_MAX_LEVEL 0x813D
 #define GL_TEXTURE_MAX_ANISOTROPY_EXT 0x84FE
+#define GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT 0x84FF
 #define GL_TEXTURE0 0x84C0
 #define GL_ARRAY_BUFFER 0x8892
 #define GL_ELEMENT_ARRAY_BUFFER 0x8893
@@ -185,6 +186,7 @@ typedef ptrdiff_t GLintptr;
     X(void, glFrontFace, (GLenum mode)) \
     X(void, glGenTextures, (GLsizei n, GLuint *textures)) \
     X(GLenum, glGetError, (void)) \
+    X(void, glGetFloatv, (GLenum pname, GLfloat *data)) \
     X(const GLubyte *, glGetString, (GLenum name)) \
     X(void, glPixelStorei, (GLenum pname, GLint param)) \
     X(void, glPolygonOffset, (GLfloat factor, GLfloat units)) \
