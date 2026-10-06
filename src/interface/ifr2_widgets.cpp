@@ -1,3 +1,4 @@
+#include "halo/interface/coop_option.hpp"
 #include "halo/interface/ifr2_widgets.hpp"
 #include "halo/interface/records.hpp"
 #include "halo/core/slot_mask.hpp"
@@ -184,6 +185,7 @@ void WidgetLifecycle::close()
         }
     }
 
+    halo::interface::coop_option::closed(widget);
     if (widget->previous_sibling != (widget_instance *)0) {
         widget->previous_sibling->next_sibling = widget->next_sibling;
     }
@@ -1018,6 +1020,10 @@ void WidgetView::handle_input_event(UIWidgetDefinition *tag, int16_t *event, uin
     int16_t sound_effect = 0;
     int32_t handler_scan_count = 0;
 
+    if (halo::interface::coop_option::handle_event(widget, event)) {
+        *out_handled = 1;
+        return;
+    }
     controller_matches = (widget->hidden == 0 &&
                            (widget->controller_index == -1 || widget->controller_index == event[1]));
     if (event[0] == 4 || event[0] == 3) {
@@ -1870,7 +1876,7 @@ uint8_t WidgetList::select_next()
             if (child == (widget_instance *)0) {
                 return 0;
             }
-            halo::interface::widget_relink_focus_by_tag_id(widget, child->definition);
+            halo::interface::widget_instance_relink_focus(child, child);
         } else if (widget->widget_type == uiwidgettype_spinner_list) {
             if (tag->child_widgets.count > 1) {
                 widget_instance *focused = widget->focused_child;
@@ -1909,7 +1915,7 @@ uint8_t WidgetList::select_next()
             widget_instance *cursor = widget->first_child;
             int16_t index = 0;
 
-            halo::interface::widget_relink_focus_by_tag_id(widget, child->definition);
+            halo::interface::widget_instance_relink_focus(child, child);
             if (cursor != (widget_instance *)0) {
                 index = 0;
                 do {
@@ -1964,7 +1970,7 @@ uint8_t WidgetList::select_previous()
             if (child == (widget_instance *)0) {
                 return 0;
             }
-            halo::interface::widget_relink_focus_by_tag_id(widget, child->definition);
+            halo::interface::widget_instance_relink_focus(child, child);
             widget->selection_index = prev_index;
             widget->scroll_blink = -halo::interface::k_scroll_blink_long;
             widget->selection_direction = halo::k_word_none;
@@ -2064,7 +2070,7 @@ uint8_t WidgetList::select_previous()
             } while (index != widget->selection_index);
         }
 
-        halo::interface::widget_relink_focus_by_tag_id(widget, cursor->definition);
+        halo::interface::widget_instance_relink_focus(cursor, cursor);
         {
             widget_instance *walk = widget->first_child;
             int16_t found_index = 0;

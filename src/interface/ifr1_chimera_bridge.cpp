@@ -1,3 +1,4 @@
+#include "halo/interface/coop_option.hpp"
 #include "halo/interface/ifr1_chimera_bridge.hpp"
 #include "halo/core/ui_tag_paths.hpp"
 #include "halo/interface/records.hpp"
@@ -319,6 +320,9 @@ widget_instance * ChimeraBridge::load_ui_widget(const char *tag_path, datum_inde
         }
     }
     halo::interface::widget_initialize_from_tag(widget, tag_index, parent, controller_index, tag);
+    if (parent == nullptr) {
+        halo::interface::coop_option::screen_loaded(widget, tag_index);
+    }
     return widget;
 }
 

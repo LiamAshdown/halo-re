@@ -24,6 +24,7 @@ inline constexpr uint32_t decal = fourcc('d', 'e', 'c', 'a');
 inline constexpr uint32_t object = fourcc('o', 'b', 'j', 'e');
 inline constexpr uint32_t particle_system = fourcc('p', 'c', 't', 'l');
 inline constexpr uint32_t input_device_defaults = fourcc('d', 'e', 'v', 'c');
+inline constexpr uint32_t ui_widget_definition = fourcc('D', 'e', 'L', 'a');
 }  // namespace groups
 
 }  // namespace halo

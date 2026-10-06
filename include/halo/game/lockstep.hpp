@@ -16,6 +16,9 @@ bool active();
 bool session_active();
 int32_t player_count();
 
+/** Whether the campaign game the player starts may be joined (the CO-OP row of Choose Difficulty). */
+bool coop_allowed();
+void set_coop_allowed(bool allowed);
 /** A co-op game's row in the server browser has this game type. */
 bool is_coop_gametype(const char *gametype);
 /** Joins the co-op game a server browser row (SBServer) advertises. False for any other row. */

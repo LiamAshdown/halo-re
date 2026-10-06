@@ -7,7 +7,8 @@
  * Players are created in slot order on every machine (slot 0 the host, then the joiners); each machine marks its own
  * slot as the local player. Local actions are stamped k_input_delay ticks ahead, which hides that much latency.
  *
- * Hosting and joining: while a single-player campaign level runs, the game is open for co-op. It answers the server
+ * Hosting and joining: while a single-player campaign level runs with co-op switched on (the CO-OP row of Choose
+ * Difficulty, src/interface/coop_option.cpp), the game is open for co-op. It answers the server
  * browser's search (GameSpy qr2 on k_query_port) as a "Co-op" row with the level and one of two players; picking the
  * row (join_from_browser) sends the host HELLO. The host answers WELCOME with the level and difficulty, and both start
  * that level from its beginning (a joiner cannot yet take over a level in progress).
@@ -72,6 +73,7 @@ struct session {
     role kind = role::none;
     bool roles_read = false;
     bool test_host = false;           // -coop host: start the test level by itself
+    bool coop_allowed = false;
     uint32_t join_address = 0;        // network order; INADDR_BROADCAST for -coop join
     bool connected = false;
     bool level_queued = false;
@@ -147,7 +149,8 @@ bool hostable()
 {
     const main_globals &main = halo::main::globals().main_globals;
 
-    return g.kind != role::joiner && main.main_menu_scenario_loaded == 0 && main.game_connection == _game_connection_local &&
+    return (g.coop_allowed || g.test_host) && g.kind != role::joiner && main.main_menu_scenario_loaded == 0 &&
+        main.game_connection == _game_connection_local &&
         halo::game::globals().game_time->initialized != 0;
 }
 
@@ -549,6 +552,16 @@ bool session_active()
 int32_t player_count()
 {
     return g.connected ? g.player_count : 1;
+}
+
+bool coop_allowed()
+{
+    return g.coop_allowed;
+}
+
+void set_coop_allowed(bool allowed)
+{
+    g.coop_allowed = allowed;
 }
 
 bool is_coop_gametype(const char *gametype)

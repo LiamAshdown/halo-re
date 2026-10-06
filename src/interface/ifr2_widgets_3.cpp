@@ -1,3 +1,4 @@
+#include "halo/interface/coop_option.hpp"
 #include "halo/interface/ifr2_widgets.hpp"
 #include "halo/text/api.hpp"
 #include "halo/memory/api.hpp"
@@ -36,8 +37,23 @@ namespace halo::interface {
 void WidgetRender::render_text_box(UIWidgetDefinition *tag, Rectangle2D *dest, int32_t offset_xy, uint8_t is_top_of_stack)
 {
     int32_t i;
+    const uint16_t *override_text = halo::interface::coop_option::text(widget);
 
-    if (halo::interface::tag_handle(tag->text_label_unicode_strings_list.tag_id) != halo::k_dword_none) {
+    if (override_text != nullptr) {
+        uint32_t length = 0;
+        uint16_t *buf;
+
+        while (override_text[length] != 0) {
+            length++;
+        }
+        buf = halo::interface::widget_pool_resize_text(widget->text, length * 2 + 2);
+        widget->text = buf;
+        if (buf == nullptr) {
+            widget->text = ui_out_of_memory_text;
+        } else {
+            memcpy(buf, override_text, length * 2 + 2);
+        }
+    } else if (halo::interface::tag_handle(tag->text_label_unicode_strings_list.tag_id) != halo::k_dword_none) {
         int16_t index = widget->selection_index;
         uint16_t *src;
         uint32_t byte_len;
