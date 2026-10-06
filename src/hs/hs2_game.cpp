@@ -1,3 +1,4 @@
+#include "halo/game/lockstep.hpp"
 #include "halo/main/main_globals_fields.hpp"
 #include "halo/hs/hs2_commands.hpp"
 #include "halo/hs/records.hpp"
@@ -212,7 +213,7 @@ void GameCommands::evaluate_game_difficulty_set(int16_t function_index, uint32_t
  */
 void GameCommands::evaluate_game_is_cooperative(int16_t function_index, uint32_t thread_index, char first)
 {
-    halo::hs::hs_thread_return((int32_t)(halo::game::globals().local_player_count > 1), thread_index);
+    halo::hs::hs_thread_return((int32_t)(halo::game::globals().local_player_count > 1 || halo::game::lockstep::player_count() > 1), thread_index);
 }
 
 /**

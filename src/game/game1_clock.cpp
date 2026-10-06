@@ -131,6 +131,14 @@ void SimulationClock::advance_simulation_ticks(float delta_time)
             game_time->ticks_this_frame = 0;
             return;
         }
+        if (halo::game::lockstep::session_active()) {
+            int32_t ready = halo::game::lockstep::schedule_ticks(tick_count);
+
+            if (ready < tick_count) {
+                game_time->leftover_time = 0.0f;  // waiting on a peer: no burst of catch-up ticks afterwards
+            }
+            tick_count = ready;
+        }
         halo::game::update_run_catchup_ticks((int16_t)tick_count);
     } else if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
         halo::networking::network_game_server_per_frame_tick((int16_t)tick_count, (network_server_globals *)((uint8_t *)halo::networking::globals().server));

@@ -24,12 +24,9 @@
 #include "interface.h"
 #include "main.h"
 
-#include <math.h>
+#include "halo/core/libm.hpp"
 #include <stdio.h>
 #include <stdlib.h>
-#if defined(__EMSCRIPTEN__)
-#include <emscripten/stack.h>
-#endif
 #include <string.h>
 
 static auto &object_data = halo::link::ref<data_array *>(halo::objects::vars().object_data);
@@ -70,7 +67,7 @@ uint32_t fnv(uint32_t hash, const void *bytes, size_t size)
 }
 
 /** The simulation state: the game RNG and every object's identity, position and velocity. */
-uint32_t state_hash(int32_t *object_count)
+uint32_t state_hash_impl(int32_t *object_count)
 {
     uint32_t hash = 2166136261u;
     int32_t objects = 0;
@@ -331,54 +328,9 @@ void print_blob_chunks(int32_t tick)
 
 }  // namespace
 
-bool active()
-{
-    return mode() != 0;
-}
-
 bool probe_active()
 {
     return mode() != 0;
-}
-
-namespace {
-
-random_seed g_tick_effect_seed;
-random_seed g_frame_effect_seed;
-
-}  // namespace
-
-void tick_effect_random_seed_reset(uint32_t game_seed)
-{
-    g_tick_effect_seed = game_seed ^ 0x5eed5eedu;
-}
-
-void tick_begin()
-{
-    if (mode() == 0) {
-        return;
-    }
-    g_frame_effect_seed = halo::math::globals().effect_random_seed;
-    halo::math::globals().effect_random_seed = g_tick_effect_seed;
-#if defined(__EMSCRIPTEN__)
-    // the free stack still holds whatever the frame's render left there; zero it so a local the simulation reads
-    // before writing reads the same value on every machine
-    uintptr_t end = emscripten_stack_get_end() + 0x40;  // past the stack-overflow cookie
-    uintptr_t current = emscripten_stack_get_current();
-
-    if (current > end + 0x400) {
-        memset(reinterpret_cast<void *>(end), 0, current - end - 0x400);
-    }
-#endif
-}
-
-void tick_end()
-{
-    if (mode() == 0) {
-        return;
-    }
-    g_tick_effect_seed = halo::math::globals().effect_random_seed;
-    halo::math::globals().effect_random_seed = g_frame_effect_seed;
 }
 
 void probe_frame_begin()
@@ -388,7 +340,7 @@ void probe_frame_begin()
     if (mode() == 0) {
         return;
     }
-    if (++frames == 60) {
+    if (++frames == 60 && !halo::shell::command_line_check_flag("-coop", nullptr)) {
         // a fresh start on every machine: never the browser profile's saved checkpoint
         halo::main::main_queue_map_change("levels\\b30\\b30");
         halo::main::globals().main_globals.restore_checkpoint_on_load = 0;
@@ -410,13 +362,16 @@ void probe_override_actions(player_action *actions)
     if (mode() == 0) {
         return;
     }
-    int32_t tick = halo::game::globals().game_time->game_time;
-    player_action *action = &actions[0];
+    probe_scripted_action(halo::game::globals().game_time->game_time, &actions[0]);
+}
+
+void probe_scripted_action(int32_t tick, player_action *action)
+{
     int32_t phase = tick % 300;
 
     memset(action, 0, sizeof(*action));
-    action->desired_yaw = fmodf(static_cast<float>(tick) * 0.01f, 6.2831855f);
-    action->desired_pitch = 0.2f * sinf(static_cast<float>(tick) * 0.02f);
+    action->desired_yaw = static_cast<float>(halo::libm::fmod(tick * 0.01, 6.2831855));
+    action->desired_pitch = 0.2f * halo::libm::sinf(static_cast<float>(tick) * 0.02f);
     action->throttle_x = phase < 150 ? 1.0f : -0.5f;
     action->throttle_y = phase < 75 ? 0.5f : 0.0f;
     action->primary_trigger = (tick % 90) < 15 ? 1.0f : 0.0f;
@@ -427,10 +382,11 @@ void probe_override_actions(player_action *actions)
 
 void probe_checkpoint(const char *where)
 {
-    if (mode() == 0 || object_data == nullptr || object_data->data == nullptr) {
+    // in a co-op session the machines' hash exchange stands in for this, at a fraction of the cost
+    if (mode() == 0 || session_active() || object_data == nullptr || object_data->data == nullptr) {
         return;
     }
-    uint32_t hash = state_hash(nullptr);
+    uint32_t hash = state_hash_impl(nullptr);
     uint32_t full = full_object_hash();
 
     if (g_last_valid && (hash != g_last_hash || full != g_last_full_hash) && g_leaks < 300) {
@@ -456,12 +412,14 @@ void probe_tick_end()
     }
     int32_t tick = halo::game::globals().game_time->game_time;
     int32_t objects;
-    uint32_t hash = state_hash(&objects);
+    uint32_t hash = state_hash_impl(&objects);
 
     g_last_hash = hash;
-    g_last_full_hash = full_object_hash();
-    g_last_valid = true;
-    snapshot_objects();
+    if (!session_active()) {
+        g_last_full_hash = full_object_hash();
+        g_last_valid = true;
+        snapshot_objects();
+    }
     if (tick % 30 == 0) {
         printf("LSP %d %08x %d\n", tick, hash, objects);
     }
@@ -506,6 +464,11 @@ void probe_tick_end()
                 obj->definition_tag, header->type, bits[0], bits[1], bits[2], bits[3], bits[4], bits[5]);
         }
     }
+}
+
+uint32_t simulation_hash(int32_t *object_count)
+{
+    return state_hash_impl(object_count);
 }
 
 }  // namespace halo::game::lockstep

@@ -158,7 +158,7 @@ void GameLifecycle::start_new_map(void)
     uint8_t *record;
 
     halo::math::globals().random_seed_global = halo::main::globals().game_globals->random_seed;
-    halo::game::lockstep::tick_effect_random_seed_reset(halo::main::globals().game_globals->random_seed);
+    halo::game::lockstep::on_new_map(halo::main::globals().game_globals->random_seed);
 
     if (current_game_engine != (game_engine_definition *)0) {
         if (current_game_engine->dispose != (void *)0) {

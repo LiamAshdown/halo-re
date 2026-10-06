@@ -214,6 +214,10 @@ int main()
 
     wasmfs_create_directory("/home", 0777, persistent);
     setenv("HOME", "/home", 1);
+    if (strstr(command_line, "-coop join") != nullptr) {
+        mkdir("/home/coop-join", 0777);  // a joiner in a second tab keeps its own profile and saves
+        setenv("HOME", "/home/coop-join", 1);
+    }
     if (int fps = web_fps()) {
         char text[16];
 

@@ -1,3 +1,4 @@
+#include "halo/game/lockstep.hpp"
 #include "halo/hs/script_globals.hpp"
 #include "halo/main/main_globals_fields.hpp"
 #include "crt.h"
@@ -388,6 +389,7 @@ void perform_revert(void)
     game_state_revert_proc();
     halo::saved_games::game_state_read_persistent_storage();
     halo::saved_games::game_state_dispatch_load_callbacks();
+    halo::game::lockstep::on_revert();
 }
 
 /**

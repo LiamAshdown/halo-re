@@ -191,6 +191,10 @@ void MainLoop::ensure_local_players(void)
         datum_index new_player;
         datum_index old_player;
 
+        if (halo::game::lockstep::create_players()) {
+            return;
+        }
+
         for (i = 0; i < halo::game::globals().local_player_count; i = i + 1) {
             slot = halo::game::local_player_find_free_slot_index();
             new_player = halo::game::player_new_network(k_datum_index_none, 0, (int16_t)slot, 0);
@@ -730,6 +734,7 @@ bool MainLoop::loop_frame(void)
     uint32_t previous_queue_time;
 
     halo::game::lockstep::probe_frame_begin();
+    halo::game::lockstep::frame_begin();
     ui_input_event idle_event;
     int32_t elapsed_ms;
 
