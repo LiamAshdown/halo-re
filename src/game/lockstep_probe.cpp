@@ -20,6 +20,10 @@
 #include "halo/core/link.hpp"
 #include "halo/platform/time.hpp"
 #include "halo/main/api.hpp"
+#include "halo/ai/api.hpp"
+#include "halo/hs/api.hpp"
+#include "halo/game/records.hpp"
+#include "halo/memory/api.hpp"
 #include "memory.h"
 #include "interface.h"
 #include "main.h"
@@ -469,6 +473,66 @@ void probe_tick_end()
 uint32_t simulation_hash(int32_t *object_count)
 {
     return state_hash_impl(object_count);
+}
+
+namespace {
+
+/** Every live element of a game-state data array, with its index. */
+uint32_t data_array_hash(const data_array *array)
+{
+    uint32_t hash = 2166136261u;
+
+    if (array == nullptr || array->data == nullptr) {
+        return hash;
+    }
+    for (int32_t i = 0; i < array->last_index; i++) {
+        const uint8_t *element = static_cast<const uint8_t *>(array->data) + i * array->size;
+
+        if (*reinterpret_cast<const int16_t *>(element) != 0) {
+            hash = fnv(hash, &i, sizeof(i));
+            hash = fnv(hash, element, array->size);
+        }
+    }
+    return hash;
+}
+
+const char *const k_region_names[k_region_hash_count] = {
+    "actor", "prop", "encounter", "ai pursuit", "swarm", "swarm component", "hs thread", "hs globals", "players"};
+
+}  // namespace
+
+const char *simulation_region_name(int32_t index)
+{
+    return index >= 0 && index < k_region_hash_count ? k_region_names[index] : "?";
+}
+
+void simulation_region_hashes(uint32_t *out)
+{
+    const halo::ai::Globals &ai = halo::ai::globals();
+    data_iterator iterator;
+    player *entry;
+    uint32_t players = 2166136261u;
+
+    out[0] = data_array_hash(ai.actor_data);
+    out[1] = data_array_hash(ai.prop_data);
+    out[2] = data_array_hash(ai.encounter_data);
+    out[3] = data_array_hash(ai.pursuit_data);
+    out[4] = data_array_hash(ai.swarm_data);
+    out[5] = data_array_hash(ai.swarm_component_data);
+    out[6] = data_array_hash(halo::hs::globals().thread_data);
+    out[7] = data_array_hash(halo::hs::globals().globals_data);
+    // players by what the game does with them: each machine marks a different one local
+    iterator.data = halo::game::globals().player_data;
+    iterator.next_index = 0;
+    iterator.index = k_datum_index_none;
+    iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
+    while ((entry = static_cast<player *>(halo::memory::data_iterator_next(&iterator))) != 0) {
+        players = fnv(players, &iterator.index, sizeof(iterator.index));
+        players = fnv(players, &entry->unit, sizeof(entry->unit));
+        players = fnv(players, &entry->deaths, sizeof(entry->deaths));
+        players = fnv(players, &entry->team, sizeof(entry->team));
+    }
+    out[8] = players;
 }
 
 }  // namespace halo::game::lockstep

@@ -2425,7 +2425,7 @@ uint8_t Players::any_without_unit()
 
     plr = (player *)halo::memory::data_iterator_next(&iter);
     while (plr != (player *)0) {
-        if (plr->unit == k_datum_index_none) {
+        if (plr->unit == k_datum_index_none && !halo::game::lockstep::player_slot_vacant(iter.index)) {
             return 1;
         }
         plr = (player *)halo::memory::data_iterator_next(&iter);

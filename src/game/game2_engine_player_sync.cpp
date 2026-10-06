@@ -103,7 +103,7 @@ void EnginePlayerSync::players_update_client(void)
         counter = counter + 1;
         player_handle = player_iter.index;
 
-        if (plr->unit == k_datum_index_none) {
+        if (plr->unit == k_datum_index_none && !halo::game::lockstep::player_slot_vacant(player_handle)) {
             if (current_game_engine == 0) {
                 if (ui_split_screen == 0) {
                     if (plr->deaths == 0) {
@@ -235,7 +235,7 @@ void EnginePlayerSync::players_update_server(void)
             }
         }
 
-        if (plr->unit == k_datum_index_none) {
+        if (plr->unit == k_datum_index_none && !halo::game::lockstep::player_slot_vacant(player_handle)) {
             if (current_game_engine == 0) {
                 if (ui_split_screen == 0) {
                     if (plr->deaths == 0) {

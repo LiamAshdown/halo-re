@@ -7,6 +7,7 @@
 #include <stdint.h>
 
 struct player_action;
+typedef uint32_t datum_index;
 
 namespace halo::game::lockstep {
 
@@ -15,6 +16,8 @@ bool active();
 /** True while a co-op level runs with every player's actions coming through lockstep. */
 bool session_active();
 int32_t player_count();
+/** A co-op player whose player left: it neither respawns nor counts as dead until someone joins into its slot. */
+bool player_slot_vacant(datum_index player);
 
 /** Whether the campaign game the player starts may be joined (the CO-OP row of Choose Difficulty). */
 bool coop_allowed();
@@ -77,5 +80,12 @@ void probe_tick_end();
 void probe_checkpoint(const char *where);
 /** The game RNG and every object's identity, position and velocity. */
 uint32_t simulation_hash(int32_t *object_count);
+/**
+ * Finer hashes for finding where machines drift apart (AI, scripts, players): logged as LSP-DRIFT, they never decide
+ * that a game is out of sync, since any of them could hold something one machine keeps for itself.
+ */
+constexpr int32_t k_region_hash_count = 9;
+void simulation_region_hashes(uint32_t *out);
+const char *simulation_region_name(int32_t index);
 
 }  // namespace halo::game::lockstep

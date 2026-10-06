@@ -6,6 +6,7 @@
 
 #include "halo/networking/game_mode.hpp"
 #include "halo/game/records.hpp"
+#include "halo/game/lockstep.hpp"
 #include "halo/rasterizer/render_device.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/core/datum.hpp"
@@ -272,7 +273,7 @@ uint8_t Lifecycle::attach_players_to_new_bsp(void)
             player_iter.signature = (uint32_t)(uintptr_t)player_iter.data ^ k_data_iterator_signature;
             plr = (player *)halo::memory::data_iterator_next(&player_iter);
             while (plr != (player *)0) {
-                if (plr->unit == k_datum_index_none) {
+                if (plr->unit == k_datum_index_none && !halo::game::lockstep::player_slot_vacant(player_iter.index)) {
                     player_handle = player_iter.index;
                     halo::game::player_respawn(player_handle);
                     if (plr->unit == k_datum_index_none) {
