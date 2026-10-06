@@ -40,6 +40,10 @@ public:
         }
         ticks = halo::platform::time_stamp_counter() - ticks_start;
         cpu_speed = static_cast<uint32_t>(ticks / 100000);
+#if !defined(__i386__)
+        // a nanosecond clock always reads 1000 MHz, which the game takes for a slow machine (640x480, low detail)
+        cpu_speed = 3000;
+#endif
 
         memset(display_adapters, 0, sizeof(display_adapters));
         strcpy(display_adapters[0].driver_name, "\\\\.\\DISPLAY1");

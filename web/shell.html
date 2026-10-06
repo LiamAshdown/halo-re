@@ -140,7 +140,7 @@
       pen += g.character_width;
     }
   };
-  const screen = document.getElementById('screen');
+  const startScreen = document.getElementById('screen');
   const screenCtx = document.getElementById('ui').getContext('2d');
   const drawScreen = (line) => {
     if (shownNotice) return;
@@ -286,7 +286,7 @@
   const enable = () => {
     if (++ready === 2 && !problem) {
       state = 'ready';
-      screen.classList.add('ready');
+      startScreen.classList.add('ready');
       drawScreen('Click to play');
     }
   };
@@ -324,7 +324,7 @@
       if (state === 'loading') {
         try { localStorage.setItem('halo-startup-bytes', String(total)); } catch {}
         state = 'playing';
-        screen.classList.add('hidden');
+        startScreen.classList.add('hidden');
       }
       corner.classList.remove('shown');
       downloaded = cached = 0;
@@ -393,7 +393,7 @@
       return;
     }
     state = 'loading';
-    screen.classList.remove('ready');
+    startScreen.classList.remove('ready');
     drawScreen('Loading game data...');
     Module.haloCdKey = playerKey();
     fullscreenButton.classList.add('shown');
@@ -401,7 +401,7 @@
     Module.canvas.focus();
     Module.callMain([]);
   };
-  screen.addEventListener('click', start);
+  startScreen.addEventListener('click', start);
   window.addEventListener('keydown', (event) => { if (state === 'ready' && !shownNotice && (event.code === 'Enter' || event.code === 'Space')) start(); });
 </script>
 {{{ SCRIPT }}}
