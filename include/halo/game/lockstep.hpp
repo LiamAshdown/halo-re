@@ -16,6 +16,11 @@ bool active();
 bool session_active();
 int32_t player_count();
 
+/** A co-op game's row in the server browser has this game type. */
+bool is_coop_gametype(const char *gametype);
+/** Joins the co-op game a server browser row (SBServer) advertises. False for any other row. */
+bool join_from_browser(void *server);
+
 /** Once per frame: handshake and incoming actions. */
 void frame_begin();
 /** A level started (seeds the in-tick effects stream) or the game reverted to a checkpoint. */

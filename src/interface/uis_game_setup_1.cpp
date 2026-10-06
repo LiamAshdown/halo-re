@@ -394,3 +394,39 @@ uint8_t UiGameSetup::variant_name_is_available(const uint16_t *name)
 }
 
 }
+
+namespace halo::interface {
+
+/**
+ * The campaign level's name as the level list shows it (map_list_oneline, indexed like known_campaign_levels), for a
+ * level path such as "levels\b30\b30". False when the path is not a campaign level or the menu's strings are not
+ * loaded.
+ */
+bool campaign_level_display_name(const char *level_path, wchar_t *destination, int32_t capacity)
+{
+    uint32_t string_list_tag = halo::interface::lookup_tag(halo::groups::unicode_string_list, halo::tag_paths::map_list_oneline);
+
+    if (string_list_tag == k_datum_index_none) {
+        return false;
+    }
+    UnicodeStringList *list = halo::interface::tag_data<UnicodeStringList>(string_list_tag);
+
+    for (int32_t i = 0; i < 10 && i < (int32_t)list->strings.count; i++) {
+        if (known_campaign_levels_00692acc[i].path == nullptr || _stricmp(known_campaign_levels_00692acc[i].path, level_path) != 0) {
+            continue;
+        }
+        UnicodeStringListString *strings = (UnicodeStringListString *)list->strings.pointer;
+        const uint16_t *name = (const uint16_t *)strings[i].string.pointer;
+        int32_t length = (int32_t)(strings[i].string.size / 2);
+        int32_t j;
+
+        for (j = 0; j < capacity - 1 && j < length && name[j] != 0; j++) {
+            destination[j] = (wchar_t)name[j];
+        }
+        destination[j] = 0;
+        return true;
+    }
+    return false;
+}
+
+}

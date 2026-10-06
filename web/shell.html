@@ -381,8 +381,8 @@
   // them). The held lock also keeps the browser from freezing this tab while hidden, so a host keeps serving players.
   const takeGameLock = () => new Promise((resolve) => {
     if (!navigator.locks) return resolve(true);
-    // a co-op joiner (?args=-coop join) is a second game with its own profile, so it may run beside the host
-    const joiner = /-coop\s+join/.test(new URLSearchParams(location.search).get('args') || '');
+    // a second game for co-op testing (?args=-coop join|list) has its own profile, so it may run beside the host
+    const joiner = /-coop\s+(join|list)/.test(new URLSearchParams(location.search).get('args') || '');
     navigator.locks.request(joiner ? 'halo-game-coop-join' : 'halo-game', { ifAvailable: true }, (lock) => {
       resolve(lock !== null);
       return lock ? new Promise(() => {}) : undefined;

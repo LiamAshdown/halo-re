@@ -326,6 +326,8 @@ void terminal_initialize(void);
 void ui_audio_options_apply_volume_sliders(widget_instance *widget);
 uint32_t ui_build_level_select_list(widget_instance *widget, void *param_2, void *param_3);
 void ui_build_level_select_list_coop(widget_instance *widget, void *param_2, void *param_3);
+/** The campaign level name the level list shows for a path like "levels\b30\b30"; false when unknown. */
+bool campaign_level_display_name(const char *level_path, wchar_t *destination, int32_t capacity);
 uint32_t ui_build_profile_list(widget_instance *widget);
 void ui_button_prompt_draw_icon(HUDGlobalsButtonIcon *icon);
 int16_t ui_button_prompt_index_from_string(uint16_t *text);

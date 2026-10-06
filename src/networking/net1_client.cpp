@@ -1,3 +1,4 @@
+#include "halo/game/lockstep.hpp"
 #include "halo/networking/net1_client.hpp"
 #include "halo/networking/delta_message_types.hpp"
 #include "halo/game/records.hpp"
@@ -1413,6 +1414,12 @@ uint32_t JoinView::request_resolve_host()
     char *string_result;
     uint32_t port = 0;
 
+    if (halo::game::lockstep::join_from_browser(server_browser_join_target)) {
+        network_join_target_address[0] = 0;
+        server_browser_join_target_has_password = 0;
+        server_browser_join_target = 0;
+        return 1;
+    }
     string_result = SBServerGetPublicAddress((int32_t)(uintptr_t)server_browser_join_target);
     if (string_result != 0) {
         strcpy(dead_scratch, string_result);

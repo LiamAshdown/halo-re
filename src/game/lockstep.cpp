@@ -1,17 +1,24 @@
 /**
  * @file src/game/lockstep.cpp
- * Lockstep co-op (-coop host | -coop join): every machine runs the whole campaign simulation and the machines only
+ * Lockstep co-op: every machine runs the whole campaign simulation and the machines only
  * exchange each player's per-tick action. A tick runs once every player's action for it has arrived, so the
  * simulations stay identical; every 30 ticks the machines compare a state hash and print LSP-DESYNC if they differ.
  *
  * Players are created in slot order on every machine (slot 0 the host, then the joiners); each machine marks its own
  * slot as the local player. Local actions are stamped k_input_delay ticks ahead, which hides that much latency.
  *
- * Transport (web build): UDP on k_port over the page server's virtual LAN. A joiner broadcasts HELLO until the host
- * answers WELCOME with its slot; then both load the level. Messages start with u32 magic, u8 type, u8 slot,
- * u16 epoch; the epoch counts level starts and reverts, so actions from before one are ignored after it.
- *   INPUT  i32 ack (the last contiguous tick received from the receiver), i32 first tick, u8 count, count actions
- *   HASH   i32 tick, u32 hash
+ * Hosting and joining: while a single-player campaign level runs, the game is open for co-op. It answers the server
+ * browser's search (GameSpy qr2 on k_query_port) as a "Co-op" row with the level and one of two players; picking the
+ * row (join_from_browser) sends the host HELLO. The host answers WELCOME with the level and difficulty, and both start
+ * that level from its beginning (a joiner cannot yet take over a level in progress).
+ * For testing in one browser: -coop host starts b30 by itself, -coop join broadcasts HELLO to whichever host answers,
+ * and -coop list is a second game (own profile, see web/shell.html) that joins through the server browser.
+ *
+ * Transport (web build): UDP on k_port over the page server's virtual LAN. Messages start with u32 magic, u8 type,
+ * u8 slot, u16 epoch; the epoch counts level starts and reverts, so actions from before one are ignored after it.
+ *   WELCOME u8 player count, i16 difficulty, the level path (NUL terminated)
+ *   INPUT   i32 ack (the last contiguous tick received from the receiver), i32 first tick, u8 count, count actions
+ *   HASH    i32 tick, u32 hash
  */
 
 #include "halo/game/api.hpp"
@@ -20,9 +27,14 @@
 #include "halo/main/api.hpp"
 #include "halo/math/globals.hpp"
 #include "halo/shell/api.hpp"
+#include "halo/text/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
 #include "memory.h"
 #include "interface.h"
 #include "main.h"
+#include "saved_games.h"
+#include "../gamespy/gamespy_calls.hpp"
 
 #include <stdio.h>
 #include <string.h>
@@ -42,6 +54,7 @@ namespace halo::game::lockstep {
 namespace {
 
 constexpr uint16_t k_port = 2420;
+constexpr uint16_t k_query_port = 2302;  // the port the server browser searches (game_socket_port)
 constexpr uint32_t k_magic = 0x4f434c48;  // "HLCO"
 constexpr int32_t k_input_delay = 3;
 constexpr int32_t k_ring = 256;
@@ -49,7 +62,8 @@ constexpr int32_t k_max_players = 2;  // ponytail: host + one joiner; more joine
 constexpr int32_t k_hash_interval = 30;
 constexpr int32_t k_hash_ring = 64;
 constexpr int32_t k_actions_per_packet = 64;
-constexpr char k_level[] = "levels\\b30\\b30";  // ponytail: fixed level until the host picks one in the menu
+constexpr char k_test_level[] = "levels\\b30\\b30";
+constexpr char k_coop_gametype[] = "Co-op";
 
 enum : uint8_t { k_hello = 1, k_welcome = 2, k_input = 3, k_hash = 4 };
 enum class role { none, host, joiner };
@@ -57,8 +71,12 @@ enum class role { none, host, joiner };
 struct session {
     role kind = role::none;
     bool roles_read = false;
+    bool test_host = false;           // -coop host: start the test level by itself
+    uint32_t join_address = 0;        // network order; INADDR_BROADCAST for -coop join
     bool connected = false;
     bool level_queued = false;
+    int qr_socket = -1;
+    void *qr = nullptr;
     int32_t local_slot = 0;
     int32_t player_count = 1;
     int socket = -1;
@@ -79,9 +97,13 @@ struct session {
     int32_t their_hash_tick[k_hash_ring];
     uint32_t their_hash[k_hash_ring];
     int32_t desyncs = 0;
+    int16_t difficulty = 0;
+    char level[0x100] = {};
 };
 
 session g;
+auto &profile_globals_block = halo::link::ref<saved_player_profile_slot [k_maximum_local_player_profiles]>(halo::ui::vars().profile_globals_block);
+auto &pending_difficulty = halo::link::ref<int16_t>(halo::ui::vars().pending_difficulty);
 random_seed g_tick_effect_seed;
 random_seed g_frame_effect_seed;
 
@@ -109,14 +131,36 @@ void read_role()
     }
     g.roles_read = true;
     if (halo::shell::command_line_check_flag("-coop", &value) && value != nullptr) {
-        g.kind = strcmp(value, "host") == 0 ? role::host : strcmp(value, "join") == 0 ? role::joiner : role::none;
+        g.test_host = strcmp(value, "host") == 0;
+        if (strcmp(value, "join") == 0) {
+            g.kind = role::joiner;
+            g.join_address = 0xffffffffu;
+        }
     }
 #if !defined(__EMSCRIPTEN__)
-    if (g.kind != role::none) {
-        printf("lockstep: -coop needs the browser build\n");
-        g.kind = role::none;
-    }
+    g.kind = role::none;
 #endif
+}
+
+/** A single-player campaign level is running, which other players may join. */
+bool hostable()
+{
+    const main_globals &main = halo::main::globals().main_globals;
+
+    return g.kind != role::joiner && main.main_menu_scenario_loaded == 0 && main.game_connection == _game_connection_local &&
+        halo::game::globals().game_time->initialized != 0;
+}
+
+void queue_level(const char *level, int16_t difficulty)
+{
+    if (g.level_queued) {
+        return;
+    }
+    g.level_queued = true;
+    printf("lockstep: slot %d of %d, starting %s\n", g.local_slot, g.player_count, level);
+    pending_difficulty = difficulty;
+    halo::main::main_queue_map_change(level);
+    halo::main::globals().main_globals.restore_checkpoint_on_load = 0;
 }
 
 void reset_actions(int32_t start_tick)
@@ -203,9 +247,142 @@ bool open_socket()
         return false;
     }
     halo_net_ioctl(g.socket, static_cast<long>(FIONBIO), &nonblocking);
-    printf("lockstep: %s, waiting for %s\n", g.kind == role::host ? "hosting" : "joining",
-        g.kind == role::host ? "a player" : "a host");
     return true;
+}
+
+// The server browser's view of a co-op host: qr2 keys (hostname 1, gamever 3, mapname 5, gametype 6, numplayers 8,
+// maxplayers 10, gamemode 11, teamplay 12, password 19, dedicated 0x33, game_flags 0x35, game_classic 0x36). The
+// yes/no keys must be explicit numbers: the browser reads an empty value as true.
+constexpr int k_server_keys[] = {1, 3, 5, 6, 8, 10, 11, 12, 19, 0x33, 0x35, 0x36};
+
+const char *host_name()
+{
+    static char name[0x20];
+
+    halo::text::string_convert_unicode_to_ascii(reinterpret_cast<uint8_t *>(name),
+        reinterpret_cast<uint16_t *>(profile_globals_block[0].profile.name), sizeof(name));
+    return name[0] != 0 ? name : "Halo";
+}
+
+void qr_server_key(int key, void *buffer, void *)
+{
+    switch (key) {
+    case 1:
+        qr2_buffer_add(buffer, host_name());
+        break;
+    case 3:
+        qr2_buffer_add(buffer, "01.00.10.0621");
+        break;
+    case 5:
+        qr2_buffer_add(buffer, halo::main::globals().main_globals.scenario_path);
+        break;
+    case 6:
+        qr2_buffer_add(buffer, k_coop_gametype);
+        break;
+    case 8:
+        qr2_buffer_add_int(buffer, g.connected ? g.player_count : 1);
+        break;
+    case 10:
+        qr2_buffer_add_int(buffer, k_max_players);
+        break;
+    case 11:
+        qr2_buffer_add(buffer, "openplaying");
+        break;
+    default:
+        qr2_buffer_add_int(buffer, 0);
+        break;
+    }
+}
+
+// the player list under the browser's rows: the host, by name (key 0x15)
+void qr_player_key(int key, int, void *buffer, void *)
+{
+    qr2_buffer_add(buffer, key == 0x15 ? host_name() : "");
+}
+
+void qr_team_key(int, int, void *buffer, void *)
+{
+    qr2_buffer_add(buffer, "");
+}
+
+void qr_key_list(int key_type, void *keys, void *)
+{
+    if (key_type == 0) {
+        for (int key : k_server_keys) {
+            qr2_keybuffer_add(keys, key);
+        }
+    } else if (key_type == 1) {
+        qr2_keybuffer_add(keys, 0x15);
+    }
+}
+
+int qr_count(int key_type, void *)
+{
+    return key_type == 1 ? 1 : 0;
+}
+
+void qr_add_error(int, char *, void *)
+{
+}
+
+void advertise()
+{
+    sockaddr_in address;
+    unsigned long nonblocking = 1;
+
+    if (g.qr != nullptr) {
+        return;
+    }
+    if (g.qr_socket < 0) {
+        g.qr_socket = socket(AF_INET, SOCK_DGRAM, 0);
+        memset(&address, 0, sizeof(address));
+        address.sin_family = AF_INET;
+        address.sin_addr.s_addr = htonl(INADDR_ANY);
+        address.sin_port = htons(k_query_port);
+        if (g.qr_socket < 0 || bind(g.qr_socket, reinterpret_cast<sockaddr *>(&address), sizeof(address)) != 0) {
+            // ponytail: a page that played multiplayer may still hold the port; it then is not listed
+            printf("lockstep: port %u is taken, this game is not listed for co-op\n", k_query_port);
+            if (g.qr_socket >= 0) {
+                close(g.qr_socket);
+            }
+            g.qr_socket = -2;
+            return;
+        }
+        halo_net_ioctl(g.qr_socket, static_cast<long>(FIONBIO), &nonblocking);
+    }
+    if (g.qr_socket >= 0) {
+        qr2_init_socketA(&g.qr, static_cast<uint32_t>(g.qr_socket), k_query_port, "halor", "e4Rd9J", 0, 0,
+            reinterpret_cast<void *>(qr_server_key), reinterpret_cast<void *>(qr_player_key), reinterpret_cast<void *>(qr_team_key),
+            reinterpret_cast<void *>(qr_key_list), reinterpret_cast<void *>(qr_count), reinterpret_cast<void *>(qr_add_error), nullptr);
+        printf("lockstep: open for co-op as %s\n", host_name());
+    }
+}
+
+void stop_advertising()
+{
+    if (g.qr != nullptr) {
+        qr2_shutdown(g.qr);
+        g.qr = nullptr;
+    }
+}
+
+void answer_queries()
+{
+    char buffer[0x600];
+    sockaddr_in from;
+    socklen_t length;
+
+    while (g.qr != nullptr) {
+        length = sizeof(from);
+        ssize_t size = recvfrom(g.qr_socket, buffer, sizeof(buffer), 0, reinterpret_cast<sockaddr *>(&from), &length);
+
+        if (size < 0) {
+            return;
+        }
+        if (size >= 2 && static_cast<uint8_t>(buffer[0]) == 0xfe && static_cast<uint8_t>(buffer[1]) == 0xfd) {
+            qr2_parse_queryA(g.qr, buffer, static_cast<int32_t>(size), &from);
+        }
+    }
 }
 
 void send_inputs()
@@ -280,17 +457,6 @@ void compare_hashes(int32_t index)
     g.my_hash_tick[index] = -1;
 }
 
-void queue_level()
-{
-    if (g.level_queued) {
-        return;
-    }
-    g.level_queued = true;
-    printf("lockstep: connected as slot %d of %d, loading the level\n", g.local_slot, g.player_count);
-    halo::main::main_queue_map_change(k_level);
-    halo::main::globals().main_globals.restore_checkpoint_on_load = 0;
-}
-
 void pump()
 {
     uint8_t buffer[0x2000];
@@ -324,23 +490,29 @@ void pump()
                 g.peer_port = from.sin_port;
                 g.player_count = 2;
                 g.local_slot = 0;
+                g.difficulty = halo::main::globals().game_globals->difficulty;
+                strncpy(g.level, halo::main::globals().main_globals.scenario_path, sizeof(g.level) - 1);
             }
             if (from.sin_addr.s_addr == g.peer_address) {
-                uint8_t reply[16];
+                uint8_t reply[16 + sizeof(g.level)];
                 uint8_t *at = header(reply, k_welcome, 1);
                 uint8_t players = static_cast<uint8_t>(g.player_count);
 
                 put(at, &players, 1);
+                put(at, &g.difficulty, 2);
+                put(at, g.level, strlen(g.level) + 1);
                 send_to(g.peer_address, g.peer_port, reply, at - reply);
-                queue_level();
+                queue_level(g.level, g.difficulty);
             }
-        } else if (type == k_welcome && g.kind == role::joiner && !g.connected && size >= 9) {
+        } else if (type == k_welcome && g.kind == role::joiner && !g.connected && size >= 12 && buffer[size - 1] == 0) {
             g.connected = true;
             g.peer_address = from.sin_addr.s_addr;
             g.peer_port = from.sin_port;
             g.local_slot = slot;
             g.player_count = buffer[8];
-            queue_level();
+            memcpy(&g.difficulty, buffer + 9, 2);
+            strncpy(g.level, reinterpret_cast<char *>(buffer + 11), sizeof(g.level) - 1);
+            queue_level(g.level, g.difficulty);
         } else if (g.connected && from.sin_addr.s_addr == g.peer_address && epoch == g.epoch && in_level()) {
             if (type == k_input) {
                 receive_inputs(buffer + 8, buffer + size);
@@ -379,20 +551,66 @@ int32_t player_count()
     return g.connected ? g.player_count : 1;
 }
 
+bool is_coop_gametype(const char *gametype)
+{
+    return gametype != nullptr && strcmp(gametype, k_coop_gametype) == 0;
+}
+
+bool join_from_browser(void *server)
+{
+#if defined(__EMSCRIPTEN__)
+    if (server == nullptr || !is_coop_gametype(SBServerGetStringValue(server, "gametype", "")) || g.connected) {
+        return false;
+    }
+    const char *address = SBServerGetPublicAddress(static_cast<int32_t>(reinterpret_cast<uintptr_t>(server)));
+
+    if (address == nullptr) {
+        return false;
+    }
+    stop_advertising();
+    g.kind = role::joiner;
+    g.join_address = inet_addr(address);
+    g.frames = 0;
+    printf("lockstep: joining %s\n", address);
+    return true;
+#else
+    (void)server;
+    return false;
+#endif
+}
+
 void frame_begin()
 {
+    static int32_t frames_since_start;
+
     read_role();
+    if (g.test_host && ++frames_since_start == 60) {
+        queue_level(k_test_level, pending_difficulty);
+        g.level_queued = false;  // the co-op start afterwards queues its own
+    }
 #if defined(__EMSCRIPTEN__)
+    if (g.kind == role::none && hostable()) {
+        g.kind = role::host;
+    } else if (g.kind == role::host && !g.connected && !hostable()) {
+        stop_advertising();
+        g.kind = role::none;
+    }
     if (g.kind == role::none || !open_socket()) {
         return;
     }
+    if (g.kind == role::host && !g.connected) {
+        advertise();
+    } else if (g.connected) {
+        stop_advertising();
+    }
+    answer_queries();
     pump();
     g.frames++;
     if (g.kind == role::joiner && !g.connected && g.frames % 30 == 1) {
         uint8_t hello[8];
 
         header(hello, k_hello, 0xff);
-        send_to(htonl(INADDR_BROADCAST), htons(k_port), hello, sizeof(hello));
+        send_to(g.join_address, htons(k_port), hello, sizeof(hello));
     }
 #endif
 }

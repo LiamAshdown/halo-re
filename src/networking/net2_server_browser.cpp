@@ -1,3 +1,4 @@
+#include "halo/game/lockstep.hpp"
 /**
  * @file src/networking/net2_server_browser.cpp
  * Server browser filters, sorting, list rows and join latch.
@@ -1246,6 +1247,9 @@ void ServerBrowser::list_row_gather(network_ui_widget *row, uint8_t flag, void *
         }
 
         halo::interface::map_list_get_friendly_level_name(friendly_map, (char *)mapname, 0x20);
+        if (halo::game::lockstep::is_coop_gametype(gametype)) {
+            halo::interface::campaign_level_display_name(mapname, friendly_map, 0x20);
+        }
         halo::networking::server_browser_list_row_populate(row, (uint8_t)is_password, (uint8_t)is_dedicated,
                                           hostname, friendly_map, gametype,
                                           (uint8_t)(is_classic == 1), count_a, count_b, ping);
@@ -1726,7 +1730,7 @@ uint8_t ServerBrowser::server_passes_filter(void *entry)
         teamplay_mismatch = (server_browser_filter_teamplay == 2);
     }
     if (!teamplay_mismatch &&
-        (server_browser_filter_allow_unknown_map != 0 ||
+        (server_browser_filter_allow_unknown_map != 0 || halo::game::lockstep::is_coop_gametype(gametype_name) ||
          (probe = halo::interface::map_list_find_known_map_index(mapname), probe != -1))) {
         return 1;
     }
