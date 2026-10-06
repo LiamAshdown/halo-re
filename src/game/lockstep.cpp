@@ -19,8 +19,9 @@
  *
  * Transport (web build): UDP on k_port over the page server's virtual LAN. Messages start with u32 magic, u8 type,
  * u8 slot, u16 epoch; the epoch counts level starts and reverts, so actions from before one are ignored after it.
+ *   HELLO   the joiner's profile name (NUL terminated)
  *   WELCOME u8 player count, i16 difficulty, the level path (NUL terminated), then the snapshot: i32 tick, u32 size,
- *           u32 game seed, u32 simulation effect seed, i32 camera script end tick, u16 epoch
+ *           u32 game seed, u32 simulation effect seed, i32 camera script end tick, u16 epoch; then the host's name
  *   STATE   u16 chunk index, the chunk (k_chunk_size bytes, the last one shorter)
  *   STATE_ACK i32 chunks received in order
  *   INPUT   i32 ack (the last contiguous tick received from the receiver), i32 first tick, u8 count, count actions
@@ -30,6 +31,7 @@
 #include "halo/game/api.hpp"
 #include "halo/game/lockstep.hpp"
 #include "halo/game/records.hpp"
+#include "halo/interface/api.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/game1_local_control.hpp"
@@ -49,6 +51,7 @@
 #include "cutscene.h"
 #include "../gamespy/gamespy_calls.hpp"
 
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -134,6 +137,7 @@ struct session {
     uint32_t snapshot_effect_seed = 0;
     int32_t snapshot_camera_end_tick = 0;
     bool awaiting_snapshot = false;    // joiner: connected, but the game it joins has not been applied yet
+    char peer_name[16] = {};
     int32_t snapshot_chunks_sent = 0;  // host: chunks sent so far (a window ahead of what the joiner has)
     uint32_t snapshot_progress_ms = 0; // host: when the joiner last acknowledged more
     bool skip_pressed = false;  // a local cinematic skip waiting for the next stamped action
@@ -249,6 +253,33 @@ void reset_actions(int32_t start_tick)
     }
 }
 
+const char *host_name()
+{
+    static char name[0x20];
+
+    halo::text::string_convert_unicode_to_ascii(reinterpret_cast<uint8_t *>(name),
+        reinterpret_cast<uint16_t *>(profile_globals_block[0].profile.name), sizeof(name));
+    return name[0] != 0 ? name : "Halo";
+}
+
+/** A line on this machine's HUD, as multiplayer shows players joining and leaving. */
+void show_message(const char *format, ...)
+{
+    char text[0x80];
+    uint16_t wide[0x80];
+    va_list arguments;
+    size_t i;
+
+    va_start(arguments, format);
+    vsnprintf(text, sizeof(text), format, arguments);
+    va_end(arguments);
+    for (i = 0; text[i] != 0 && i < 0x7f; i++) {
+        wide[i] = static_cast<uint8_t>(text[i]);
+    }
+    wide[i] = 0;
+    halo::interface::hud_message_broadcast_to_local_players(wide);
+}
+
 int32_t snapshot_chunk_count()
 {
     return static_cast<int32_t>((g.snapshot_size + k_chunk_size - 1) / k_chunk_size);
@@ -286,6 +317,11 @@ void start_from_snapshot(bool joiner)
     reset_actions(g.snapshot_tick);
     add_joining_player(joiner);
     printf("lockstep: playing together from tick %d\n", g.snapshot_tick);
+    if (joiner) {
+        show_message("Joined %s's game.", g.peer_name[0] != 0 ? g.peer_name : "the host");
+    } else {
+        show_message("%s joined the game.", g.peer_name[0] != 0 ? g.peer_name : "A player");
+    }
 }
 
 /** The host only lets a player in when nothing the main loop acts on between frames is pending. */
@@ -361,14 +397,6 @@ bool open_socket()
 // yes/no keys must be explicit numbers: the browser reads an empty value as true.
 constexpr int k_server_keys[] = {1, 3, 5, 6, 8, 10, 11, 12, 19, 0x33, 0x35, 0x36};
 
-const char *host_name()
-{
-    static char name[0x20];
-
-    halo::text::string_convert_unicode_to_ascii(reinterpret_cast<uint8_t *>(name),
-        reinterpret_cast<uint16_t *>(profile_globals_block[0].profile.name), sizeof(name));
-    return name[0] != 0 ? name : "Halo";
-}
 
 void qr_server_key(int key, void *buffer, void *)
 {
@@ -557,6 +585,9 @@ void compare_hashes(int32_t index)
         return;
     }
     if (g.my_hash[index] != g.their_hash[index]) {
+        if (g.desyncs == 0) {
+            show_message("Co-op games are out of sync.");
+        }
         if (g.desyncs++ < 20) {
             printf("LSP-DESYNC %d mine=%08x theirs=%08x\n", g.my_hash_tick[index], g.my_hash[index], g.their_hash[index]);
         }
@@ -605,6 +636,10 @@ void pump()
                 g.peer_port = from.sin_port;
                 g.player_count = 2;
                 g.local_slot = 0;
+                memset(g.peer_name, 0, sizeof(g.peer_name));
+                if (size > 8) {
+                    memcpy(g.peer_name, buffer + 8, size - 8 < (ssize_t)sizeof(g.peer_name) - 1 ? size - 8 : sizeof(g.peer_name) - 1);
+                }
                 g.difficulty = halo::main::globals().game_globals->difficulty;
                 strncpy(g.level, halo::main::globals().main_globals.scenario_path, sizeof(g.level) - 1);
 
@@ -636,6 +671,7 @@ void pump()
                 put(at, &g.snapshot_effect_seed, 4);
                 put(at, &g.snapshot_camera_end_tick, 4);
                 put(at, &g.epoch, 2);
+                put(at, host_name(), strlen(host_name()) + 1);
                 send_to(g.peer_address, g.peer_port, reply, at - reply);
             }
         } else if (type == k_welcome && g.kind == role::joiner && !g.connected && size >= 12) {
@@ -666,6 +702,10 @@ void pump()
             memcpy(&g.snapshot_effect_seed, at + 12, 4);
             memcpy(&g.snapshot_camera_end_tick, at + 16, 4);
             memcpy(&g.epoch, at + 20, 2);
+            memset(g.peer_name, 0, sizeof(g.peer_name));
+            if (end - (at + 22) > 0) {
+                memcpy(g.peer_name, at + 22, end - (at + 22) < (ptrdiff_t)sizeof(g.peer_name) - 1 ? end - (at + 22) : sizeof(g.peer_name) - 1);
+            }
             g.snapshot_chunks_done = 0;
             g.awaiting_snapshot = true;
             printf("lockstep: joining %s, receiving the game (%u KB)\n", g.level, snapshot_size / 1024);
@@ -882,10 +922,14 @@ void frame_begin()
     }
     g.frames++;
     if (g.kind == role::joiner && !g.connected && g.frames % 30 == 1) {
-        uint8_t hello[8];
+        uint8_t hello[8 + 16];
+        uint8_t *at = header(hello, k_hello, 0xff);
+        const char *name = host_name();  // this profile's name, as the host will show it
+        size_t length = strlen(name) < 15 ? strlen(name) : 15;
 
-        header(hello, k_hello, 0xff);
-        send_to(g.join_address, htons(k_port), hello, sizeof(hello));
+        put(at, name, length);
+        *at++ = 0;
+        send_to(g.join_address, htons(k_port), hello, at - hello);
     }
 #endif
 }
@@ -1049,6 +1093,7 @@ int32_t schedule_ticks(int32_t wanted)
     if (!g.peer_lost && now_ms - g.last_heard_ms > (g.heard_this_level ? k_peer_timeout_ms : k_peer_loading_timeout_ms)) {
         g.peer_lost = true;
         printf("lockstep: nothing from the other player for %u s, carrying on without them\n", (now_ms - g.last_heard_ms) / 1000);
+        show_message("%s left the game.", g.peer_name[0] != 0 ? g.peer_name : "The other player");
     }
     if (g.peer_lost) {
         player_action idle;
