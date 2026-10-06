@@ -28,7 +28,7 @@ constexpr char k_last_row[] = "ui\\shell\\main_menu\\difficulty_select\\impossib
 constexpr int16_t k_row_height = 33;  // the difficulty rows' spacing (bounds 78, 111, 144, 177)
 // the description box breaks lines only at \r\n, like difficulty_descriptions
 constexpr char k_description[] =
-    "Let another player join this\r\ngame from Multiplayer, Join\r\nGame, at any point in the\r\nlevel.";
+    "Let up to three players join\r\nthis game from Multiplayer,\r\nJoin Game, at any point in\r\nthe level.";
 
 widget_instance *g_row;
 widget_instance *g_list;
