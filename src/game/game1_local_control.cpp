@@ -1,3 +1,4 @@
+#include "halo/game/lockstep.hpp"
 /**
  * Local player control input digitisation and look vector helpers.
  */
@@ -426,11 +427,22 @@ void LocalControl::digitize_control_input(player_control_input *input)
     uint32_t control_flags = input->control_flags;
     uint32_t button_flags = input->button_flags;
 
-    if ((input->melee != 0 || local_player_input_states[0].buttons[halo::game::fields::k_input_action_accept] != 0) && halo::saved_games::globals().game_state_write_in_progress == 0 &&
+    bool lockstep_tick = halo::game::lockstep::session_active() && halo::game::lockstep::in_tick();
+
+    if (!lockstep_tick && (input->melee != 0 || local_player_input_states[0].buttons[halo::game::fields::k_input_action_accept] != 0) &&
+        (halo::saved_games::globals().game_state_write_in_progress == 0 || halo::game::lockstep::session_active()) &&
         *(int8_t *)(cinematic_globals_ptr + 10) != 0) {
-        split_screen_quit_prompt_string = halo::k_word_none;
-        halo::networking::globals().join_error_reason = 0;
-        halo::main::globals().main_globals.revert_map_if_allowed = 1;
+        if (halo::game::lockstep::session_active()) {
+            halo::game::lockstep::local_skip_pressed();
+        } else {
+            split_screen_quit_prompt_string = halo::k_word_none;
+            halo::networking::globals().join_error_reason = 0;
+            halo::main::globals().main_globals.revert_map_if_allowed = 1;
+        }
+    }
+    // under lockstep the hs action flags come from every player's applied action, digitized inside the tick
+    if (halo::game::lockstep::session_active() && !lockstep_tick) {
+        return;
     }
 
     if (control_flags & 0x40) { *flags |= _player_action_jump; }

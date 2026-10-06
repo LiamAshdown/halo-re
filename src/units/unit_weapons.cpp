@@ -1,3 +1,5 @@
+#include "halo/game/lockstep.hpp"
+#include "halo/memory/api.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/math/constants.hpp"
 #include "halo/networking/game_mode.hpp"
@@ -949,6 +951,18 @@ uint8_t unit_lacks_weapon_type_of(uint32_t reference_object_index, uint32_t unit
  */
 uint8_t unit_local_player_weapon_flag_check(void)
 {
+    if (halo::game::lockstep::session_active()) {
+        // hs asks about "the" player; in co-op every machine answers for the same one, the host's (slot 0)
+        data_iterator iterator;
+        player *first;
+
+        iterator.data = halo::game::globals().player_data;
+        iterator.next_index = 0;
+        iterator.index = k_datum_index_none;
+        iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
+        first = static_cast<player *>(halo::memory::data_iterator_next(&iterator));
+        return first != 0 && first->unit != k_datum_index_none ? UnitView(first->unit).current_weapon_has_flag() : 0;
+    }
     if (local_player_globals->local_player_count == 1) {
         int32_t slot = -1;
         if (local_player_globals->local_players[0] != k_datum_index_none) {

@@ -735,7 +735,7 @@ void VehicleView::create_hover_thruster_effects()
         collision_result result;
         real length;
 
-        halo::math::vector3d_randomize_direction(*(real_point3d *)(marker + 0x3c), &direction, halo::math::globals().effect_random_seed, 0.0f,
+        halo::math::vector3d_randomize_direction(*(real_point3d *)(marker + 0x3c), &direction, halo::math::simulation_effect_seed(), 0.0f,
             0.2617994f);
         length = (i < hover_count ? obj->vehicle.ground_lean : obj->vehicle.ground_contact_fraction) * 6.0f + 2.0f;
         delta.i = direction.i * length;
@@ -797,7 +797,7 @@ void VehicleView::create_hover_thruster_midpoint_effects()
         collision_result result;
         real v;
 
-        halo::math::vector3d_randomize_direction(*(real_point3d *)(marker + 0x3c), &direction, halo::math::globals().effect_random_seed, 0.0f, 15.0f);
+        halo::math::vector3d_randomize_direction(*(real_point3d *)(marker + 0x3c), &direction, halo::math::simulation_effect_seed(), 0.0f, 15.0f);
         delta = direction;
         if (!halo::physics::collision_test_movement_segment(halo::to_bits(halo::collision_test_flag::front_face | halo::collision_test_flag::structure_bsp | halo::collision_test_flag::water_surface), marker_position, &delta, unit_index, &result)) {
             continue;

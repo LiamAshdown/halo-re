@@ -786,8 +786,8 @@ void update_active(void)
                         0.003921569f;
                 }
 
-                // ponytail: lockstep drops lip sync, since the playback position is real time and the talk overlay feeds
-                // the unit's node matrices; drive it from game time since the line started to bring it back
+                // under lockstep the unit's own tick drives it (unit_animation.cpp): the playback position is real time
+                // and the talk overlay moves the unit's head nodes
                 if (game_looping_sound_data->valid && !halo::game::lockstep::active() &&
                     halo::objects::object_try_and_get(instance->owner_index, 3) != 0) {
                     halo::units::unit_accumulate_clamped_offset(instance->owner_index, lip_sync_value);

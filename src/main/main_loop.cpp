@@ -444,7 +444,7 @@ void frame_render(uint8_t render_frame, uint32_t frame_average)
     float leftover_time;
     float frame_delta;
 
-    if (main_globals_data.save_map != 0) {
+    if (main_globals_data.save_map != 0 && !halo::game::lockstep::session_active()) {  // lockstep polls it every tick
         halo::main::main_save_map_private();
     }
     if (main_render_skip_threshold_ms != -1) {
@@ -748,7 +748,9 @@ bool MainLoop::loop_frame(void)
     }
     if (main_globals_data.lost_map != 0 && halo::game::globals().game_time->paused == 0) {
         previous_frames = main_globals_data.lost_map_frames;
-        main_globals_data.lost_map_frames = (int16_t)(previous_frames + 1);
+        if (!halo::game::lockstep::session_active()) {  // lockstep counts the delay in ticks (after_tick)
+            main_globals_data.lost_map_frames = (int16_t)(previous_frames + 1);
+        }
         if (previous_frames > k_main_revert_delay_frames) {
             main_globals_data.lost_map = 0;
             main_globals_data.lost_map_frames = 0;
@@ -759,7 +761,7 @@ bool MainLoop::loop_frame(void)
         halo::main::campaign_level_advance();
     }
     if (main_globals_data.respawn_coop_players != 0 && halo::game::globals().game_time->paused == 0 &&
-        halo::cutscene::globals().cinematic_globals->in_progress == 0) {
+        halo::cutscene::globals().cinematic_globals->in_progress == 0 && !halo::game::lockstep::session_active()) {
         previous_frames = main_globals_data.respawn_coop_frames;
         main_globals_data.respawn_coop_frames = (int16_t)(previous_frames + 1);
         if (previous_frames > k_main_respawn_delay_frames &&
@@ -768,15 +770,7 @@ bool MainLoop::loop_frame(void)
             main_globals_data.respawn_coop_frames = 0;
         }
     }
-    if (main_globals_data.save_map_write_pending != 0) {
-        game_state_before_save_proc();
-        main_globals_data.time_is_running = 0;
-        main_globals_data.reset_frame_timers = 0;
-        game_state_revert_available = halo::saved_games::game_state_queue_write(1) != 0;
-        main_globals_data.reset_frame_timers = 1;
-        halo::interface::hud_display_checkpoint_message(0);
-        main_globals_data.save_map_write_pending = 0;
-    }
+    halo::main::main_checkpoint_write_service();
     if (main_globals_data.level_transition != 0) {
         halo::main::main_level_transition_update();
     }
@@ -786,7 +780,9 @@ bool MainLoop::loop_frame(void)
         main_globals_data.revert_map = 0;
     }
     if (main_globals_data.revert_map_if_allowed != 0) {
-        if (halo::saved_games::globals().game_state_write_in_progress == 0 && halo::cutscene::globals().cinematic_globals->skip_in_progress != 0) {
+        // under lockstep the save thread's progress is one machine's timing: perform_revert waits for it instead
+        if ((halo::saved_games::globals().game_state_write_in_progress == 0 || halo::game::lockstep::session_active()) &&
+            halo::cutscene::globals().cinematic_globals->skip_in_progress != 0) {
             halo::saved_games::game_state_perform_revert();
             ui_pause_pending_count_00718fa0 = k_ui_pause_pending_ticks;
             main_globals_data.revert_map = 0;
@@ -1142,3 +1138,26 @@ void MainLoop::menu_return_and_reset(void)
 }
 
 }
+
+namespace halo::main {
+
+/**
+ * Writes the checkpoint save_map_private armed: the before-save callbacks, then the game state queued for the save
+ * thread, with the frame timers reset afterwards as the save stalls the frame. Lockstep calls it between ticks so
+ * every machine saves the same tick.
+ */
+void main_checkpoint_write_service()
+{
+    if (main_globals_data.save_map_write_pending == 0) {
+        return;
+    }
+    game_state_before_save_proc();
+    main_globals_data.time_is_running = 0;
+    main_globals_data.reset_frame_timers = 0;
+    game_state_revert_available = halo::saved_games::game_state_queue_write(1) != 0;
+    main_globals_data.reset_frame_timers = 1;
+    halo::interface::hud_display_checkpoint_message(0);
+    main_globals_data.save_map_write_pending = 0;
+}
+
+}  // namespace halo::main

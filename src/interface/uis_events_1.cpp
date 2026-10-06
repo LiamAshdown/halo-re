@@ -1,3 +1,4 @@
+#include "halo/game/lockstep.hpp"
 /**
  * Widget event handlers reachable only through ui_event_function_table. Each handler takes the widget instance,
  * the event record and an out-flag and returns whether the event was consumed.
@@ -158,6 +159,10 @@ uint8_t UiEventHandlers::event_49d0d0(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_49d100(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
+    if (halo::game::lockstep::session_active()) {
+        halo::game::lockstep::local_revert_requested();
+        return 1;
+    }
     halo::networking::globals().join_error_reason = 0;
     halo::main::fields::lost_map = 0;
     split_screen_quit_prompt_string = halo::k_word_none;
@@ -172,6 +177,10 @@ uint8_t UiEventHandlers::event_49d100(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_49d120(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
+    if (halo::game::lockstep::session_active()) {
+        halo::game::lockstep::local_restart_requested();
+        return 1;
+    }
     halo::networking::globals().join_error_reason = 0;
     halo::main::fields::lost_map = 0;
     split_screen_quit_prompt_string = halo::k_word_none;

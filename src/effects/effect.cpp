@@ -1,3 +1,4 @@
+#include "halo/game/lockstep.hpp"
 #include "halo/core/flags.hpp"
 #include "halo/effects/local_views.hpp"
 #include "halo/scenario/leaf.hpp"
@@ -215,7 +216,7 @@ void effect_ref::start_event(int16_t event_index)
             self->event_index = event_index;
             self->event_time = 0.0f;
             self->event_duration = halo::math::random_real_range_seeded(*((tag->flags & 4) != 0 ? &halo::math::globals().random_seed_global
-                : &halo::math::globals().effect_random_seed), event->delay_bounds[0], event->delay_bounds[1]);
+                : &halo::math::simulation_effect_seed()), event->delay_bounds[0], event->delay_bounds[1]);
         }
     }
 }
@@ -272,7 +273,7 @@ effect * effect_ref::try_and_get()
  */
 static real effect_update_roll_fraction(const Effect *tag)
 {
-    random_seed *seed = (tag->flags & halo::to_bits(halo::tags::effect_tag_flag::must_be_deterministic_pc)) ? &halo::math::globals().random_seed_global : &halo::math::globals().effect_random_seed;
+    random_seed *seed = (tag->flags & halo::to_bits(halo::tags::effect_tag_flag::must_be_deterministic_pc)) ? &halo::math::globals().random_seed_global : &halo::math::simulation_effect_seed();
 
     *seed = *seed * k_random_multiplier + k_random_increment;
     return (real)(*seed >> k_random_value_shift) * halo::k_unit_word_scale;
@@ -347,8 +348,10 @@ void effect_ref::update(real dt)
         uint8_t visible = 0;
 
         if (cluster != -1) {
+            // under lockstep an effect must live or die the same on every machine: what any player sees, not this one
             uint32_t *bits = cluster_visibility_bits(halo::game::globals().local_player_globals,
-                (tag->flags & halo::to_bits(halo::tags::effect_tag_flag::must_be_deterministic_pc)) ? cluster_visibility::deterministic : cluster_visibility::local_view);
+                ((tag->flags & halo::to_bits(halo::tags::effect_tag_flag::must_be_deterministic_pc)) || halo::game::lockstep::active())
+                    ? cluster_visibility::deterministic : cluster_visibility::local_view);
 
             visible = (bits[cluster >> 5] & (1u << (cluster & 0x1f))) != 0;
         }

@@ -1,3 +1,4 @@
+#include "halo/game/lockstep.hpp"
 #include "halo/interface/coop_option.hpp"
 #include "halo/interface/ifr2_widgets.hpp"
 #include "halo/interface/records.hpp"
@@ -931,6 +932,10 @@ void WidgetLifecycle::initialize_from_tag(datum_index tag_index, widget_instance
                 halo::interface::widget_instance_relink_focus(widget, child);
             }
         }
+    }
+    if (widget->pauses_game_time == 1 && halo::game::lockstep::session_active()) {
+        // co-op keeps playing behind menus, as split screen does; the close then has nothing to undo either
+        widget->pauses_game_time = 0;
     }
     if (widget->pauses_game_time == 1 && halo::networking::globals().game_mode != 2 && ui_split_screen == 0) {
         ui_pause_depth = ui_pause_depth + 1;

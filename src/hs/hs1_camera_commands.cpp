@@ -1,3 +1,4 @@
+#include "halo/game/lockstep.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/hs/records.hpp"
 #include "halo/hs/script_globals.hpp"
@@ -143,6 +144,10 @@ void CameraCommands::camera_set_relative(int16_t function_index, uint32_t thread
  */
 void CameraCommands::camera_time(int16_t function_index, uint32_t thread_index, char first)
 {
+    if (halo::game::lockstep::session_active()) {
+        halo::hs::hs_thread_return((int32_t)(uint16_t)(int16_t)halo::game::lockstep::camera_script_ticks_remaining(), thread_index);
+        return;
+    }
     halo::hs::hs_thread_return((int32_t)(uint16_t)(int16_t)(int32_t)(camera_script_time_remaining * halo::game::k_ticks_per_second_f), thread_index);
 }
 

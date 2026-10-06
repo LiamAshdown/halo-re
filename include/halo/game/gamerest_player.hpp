@@ -36,6 +36,8 @@ public:
     uint8_t find_placement_position(datum_index target_object, real_point3d *point);
     void kill_and_release_unit(int32_t respawn_timer_override);
     void release_unit_and_reset(int32_t previous_unit_override);
+    /** Where the player's released unit waits for its respawn (local_player_units, or a per-slot one for a non-local player). */
+    static datum_index *released_unit_slot(datum_index player_index, int16_t local_player_index);
     void reset_after_unit_change();
     void respawn();
     void trigger_full_health_effect();

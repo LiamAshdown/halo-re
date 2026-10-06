@@ -1,3 +1,4 @@
+#include "halo/game/lockstep.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/networking/game_mode.hpp"
 #include "halo/units/animation_states.hpp"
@@ -28,6 +29,40 @@
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/models/models.hpp"
+
+namespace {
+
+/**
+ * Lip sync under lockstep: the mouth data of the line's first permutation (following the split-sound chain), at the
+ * tick the line has reached. The audio's own playback position differs from machine to machine, and the talk overlay
+ * it drives moves the unit's head nodes, so co-op takes it from the line instead.
+ */
+float lockstep_mouth_aperture(datum_index sound_tag, int32_t tick)
+{
+    Sound *sound = (Sound *)halo::cache::globals().tag_instances[halo::datum_slot(sound_tag)].data;
+
+    if (sound == nullptr || sound->pitch_ranges.count <= 0 || tick < 0) {
+        return 0.0f;
+    }
+    SoundPitchRange *range = (SoundPitchRange *)sound->pitch_ranges.pointer;
+    SoundPermutation *permutations = (SoundPermutation *)range->permutations.pointer;
+    int32_t count = range->permutations.count;
+    int32_t index = 0;
+
+    for (int32_t hops = 0; index >= 0 && index < count && hops < count; hops++) {
+        SoundPermutation *permutation = &permutations[index];
+        int32_t size = (int32_t)permutation->mouth_data.size;
+
+        if (tick < size) {
+            return (float)((uint8_t *)permutation->mouth_data.pointer)[tick] * 0.003921569f;
+        }
+        tick -= size;
+        index = permutation->next_permutation_index == 0xffff ? -1 : permutation->next_permutation_index;
+    }
+    return 0.0f;
+}
+
+}  // namespace
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/core/link.hpp"
@@ -1488,6 +1523,18 @@ void UnitView::update_animation_timers()
                 }
             }
         }
+    }
+    if (halo::game::lockstep::active()) {
+        float mouth = 0.0f;
+
+        if ((uint8_t)obj->unit.speech_started != 0 && obj->unit.speech_duration_ticks > 0 &&
+            obj->unit.current_speech.sound_tag != k_datum_index_none) {
+            Sound *sound = (Sound *)halo::cache::globals().tag_instances[halo::datum_slot(obj->unit.current_speech.sound_tag)].data;
+            int32_t total = (int32_t)sound->longest_permutation_length * 0x1e / 1000;  // as commit_speech counts it
+
+            mouth = lockstep_mouth_aperture(obj->unit.current_speech.sound_tag, total - obj->unit.speech_duration_ticks);
+        }
+        halo::units::unit_accumulate_clamped_offset(unit_index, mouth);
     }
     if (obj->unit.speech_lipsync_ticks == 0 && (uint8_t)obj->unit.speech_lipsync_stopped == 0) {
         halo::ai::ai_propagate_communication_reaction(unit_index, (ai_communication_order *)&obj->unit.current_speech.ai_target_unit_index);

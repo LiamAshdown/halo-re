@@ -1,3 +1,4 @@
+#include "halo/game/lockstep.hpp"
 #include "halo/objects/flags.hpp"
 #include "halo/units/flags.hpp"
 #include "halo/core/flag_bits.hpp"
@@ -914,6 +915,25 @@ void PlayerView::kill_and_release_unit(int32_t respawn_timer_override)
  *
  * @address 0x4760b0
  */
+/**
+ * Where a player's released unit waits for its respawn: player_globals::local_player_units for a local player. A
+ * player with no local index (the other machine's player in co-op) has none, and indexing it with -1 wrote over
+ * local_players[0]; such players keep theirs here, by player slot.
+ */
+datum_index *PlayerView::released_unit_slot(datum_index player_index, int16_t local_player_index)
+{
+    static datum_index remote_released_units[k_maximum_players] = {
+        k_datum_index_none, k_datum_index_none, k_datum_index_none, k_datum_index_none,
+        k_datum_index_none, k_datum_index_none, k_datum_index_none, k_datum_index_none,
+        k_datum_index_none, k_datum_index_none, k_datum_index_none, k_datum_index_none,
+        k_datum_index_none, k_datum_index_none, k_datum_index_none, k_datum_index_none};
+
+    if (local_player_index != -1) {
+        return &local_player_globals->local_player_units[local_player_index];
+    }
+    return &remote_released_units[halo::datum_slot(player_index) % k_maximum_players];
+}
+
 void PlayerView::release_unit_and_reset(int32_t previous_unit_override)
 {
     player *plr;
@@ -928,10 +948,10 @@ void PlayerView::release_unit_and_reset(int32_t previous_unit_override)
         halo::game::game_engine_attribute_player_death(plr->unit, k_datum_index_none, k_datum_index_none, -1, 1);
     }
 
-    local_player_globals->local_player_units[plr->local_player_index] = plr->unit;
+    *released_unit_slot(player_index, plr->local_player_index) = plr->unit;
     PlayerView(player_index).reset_after_unit_change();
 
-    saved_unit = local_player_globals->local_player_units[plr->local_player_index];
+    saved_unit = *released_unit_slot(player_index, plr->local_player_index);
     {
         object_header *unit_header = &((object_header *)halo::objects::globals().object_data->data)[saved_unit & halo::k_datum_slot_mask];
         object *unit_obj = unit_header->data;
@@ -2737,7 +2757,9 @@ void StructureBsp::switch_regroup()
     data_iterator iterator;
     player *entry;
 
-    if (volume == -1 || local_player_globals->local_player_count <= 1) {
+    bool coop = halo::game::lockstep::session_active();
+
+    if (volume == -1 || (local_player_globals->local_player_count <= 1 && !coop)) {
         players_clear_bsp_cluster();
         return;
     }
@@ -2798,7 +2820,21 @@ void StructureBsp::switch_regroup()
         found = 1;
     }
 
-    if (found && local_player_globals->local_players[0] != k_datum_index_none) {
+    if (found && coop) {
+        // co-op: every player left behind joins the one who crossed into the new BSP
+        iterator.data = player_data;
+        iterator.next_index = 0;
+        iterator.index = k_datum_index_none;
+        iterator.signature = (uint32_t)iterator.data ^ k_data_iterator_signature;
+        while ((entry = (player *)halo::memory::data_iterator_next(&iterator)) != 0) {
+            datum_index player_index = iterator.index;
+
+            if (entry->unit != k_datum_index_none && entry->unit != chosen_unit) {
+                halo::game::game_engine_reattach_player_unit_unused(player_index, chosen_unit, &target);
+                (halo::game::player_at(player_index))->bsp_cluster = -1;
+            }
+        }
+    } else if (found && local_player_globals->local_players[0] != k_datum_index_none) {
         datum_index player_index = local_player_globals->local_players[0];
         player *local = halo::game::player_at(player_index);
 

@@ -1,3 +1,5 @@
+#include "halo/game/lockstep.hpp"
+#include "halo/memory/api.hpp"
 #include "halo/math/constants.hpp"
 #include "halo/game/records.hpp"
 #include "halo/objects/record_access.hpp"
@@ -384,6 +386,27 @@ uint8_t unit_is_area_clear_of_fast_objects(void)
             }
         }
         slot = (*(int32_t *)halo::game::globals().local_player_globals->local_players != -1 && slot < 0) ? 0 : -1;
+    }
+    if (halo::game::lockstep::session_active()) {
+        // in co-op only this machine's player is local, and every machine must judge the same area: all players
+        data_iterator iterator;
+        player *entry;
+
+        tracked_count = 0;
+        iterator.data = halo::game::globals().player_data;
+        iterator.next_index = 0;
+        iterator.index = k_datum_index_none;
+        iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
+        while ((entry = static_cast<player *>(halo::memory::data_iterator_next(&iterator))) != 0) {
+            if (entry->unit != k_datum_index_none && tracked_count < k_max_tracked_units) {
+                object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(entry->unit)].data;
+
+                if (obj->parent_object == k_datum_index_none) {
+                    tracked_positions[tracked_count] = obj->bounding_center;
+                    tracked_count++;
+                }
+            }
+        }
     }
 
     if (tracked_count != 0) {

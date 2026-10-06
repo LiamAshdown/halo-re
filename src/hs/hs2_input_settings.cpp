@@ -1,3 +1,4 @@
+#include "halo/game/lockstep.hpp"
 #include "halo/hs/records.hpp"
 #include "halo/core/bit_cast.hpp"
 #include "tags.h"
@@ -296,6 +297,9 @@ void InputSettingsCommands::evaluate_player0_joystick_set_is_normal(int16_t func
 {
     uint8_t joystick_set = profile_globals_block.joystick_set;
 
+    if (halo::game::lockstep::session_active()) {  // each machine's own profile: answer the same everywhere
+        joystick_set = 0;
+    }
     halo::hs::hs_thread_return((int32_t)(joystick_set == 0 || joystick_set == 1), thread_index);
 }
 
@@ -312,8 +316,10 @@ void InputSettingsCommands::evaluate_player0_look_invert_pitch(int16_t function_
         definition->parameters, first);
 
     if (arguments != 0) {
-    halo::interface::player_profile_save_495fb0(halo::hs::argument_byte(arguments[0]));
-    halo::hs::hs_thread_return(0, thread_index);
+        if (!halo::game::lockstep::session_active()) {  // co-op leaves every player's own profile alone
+            halo::interface::player_profile_save_495fb0(halo::hs::argument_byte(arguments[0]));
+        }
+        halo::hs::hs_thread_return(0, thread_index);
     }
 }
 
@@ -325,7 +331,7 @@ void InputSettingsCommands::evaluate_player0_look_invert_pitch(int16_t function_
  */
 void InputSettingsCommands::evaluate_player0_look_pitch_is_inverted(int16_t function_index, uint32_t thread_index, char first)
 {
-    halo::hs::hs_thread_return((int32_t)profile_globals_block.look_inverted, thread_index);
+    halo::hs::hs_thread_return(halo::game::lockstep::session_active() ? 0 : (int32_t)profile_globals_block.look_inverted, thread_index);
 }
 
 /**

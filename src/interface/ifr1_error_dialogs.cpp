@@ -1,3 +1,4 @@
+#include "halo/game/lockstep.hpp"
 #include "halo/interface/ifr1_error_dialogs.hpp"
 #include "halo/core/ui_tag_paths.hpp"
 #include "halo/core/datum.hpp"
@@ -142,8 +143,8 @@ void ErrorDialogs::show(int16_t error_string_index, int32_t player_index, uint8_
         dialog->first_child->first_child->selection_index = clamped;
         dialog->is_error_dialog = 1;
         if (dialog->pauses_game_time == 0) {
-            dialog->pauses_game_time = is_error;
-            if (is_error == 1 && halo::networking::globals().game_mode != 2) {
+            dialog->pauses_game_time = halo::game::lockstep::session_active() ? 0 : is_error;  // co-op does not pause
+            if (dialog->pauses_game_time == 1 && halo::networking::globals().game_mode != 2) {
                 ui_pause_depth = ui_pause_depth + 1;
                 if (halo::game::globals().game_time->paused == 0) {
                     if (halo::game::globals().game_time->initialized != 0) {

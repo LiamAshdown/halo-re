@@ -1,3 +1,4 @@
+#include "halo/game/lockstep.hpp"
 #include "halo/units/flags.hpp"
 #include "halo/core/flag_bits.hpp"
 #include "halo/tags/flags.hpp"
@@ -109,8 +110,8 @@ void PlayerView::respawn()
         }
     };
 
-    if (current_game_engine == 0 && ((player *)p)->local_player_index != -1) {
-        datum_index *slot = (datum_index *)&local_player_globals->local_player_units[((player *)p)->local_player_index];
+    if (current_game_engine == 0 && (((player *)p)->local_player_index != -1 || halo::game::lockstep::session_active())) {
+        datum_index *slot = PlayerView::released_unit_slot(player_index, ((player *)p)->local_player_index);
         datum_index existing_unit = *slot;
 
         *slot = k_datum_index_none;
@@ -126,7 +127,9 @@ void PlayerView::respawn()
                 }
                 halo::objects::object_mark_pending_delete(existing_unit);
                 player_respawn_drop_lights(existing_unit);
-                LocalPlayers::set_controlled_unit(existing_unit, ((player *)p)->local_player_index);
+                if (((player *)p)->local_player_index != -1) {
+                    LocalPlayers::set_controlled_unit(existing_unit, ((player *)p)->local_player_index);
+                }
                 if (held_weapon != k_datum_index_none) {
                     player_respawn_drop_lights(held_weapon);
                 }

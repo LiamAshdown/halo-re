@@ -55,6 +55,8 @@ void main_queue_cache_file_open(char *name);
 void main_queue_map_change(const char *map_name);
 uint8_t main_queue_map_change_by_name_or_clear(char *name);
 void main_save_map_private();
+/** Writes the checkpoint save_map_private armed, if any. */
+void main_checkpoint_write_service();
 void main_switch_structure_bsp_and_notify();
 void chimera__exec_init();
 void console_autocomplete_command();

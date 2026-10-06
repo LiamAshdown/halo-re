@@ -727,7 +727,7 @@ void EnginePlayerSync::update_local_player_control(int16_t local_player_index, r
         action.grenade_index = control->desired_grenade_index;
         action.zoom_level = control->desired_zoom_level;
 
-        halo::game::lockstep::capture_local_action(action);
+        halo::game::lockstep::capture_local_action(action, input.melee != 0);
         ((player_action *)update_client_staged)[update_client_staged_count] = action;
         update_client_staged_count = update_client_staged_count + 1;
         update_client_ticks_remaining = ticks_this_frame;

@@ -102,6 +102,14 @@ uint32_t random_seed_generate();
 real random_real_range_seeded(random_seed &seed, real min, real max);
 
 /**
+ * The few draws from the effects stream that change gameplay (effect event delays and rolls, hover thruster probes)
+ * take this seed. It is effect_random_seed, which is seeded from the clock and also feeds particles, sounds and screen
+ * shake per machine, unless lockstep supplies a deterministic one for them (set_simulation_effect_seed).
+ */
+random_seed &simulation_effect_seed();
+void set_simulation_effect_seed(random_seed *seed);
+
+/**
  * Rotates `direction` by a random angle in [lo, hi) about a random perpendicular axis taken from
  * sphere_point_table, advancing `seed`. Returns `out`.
  *

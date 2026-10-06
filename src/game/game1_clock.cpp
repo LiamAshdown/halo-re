@@ -150,6 +150,10 @@ void SimulationClock::advance_simulation_ticks(float delta_time)
         halo::game::game_simulate_tick((uint32_t)(i - 1));
         game_time->elapsed_ticks = game_time->elapsed_ticks + 1;
         game_time->game_time = game_time->game_time + 1;
+        if (halo::game::lockstep::after_tick()) {
+            tick_count = tick_count - i + 1;  // the ticks run so far
+            break;
+        }
     }
     game_time->ticks_this_frame = (int16_t)tick_count;
 

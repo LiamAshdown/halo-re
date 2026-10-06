@@ -1,3 +1,4 @@
+#include "halo/game/lockstep.hpp"
 #include "halo/objects/flags.hpp"
 #include "halo/math/constants.hpp"
 #include "halo/core/lcg.hpp"
@@ -345,6 +346,7 @@ void CameraSystem::script_set_animation(datum_index animation_tag, char *name)
     camera_script.changed = 1;
     camera_script.field_of_view = 1.2217305f; 
     camera_script.time_remaining = (real)(int32_t)(anim->frame_count / 30);
+    halo::game::lockstep::camera_script_started(camera_script.time_remaining);
     camera_script.animation_tag = animation_tag;
     camera_script.animation_index = (int16_t)index;
 }
@@ -464,6 +466,7 @@ void CameraSystem::debug_start(int16_t camera_point_index, int16_t ticks, datum_
     }
 
     camera_script.time_remaining = (float)(ticks / 30);
+    halo::game::lockstep::camera_script_started(camera_script.time_remaining);
     camera_script.object = relative_object;
 
     halo::camera::camera_update(0.0f); 

@@ -13,6 +13,20 @@
 
 namespace halo::math {
 
+namespace {
+random_seed *g_simulation_effect_seed;
+}
+
+random_seed &simulation_effect_seed()
+{
+    return g_simulation_effect_seed != nullptr ? *g_simulation_effect_seed : globals().effect_random_seed;
+}
+
+void set_simulation_effect_seed(random_seed *seed)
+{
+    g_simulation_effect_seed = seed;
+}
+
 real random_real_range(real min, real max)
 {
     return simulation_random().next_real(min, max);
