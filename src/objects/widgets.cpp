@@ -103,9 +103,11 @@ void halo::objects::WidgetSystem::create(uint32_t object_index)
                             entry->next_widget = obj->first_widget;
                             obj->first_widget = handle;
                         } else {
-                            datum_index (*new_instance)(TagID) =
-                                (datum_index (*)(TagID))widget_type_definitions[type].new_instance;
-                            datum_index instance = new_instance(((struct ObjectWidget *)attachment)->reference.tag_id);
+                            // The creators (antenna_new, flag_new, glow_new, ...) take the tag as a 32-bit datum. Passing
+                            // the TagID struct only worked on x86; wasm passes a struct by pointer.
+                            datum_index (*new_instance)(datum_index) =
+                                (datum_index (*)(datum_index))widget_type_definitions[type].new_instance;
+                            datum_index instance = new_instance(halo::objects::tag_handle(((struct ObjectWidget *)attachment)->reference));
 
                             entry->instance = instance;
                             if (instance == k_datum_index_none) {
