@@ -1,3 +1,4 @@
+#include "halo/game/lockstep.hpp"
 #include "halo/math/constants.hpp"
 #include "halo/game/game2_game_lifecycle.hpp"
 #include "halo/networking/game_mode.hpp"
@@ -84,6 +85,7 @@ namespace halo::game {
 void GameLifecycle::simulate_tick(uint32_t predict_pass)
 {
     fields::simulation_tick_in_progress = 1;
+    halo::game::lockstep::tick_begin();
     halo::platform::fpu_control(0x9001f, 0xfffff);
     halo::game::game_engine_flag_local_player_units();
     halo::game::team_pair_overrides_tick();
@@ -117,6 +119,8 @@ void GameLifecycle::simulate_tick(uint32_t predict_pass)
     halo::game::main_switch_structure_bsp();
     halo::interface::hud_update_dispatch();
     halo::effects::player_effect_clear_dead_players();
+    halo::game::lockstep::tick_end();
+    halo::game::lockstep::probe_tick_end();
 
     if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
         if (predict_pass == 0) {
@@ -154,6 +158,7 @@ void GameLifecycle::start_new_map(void)
     uint8_t *record;
 
     halo::math::globals().random_seed_global = halo::main::globals().game_globals->random_seed;
+    halo::game::lockstep::tick_effect_random_seed_reset(halo::main::globals().game_globals->random_seed);
 
     if (current_game_engine != (game_engine_definition *)0) {
         if (current_game_engine->dispose != (void *)0) {

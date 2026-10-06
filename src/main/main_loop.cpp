@@ -1,3 +1,4 @@
+#include "halo/game/lockstep.hpp"
 /**
  * The main loop, its frame pacer and shutdown, plus per-frame game timing helpers.
  */
@@ -390,7 +391,9 @@ void frame_simulate(uint8_t &render_frame)
         memset(update_client_staged, 0, sizeof(update_client_staged));
         update_client_staged_count = 0;
         update_client_ticks_remaining = ticks;
+        halo::game::lockstep::probe_checkpoint("frame-start");
         halo::game::game_engine_update_local_player_control(0, delta, ticks);
+        halo::game::lockstep::probe_checkpoint("local-control");
         if (main_globals_data.game_connection == _game_connection_network_client ||
             (main_globals_data.game_connection == _game_connection_network_server &&
              (halo::networking::globals().server->flags & 4) == 0)) {
@@ -404,6 +407,7 @@ void frame_simulate(uint8_t &render_frame)
             }
         }
         halo::game::game_engine_advance_simulation_ticks(delta);
+        halo::game::lockstep::probe_checkpoint("ticks+effects");
 
         frame_log_player_update_history();
 
@@ -414,11 +418,14 @@ void frame_simulate(uint8_t &render_frame)
             render_frame = 1;
         }
         halo::camera::camera_update((float)main_globals_data.time_is_running * main_globals_data.frame_delta_time);
+        halo::game::lockstep::probe_checkpoint("camera");
         add_bob = halo::camera::camera_is_local_player_default_first_person();
         halo::camera::observer_update((float)main_globals_data.time_is_running * main_globals_data.frame_delta_time,
             add_bob);
+        halo::game::lockstep::probe_checkpoint("observer");
         halo::game::game_engine_update_end_game_sequence(
             (float)main_globals_data.time_is_running * main_globals_data.frame_delta_time);
+        halo::game::lockstep::probe_checkpoint("end-game");
     }
 }
 
@@ -581,6 +588,7 @@ bool update_and_render_frame(int16_t connection, uint32_t frame_average)
     heap_checkpoint("simulate");
 
     frame_render(render_frame, frame_average);
+    halo::game::lockstep::probe_checkpoint("render");
     heap_checkpoint("render");
     return false;
 }
@@ -720,6 +728,8 @@ bool MainLoop::loop_frame(void)
     int16_t connection;
     float progress;
     uint32_t previous_queue_time;
+
+    halo::game::lockstep::probe_frame_begin();
     ui_input_event idle_event;
     int32_t elapsed_ms;
 

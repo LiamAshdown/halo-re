@@ -1,3 +1,4 @@
+#include "halo/game/lockstep.hpp"
 /**
  * Fixed-rate simulation tick accounting, tick records, time scale and the multiplayer clock.
  */
@@ -135,7 +136,9 @@ void SimulationClock::advance_simulation_ticks(float delta_time)
         halo::networking::network_game_server_per_frame_tick((int16_t)tick_count, (network_server_globals *)((uint8_t *)halo::networking::globals().server));
     }
 
+    halo::game::lockstep::probe_checkpoint("catchup");
     for (i = tick_count; i > 0; i--) {
+        halo::game::lockstep::probe_checkpoint("between-ticks");
         halo::game::game_simulate_tick((uint32_t)(i - 1));
         game_time->elapsed_ticks = game_time->elapsed_ticks + 1;
         game_time->game_time = game_time->game_time + 1;

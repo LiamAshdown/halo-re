@@ -1,3 +1,4 @@
+#include "halo/game/lockstep.hpp"
 /**
  * @file src/sound/sound_instances.cpp
  * Playing sound instances: starting, stopping, fading and per-update gain.
@@ -785,7 +786,9 @@ void update_active(void)
                         0.003921569f;
                 }
 
-                if (game_looping_sound_data->valid &&
+                // ponytail: lockstep drops lip sync, since the playback position is real time and the talk overlay feeds
+                // the unit's node matrices; drive it from game time since the line started to bring it back
+                if (game_looping_sound_data->valid && !halo::game::lockstep::active() &&
                     halo::objects::object_try_and_get(instance->owner_index, 3) != 0) {
                     halo::units::unit_accumulate_clamped_offset(instance->owner_index, lip_sync_value);
                 }

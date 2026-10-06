@@ -1,3 +1,4 @@
+#include "halo/game/lockstep.hpp"
 #include "halo/math/constants.hpp"
 #include "halo/units/flags.hpp"
 #include "halo/core/flag_bits.hpp"
@@ -209,6 +210,7 @@ void EnginePlayerSync::players_update_server(void)
     if ((uint8_t)halo::game::update_client_queue_apply_tick(actions, carry) == 0) {
         return;
     }
+    halo::game::lockstep::probe_override_actions(actions);
 
     player_iter.data = player_data;
     player_iter.next_index = 0;
