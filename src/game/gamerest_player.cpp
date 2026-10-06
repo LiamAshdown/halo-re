@@ -1032,8 +1032,8 @@ void PlayerView::reset_after_unit_change()
     }
 
     if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
-        update_server_queue *entry =
-            &((update_server_queue *)update_server_queues->data)[player_index];
+        update_server_queue *entry =  // indexed by the handle's slot, as retail masks it (and esi, 0xffff)
+            &((update_server_queue *)update_server_queues->data)[player_index & halo::k_datum_slot_mask];
         plr->unknown_f4 = k_datum_index_none;
         entry->queue.queue.read_index = 0;
         entry->queue.queue.write_index = 0;
