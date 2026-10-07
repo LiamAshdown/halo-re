@@ -35,9 +35,11 @@
  *   HELLO   the joiner's profile name (NUL terminated)
  *   WELCOME u8 player count, i16 difficulty, the level path (NUL terminated), then the snapshot: i32 tick, u32 size,
  *           u32 game seed, u32 simulation effect seed, i32 camera script end tick, u16 epoch, u8 host slot, u8 free slot
- *           mask, u8 has a save, i32 dialogue variant counter, i32 object cluster stamp, i32 AI quiet until tick, then
- *           per slot u32 held control flags, f32 previous yaw, f32 previous pitch
- *   STATE   u16 chunk index, the chunk (k_chunk_size bytes, the last one shorter)
+ *           mask, u8 has a save, i32 dialogue variant counter, i32 object cluster stamp, i32 AI quiet until tick, u8
+ *           n, n x u8 gameplay script settings (k_shared_settings), then per slot u32 held control flags, f32 previous
+ *           yaw, f32 previous pitch
+ *   STATE   u16 chunk index, the chunk (k_chunk_size bytes, the last one shorter) of the packed snapshot: the live
+ *           state then the save XOR the live state, as (u32 zero count, u32 literal count, the literals) runs
  *   STATE_ACK i32 chunks received in order
  *   INPUT   (the slot's actions) i32 what everyone has of the receiver's actions (host to joiner, else -1), u8 n,
  *           n x i32 the last tick the sender has every action of for each slot, i32 first tick, u8 count, actions
@@ -58,6 +60,7 @@
 #include "halo/math/random.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/hs/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/units/vars.hpp"
 #include "halo/shell/api.hpp"
@@ -69,6 +72,7 @@
 #include "memory.h"
 #include "interface.h"
 #include "main.h"
+#include "hs.h"
 #include "saved_games.h"
 #include "cutscene.h"
 #include "../gamespy/gamespy_calls.hpp"
@@ -95,7 +99,8 @@ namespace {
 constexpr uint16_t k_port = 2420;
 constexpr uint16_t k_query_port = 2302;  // the port the server browser searches (game_socket_port)
 constexpr uint32_t k_magic = 0x4f434c48;  // "HLCO"
-constexpr int32_t k_input_delay = 3;
+constexpr int32_t k_input_delay = 3;     // the lead every slot starts a level or join with
+constexpr int32_t k_max_lead = 15;       // 500 ms: past this, waiting is a slow machine, not the network
 constexpr int32_t k_ring = 256;
 constexpr int32_t k_max_players = 4;
 constexpr int32_t k_hash_interval = 30;
@@ -134,6 +139,8 @@ struct member {
     uint16_t port = 0;
     char name[16] = {};
     uint32_t last_heard_ms = 0;
+    uint16_t last_epoch = 0;        // of its last message, whatever epoch: a mismatch is why it would go quiet
+    bool epoch_mismatch_logged = false;
     bool heard_this_level = false;
     int32_t contiguous = -1;        // this machine has every action of this slot up to this tick
     int32_t their_view[k_max_players] = {};  // host: what this joiner has of each slot, from its INPUT packets
@@ -166,6 +173,10 @@ struct session {
     int32_t action_tick[k_ring][k_max_players];
     player_action latest_local;
     int32_t next_local_tick = 0;
+    int32_t lead = k_input_delay;     // how far ahead of the tick this machine stamps its actions (only it decides)
+    int32_t lead_frames = 0;
+    int32_t lead_waits = 0;           // frames in this window that waited on someone's actions
+    int32_t lead_calm_frames = 0;     // frames in a row without waiting
 
     int32_t my_hash_tick[k_hash_ring];
     uint32_t my_hash[k_hash_ring];
@@ -199,6 +210,7 @@ struct session {
     uint8_t snapshot_vacant = 0;
     bool snapshot_has_save = false;
     int32_t snapshot_counters[3] = {};  // dialogue variant counter, object cluster stamp, AI quiet until tick
+    uint8_t snapshot_settings[32] = {};  // k_shared_settings
     uint32_t snapshot_held[k_max_players] = {};
     float snapshot_yaw[k_max_players] = {};
     float snapshot_pitch[k_max_players] = {};
@@ -378,6 +390,92 @@ void show_message(const char *format, ...)
     halo::interface::hud_message_broadcast_to_local_players(wide);
 }
 
+/** Zero runs out, as (u32 zeros, u32 literal count, literals); a literal ends at 8 zeros. `out` holds 2 n + 8. */
+size_t pack(const uint8_t *in, size_t n, uint8_t *out)
+{
+    uint8_t *at = out;
+    size_t i = 0;
+
+    while (i < n) {
+        size_t literal = i;
+
+        while (literal < n && in[literal] == 0) {
+            literal++;
+        }
+        size_t end = literal;
+
+        while (end < n) {
+            size_t zeros = end;
+
+            while (zeros < n && in[zeros] == 0 && zeros - end < 8) {
+                zeros++;
+            }
+            if (zeros == end) {
+                end++;
+            } else if (zeros - end >= 8 || zeros == n) {
+                break;
+            } else {
+                end = zeros;
+            }
+        }
+        uint32_t counts[2] = {static_cast<uint32_t>(literal - i), static_cast<uint32_t>(end - literal)};
+
+        memcpy(at, counts, 8);
+        memcpy(at + 8, in + literal, end - literal);
+        at += 8 + (end - literal);
+        i = end;
+    }
+    return at - out;
+}
+
+/** pack's runs back into exactly n bytes; false when they do not make n. */
+bool unpack(const uint8_t *in, size_t size, uint8_t *out, size_t n)
+{
+    const uint8_t *end = in + size;
+    size_t done = 0;
+
+    while (in < end) {
+        uint32_t counts[2];
+
+        if (end - in < 8) {
+            return false;
+        }
+        memcpy(counts, in, 8);
+        in += 8;
+        if (counts[0] > n - done || counts[1] > n - done - counts[0] || counts[1] > static_cast<size_t>(end - in)) {
+            return false;
+        }
+        memset(out + done, 0, counts[0]);
+        done += counts[0];
+        memcpy(out + done, in, counts[1]);
+        done += counts[1];
+        in += counts[1];
+    }
+    return done == n;
+}
+
+// Script settings that change play, which a level script may have set before a join (the rest are each machine's own:
+// display, sound, debug, multiplayer networking).
+constexpr const char *k_shared_settings[] = {"cheat_jetpack", "cheat_infinite_ammo", "cheat_bump_possession",
+    "cheat_reflexive_damage_effects", "cheat_omnipotent", "cheat_controller", "cheat_deathless_player",
+    "cheat_bottomless_clip", "cheat_super_jump", "cheat_medusa", "rider_ejection", "stun_enable", "breakable_surfaces",
+    "player_autoaim", "player_magnetism", "run_game_scripts", "effects_corpse_nonviolent"};
+constexpr int32_t k_shared_setting_count = sizeof(k_shared_settings) / sizeof(k_shared_settings[0]);
+
+/** The engine variable behind a boolean script setting, or null. */
+uint8_t *shared_setting(int32_t index)
+{
+    for (int32_t i = 0; i < halo::hs::k_builtin_global_count; i++) {
+        hs_global_definition *definition = halo::hs::globals().global_definitions[i];
+
+        if (definition != nullptr && definition->address != nullptr && definition->type == _hs_type_boolean &&
+            strcmp(definition->name, k_shared_settings[index]) == 0) {
+            return static_cast<uint8_t *>(definition->address);
+        }
+    }
+    return nullptr;
+}
+
 int32_t snapshot_chunk_count()
 {
     return static_cast<int32_t>((g.snapshot_size + k_chunk_size - 1) / k_chunk_size);
@@ -469,20 +567,29 @@ void join_at(int32_t tick)
             g.members[g.join_slot].address = 0;
         }
         g.join_slot = -1;
-        g.snapshot = static_cast<uint8_t *>(calloc(size, 2));
+        uint8_t *both = static_cast<uint8_t *>(calloc(size, 2));
+
+        g.snapshot = both != nullptr ? static_cast<uint8_t *>(malloc(size * 4 + 8)) : nullptr;
         if (g.snapshot != nullptr) {
             const uint8_t *save = halo::saved_games::game_state_checkpoint_bytes();
 
-            // ponytail: twice the bytes on the wire; send the save as a difference from the live state if joins drag
-            memcpy(g.snapshot, live, size);
+            memcpy(both, live, size);
             if (save != nullptr) {
-                memcpy(g.snapshot + size, save, size);
+                for (uint32_t i = 0; i < size; i++) {
+                    both[size + i] = save[i] ^ live[i];  // mostly zeros: much of a level is as it was at the save
+                }
             }
+            g.snapshot_size = static_cast<uint32_t>(pack(both, size * 2, g.snapshot));
             g.snapshot_has_save = save != nullptr;
+            for (int32_t i = 0; i < k_shared_setting_count; i++) {
+                uint8_t *setting = shared_setting(i);
+
+                g.snapshot_settings[i] = setting != nullptr ? *setting : 0;
+            }
+            printf("lockstep: sending the game, %u KB packed from %u KB\n", g.snapshot_size / 1024, size * 2 / 1024);
             g.snapshot_counters[0] = unit_dialogue_variant_counter;
             g.snapshot_counters[1] = halo::physics::globals().object_cluster_stamp;
             g.snapshot_counters[2] = halo::ai::globals().communication_quiet_until_tick;
-            g.snapshot_size = size * 2;
             g.snapshot_slot = slot;
             g.snapshot_chunks_done = 0;
             g.snapshot_chunks_sent = 0;
@@ -499,6 +606,7 @@ void join_at(int32_t tick)
                 g.snapshot_pitch[s] = g.previous_pitch[s];
             }
         }
+        free(both);
         g.join_pending = false;
     }
     halo::saved_games::game_state_apply_snapshot(live);
@@ -617,6 +725,13 @@ void start_from_snapshot()
         halo::physics::globals().object_cluster_stamp = g.snapshot_counters[1];
     }
     halo::ai::globals().communication_quiet_until_tick = g.snapshot_counters[2];
+    for (int32_t i = 0; i < k_shared_setting_count; i++) {
+        uint8_t *setting = shared_setting(i);
+
+        if (setting != nullptr) {
+            *setting = g.snapshot_settings[i];
+        }
+    }
     g_camera_script_end_tick = g.snapshot_camera_end_tick;
     {
         // the snapshot is the host's view: its player was the local one
@@ -1103,6 +1218,10 @@ void send_welcome(int32_t slot)
     put(at, &g.snapshot_vacant, 1);
     put(at, &has_save, 1);
     put(at, g.snapshot_counters, sizeof(g.snapshot_counters));
+    uint8_t settings = static_cast<uint8_t>(k_shared_setting_count);
+
+    put(at, &settings, 1);
+    put(at, g.snapshot_settings, k_shared_setting_count);
     for (int32_t s = 0; s < players; s++) {
         put(at, &g.snapshot_held[s], 4);
         put(at, &g.snapshot_yaw[s], 4);
@@ -1214,7 +1333,7 @@ void receive_welcome(const uint8_t *buffer, ssize_t size, const sockaddr_in &fro
     int32_t players = buffer[8];
 
     if (nul == nullptr || slot < 0 || slot >= k_max_players || players < slot + 1 || players > k_max_players ||
-        end - (nul + 1) < 37 + players * 12) {
+        end - (nul + 1) < 38 + k_shared_setting_count + players * 12 || nul[38] != k_shared_setting_count) {
         return;
     }
     const uint8_t *at = nul + 1;
@@ -1243,7 +1362,8 @@ void receive_welcome(const uint8_t *buffer, ssize_t size, const sockaddr_in &fro
     g.snapshot_vacant = at[23];
     g.snapshot_has_save = at[24] != 0;
     memcpy(g.snapshot_counters, at + 25, sizeof(g.snapshot_counters));
-    at += 37;
+    memcpy(g.snapshot_settings, at + 38, k_shared_setting_count);
+    at += 38 + k_shared_setting_count;
     for (int32_t s = 0; s < players; s++, at += 12) {
         memcpy(&g.snapshot_held[s], at, 4);
         memcpy(&g.snapshot_yaw[s], at + 4, 4);
@@ -1291,6 +1411,16 @@ void pump()
 
         if (!is_host() && sender != g.host_slot) {
             sender = -1;
+        }
+        if (sender >= 0 && in_level() && !g.awaiting_snapshot) {
+            member &m = g.members[sender];
+
+            m.last_epoch = epoch;
+            if (epoch != g.epoch && !m.epoch_mismatch_logged && type != k_hello && type != k_bye) {
+                m.epoch_mismatch_logged = true;
+                printf("LSP-EPOCH player %d is at epoch %u, this machine at %u (tick %d): its messages are ignored\n",
+                    sender, epoch, g.epoch, game_tick());
+            }
         }
         if (type == k_bye && sender >= 0 && g.connected) {
             // as if gone silent: the host lets it leave, a joiner turns to the next host
@@ -1461,9 +1591,12 @@ void check_for_lost_players(int32_t now)
         if (now_ms - m.last_heard_ms > (m.heard_this_level ? k_peer_timeout_ms : k_peer_loading_timeout_ms)) {
             if (is_host()) {
                 m.lost = true;
-                printf("lockstep: nothing from player %d for %u s, carrying on without them\n", s, (now_ms - m.last_heard_ms) / 1000);
+                printf("lockstep: nothing from player %d for %u s (its epoch %u, this one %u), carrying on without them\n", s,
+                    (now_ms - m.last_heard_ms) / 1000, m.last_epoch, g.epoch);
                 show_message("%s left the game.", member_name(s, "A player"));
             } else {
+                printf("lockstep: nothing from the host for %u s (its epoch %u, this one %u)\n", (now_ms - m.last_heard_ms) / 1000,
+                    m.last_epoch, g.epoch);
 #if defined(__EMSCRIPTEN__)
                 host_left();
 #endif
@@ -1669,8 +1802,23 @@ void frame_begin()
         // the level is loaded (it was queued on WELCOME) and the whole game has arrived: take it over
         if (g.snapshot_chunks_done >= snapshot_chunk_count() && halo::main::globals().main_globals.main_menu_scenario_loaded == 0 &&
             halo::main::globals().main_globals.level_transition == 0 && halo::game::globals().game_time->initialized != 0) {
-            halo::saved_games::game_state_apply_snapshot(g.snapshot);
-            halo::saved_games::game_state_set_checkpoint(g.snapshot_has_save ? g.snapshot + g.snapshot_size / 2 : nullptr);
+            uint32_t size = 0;
+
+            halo::saved_games::game_state_snapshot_bytes(&size);
+            uint8_t *both = static_cast<uint8_t *>(malloc(size * 2));
+
+            if (both == nullptr || !unpack(g.snapshot, g.snapshot_size, both, size * 2)) {
+                printf("lockstep: the game that arrived does not fit this one's state, joining again\n");
+                free(both);
+                end_session(true);
+                return;
+            }
+            for (uint32_t i = 0; g.snapshot_has_save && i < size; i++) {
+                both[size + i] ^= both[i];
+            }
+            halo::saved_games::game_state_apply_snapshot(both);
+            halo::saved_games::game_state_set_checkpoint(g.snapshot_has_save ? both + size : nullptr);
+            free(both);
             free(g.snapshot);
             g.snapshot = nullptr;
             g.awaiting_snapshot = false;
@@ -1923,7 +2071,8 @@ int32_t schedule_ticks(int32_t wanted)
         }
     }
     check_for_lost_players(now);
-    while (g.next_local_tick < now + wanted + k_input_delay && g.next_local_tick < now + k_ring - 1) {
+    // the lead is this machine's alone: a longer one stamps more ticks now, a shorter one stamps none until it is reached
+    while (g.next_local_tick < now + wanted + g.lead && g.next_local_tick < now + k_ring - 1) {
         player_action &stamped = g.actions[g.next_local_tick % k_ring][g.local_slot];
 
         stamped = g.latest_local;
@@ -1960,6 +2109,7 @@ int32_t schedule_ticks(int32_t wanted)
     send_inputs();
 #endif
     int32_t ready = 0;
+    bool waited = false;
 
     while (ready < wanted) {
         int32_t t = now + ready;
@@ -1979,9 +2129,29 @@ int32_t schedule_ticks(int32_t wanted)
             all = all && (!active_slot(s) || g.action_tick[t % k_ring][s] == t);
         }
         if (!all) {
+            waited = true;
             break;
         }
         ready++;
+    }
+    // over a relay far away, actions 3 ticks ahead arrive late and everyone stutters: lead by about the round trip
+    g.lead_frames++;
+    g.lead_waits += waited ? 1 : 0;
+    g.lead_calm_frames = waited ? 0 : g.lead_calm_frames + 1;
+    if (g.lead_frames >= 60) {
+        int32_t lead = g.lead;
+
+        if (g.lead_waits * 6 > g.lead_frames && g.lead < k_max_lead) {
+            g.lead++;
+        } else if (g.lead_calm_frames >= 600 && g.lead > k_input_delay) {
+            g.lead--;
+            g.lead_calm_frames = 0;
+        }
+        if (g.lead != lead) {
+            printf("lockstep: input lead %d ticks (waited %d of %d frames)\n", g.lead, g.lead_waits, g.lead_frames);
+        }
+        g.lead_frames = 0;
+        g.lead_waits = 0;
     }
     if (ready < wanted && g.frames % 60 == 0) {
         printf("lockstep: waiting at tick %d (players %d, sent to %d, everyone has to %d)\n", now, g.player_count,

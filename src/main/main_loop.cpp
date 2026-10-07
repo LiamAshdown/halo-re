@@ -389,7 +389,8 @@ void frame_simulate(uint8_t &render_frame)
     int32_t ticks;
     uint8_t add_bob;
 
-    if (halo::main::console_process_key_events() == 0 || main_globals_data.game_connection != 0) {
+    if (halo::main::console_process_key_events() == 0 || main_globals_data.game_connection != 0 ||
+        halo::game::lockstep::session_active()) {
         delta = (float)main_globals_data.time_is_running * main_globals_data.frame_delta_time;
         ticks = halo::game::game_engine_accumulate_simulation_ticks(delta, 1);
         memset(update_client_staged, 0, sizeof(update_client_staged));
@@ -586,7 +587,8 @@ bool update_and_render_frame(int16_t connection, uint32_t frame_average)
         }
         halo::interface::console_update_display();
     }
-    if (halo::main::console_process_key_events() == 0 || main_globals_data.game_connection != 0) {
+    if (halo::main::console_process_key_events() == 0 || main_globals_data.game_connection != 0 ||
+        halo::game::lockstep::session_active()) {
         frame_simulate(render_frame);
     }
     heap_checkpoint("simulate");
