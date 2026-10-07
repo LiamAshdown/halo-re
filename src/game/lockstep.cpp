@@ -17,7 +17,8 @@
  * run yet (k_join_flag, k_leave_flag with the slot), and every machine acts on them right before that tick. For a join,
  * every machine already playing applies its own game state as a snapshot (the after-load callbacks a revert runs) and
  * gives the joiner the lowest free slot: a new player, or the player of someone who left, dead either way, so the co-op
- * respawn brings it in beside a living player. The host streams its snapshot from that tick in STATE chunks; the joiner
+ * respawn brings it in beside a living player. The host streams its snapshot from that tick in STATE chunks, with its
+ * last save after it (what a revert or a cinematic skip goes back to, which the joiner never saved itself); the joiner
  * loads the level, applies it the same way and resumes there, everyone else waiting for its first actions. A leave
  * kills the player's unit and frees the slot: nothing respawns in it until someone joins into it.
  *
@@ -449,10 +450,12 @@ void join_at(int32_t tick)
         return;
     }
     if (is_host()) {
-        g.snapshot = static_cast<uint8_t *>(malloc(size));
+        g.snapshot = static_cast<uint8_t *>(malloc(size * 2));
         if (g.snapshot != nullptr) {
+            // ponytail: twice the bytes on the wire; send the save as a difference from the live state if joins drag
             memcpy(g.snapshot, live, size);
-            g.snapshot_size = size;
+            memcpy(g.snapshot + size, halo::saved_games::game_state_checkpoint_bytes(), size);
+            g.snapshot_size = size * 2;
             g.snapshot_slot = slot;
             g.snapshot_chunks_done = 0;
             g.snapshot_chunks_sent = 0;
@@ -1529,6 +1532,7 @@ void frame_begin()
         if (g.snapshot_chunks_done >= snapshot_chunk_count() && halo::main::globals().main_globals.main_menu_scenario_loaded == 0 &&
             halo::main::globals().main_globals.level_transition == 0 && halo::game::globals().game_time->initialized != 0) {
             halo::saved_games::game_state_apply_snapshot(g.snapshot);
+            halo::saved_games::game_state_set_checkpoint(g.snapshot + g.snapshot_size / 2);
             free(g.snapshot);
             g.snapshot = nullptr;
             g.awaiting_snapshot = false;

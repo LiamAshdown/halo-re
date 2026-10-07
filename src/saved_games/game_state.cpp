@@ -727,4 +727,25 @@ void game_state_apply_snapshot(const uint8_t *bytes)
     halo::saved_games::game_state::dispatch_load_callbacks();
 }
 
+/** The last save, game_state_size bytes: queue_write leaves it in the write buffer as the save thread writes it out. */
+const uint8_t *game_state_checkpoint_bytes()
+{
+    while (game_state_write_in_progress != 0) {
+        halo::platform::sleep_milliseconds(0);
+    }
+    return game_state_write_buffer;
+}
+
+/** Makes `bytes` the last save, as queue_write would have (without the checkpoint files), so a revert goes there. */
+void game_state_set_checkpoint(const uint8_t *bytes)
+{
+    while (game_state_write_in_progress != 0) {
+        halo::platform::sleep_milliseconds(0);
+    }
+    memcpy(game_state_write_buffer, bytes, game_state_size);
+    game_state_write_is_checkpoint = 0;
+    halo::platform::event_set(game_state_write_event);
+    game_state_revert_available = 1;
+}
+
 }  // namespace halo::saved_games
