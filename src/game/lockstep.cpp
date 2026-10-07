@@ -1146,6 +1146,7 @@ void receive_welcome(const uint8_t *buffer, ssize_t size, const sockaddr_in &fro
     g.player_count = players;
     for (int32_t s = 0; s < k_max_players; s++) {
         g.members[s] = member{};
+        g.members[s].present = s < players;  // slot_of only hears from present slots: the host's STATE must get through
     }
     memcpy(&g.difficulty, buffer + 9, 2);
     strncpy(g.level, reinterpret_cast<const char *>(level), sizeof(g.level) - 1);
