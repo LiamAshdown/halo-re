@@ -38,6 +38,9 @@ bool create_players();
 void capture_local_action(const player_action &action, bool back);
 /** True between tick_begin and tick_end. */
 bool in_tick();
+/** The per-frame effects update is running: under lockstep it makes no effects (each machine's frames differ). */
+void set_frame_effects_update(bool running);
+bool refuses_effects();
 /**
  * A script started a camera move or animation lasting `seconds`. The camera counts its time down by frame time, which
  * differs between machines; hs camera_time reads camera_script_ticks_remaining instead under lockstep.

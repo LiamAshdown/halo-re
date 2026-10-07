@@ -1,4 +1,5 @@
 #include "halo/core/datum.hpp"
+#include "halo/game/lockstep.hpp"
 #include "halo/scenario/leaf.hpp"
 #include "halo/effects/effects.hpp"
 #include "halo/memory/api.hpp"
@@ -33,7 +34,7 @@ datum_index effect_ref::create(datum_index definition_index, datum_index creator
 {
     datum_index handle = k_datum_index_none;
 
-    if (definition_index != k_datum_index_none) {
+    if (definition_index != k_datum_index_none && !halo::game::lockstep::refuses_effects()) {
         Effect *tag = (Effect *)halo::cache::globals().tag_instances[(uint16_t)definition_index].data;
 
         if ((force_create != 0 || (tag->flags & 4) == 0) && tag->events.count > 0) {

@@ -35,13 +35,15 @@
  *   HELLO   the joiner's profile name (NUL terminated)
  *   WELCOME u8 player count, i16 difficulty, the level path (NUL terminated), then the snapshot: i32 tick, u32 size,
  *           u32 game seed, u32 simulation effect seed, i32 camera script end tick, u16 epoch, u8 host slot, u8 free slot
- *           mask, then per slot u32 held control flags, f32 previous yaw, f32 previous pitch
+ *           mask, u8 has a save, i32 dialogue variant counter, i32 object cluster stamp, i32 AI quiet until tick, then
+ *           per slot u32 held control flags, f32 previous yaw, f32 previous pitch
  *   STATE   u16 chunk index, the chunk (k_chunk_size bytes, the last one shorter)
  *   STATE_ACK i32 chunks received in order
  *   INPUT   (the slot's actions) i32 what everyone has of the receiver's actions (host to joiner, else -1), u8 n,
  *           n x i32 the last tick the sender has every action of for each slot, i32 first tick, u8 count, actions
  *   HASH    i32 tick, u32 hash, u8 n, n x u32 region hashes (simulation_region_hashes)
  *   ROSTER  u8 player count, then per slot u32 address, u16 port, the name (NUL terminated)
+ *   BYE     (nothing) the sender quit to the main menu
  */
 
 #include "halo/game/api.hpp"
@@ -55,6 +57,9 @@
 #include "halo/math/globals.hpp"
 #include "halo/math/random.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/ai/api.hpp"
+#include "halo/physics/api.hpp"
+#include "halo/units/vars.hpp"
 #include "halo/shell/api.hpp"
 #include "halo/text/api.hpp"
 #include "halo/core/link.hpp"
@@ -99,6 +104,7 @@ constexpr int32_t k_actions_per_packet = 64;
 constexpr uint32_t k_peer_timeout_ms = 10000;          // nothing from a player this long: carry on without them
 constexpr uint32_t k_peer_loading_timeout_ms = 300000; // before their first action of a level (they may be downloading its map)
 constexpr uint32_t k_takeover_collect_ms = 2000;       // a new host waits this long for the old host's last actions
+constexpr uint32_t k_snapshot_stall_ms = 30000;        // a joiner receiving nothing of the game this long asks again
 constexpr char k_test_level[] = "levels\\b30\\b30";
 constexpr uint32_t k_skip_cinematic_flag = 0x80000000u;  // in player_action::control_flags; units use the low 16 bits
 constexpr uint32_t k_held_control_flags_mask = 0x4d0;    // UpdateClient::queue_apply_tick: these act on the press only
@@ -113,7 +119,7 @@ constexpr uint32_t k_lockstep_flags = k_skip_cinematic_flag | k_back_flag | k_re
     k_leave_flag | k_leave_slot_mask;
 constexpr char k_coop_gametype[] = "Co-op";
 
-enum : uint8_t { k_hello = 1, k_welcome = 2, k_input = 3, k_hash = 4, k_state = 5, k_state_ack = 6, k_roster = 7 };
+enum : uint8_t { k_hello = 1, k_welcome = 2, k_input = 3, k_hash = 4, k_state = 5, k_state_ack = 6, k_roster = 7, k_bye = 8 };
 constexpr uint32_t k_chunk_size = 8000;     // under the page server's 8 KB datagram limit
 constexpr int32_t k_chunks_per_frame = 6;   // ~3 MB/s at 60 frames: inside the page server's per-page rate
 constexpr size_t k_prefetch_per_frame = 4u << 20;
@@ -173,6 +179,8 @@ struct session {
     bool join_pending = false;
     int32_t join_slot = -1;
     uint32_t leave_pending = 0;       // mask of slots
+    uint32_t leave_stamped = 0;       // mask of slots whose leave is marked on a tick not run yet
+    bool dropped = false;             // the others took this machine for gone: it joins again
     int32_t acted_tick = -1;          // the last tick whose joins and leaves this machine acted on
     int32_t took_over_from = -1;      // new host: the old host's slot, spoken for once its last actions are in
     uint32_t took_over_ms = 0;
@@ -189,6 +197,8 @@ struct session {
     uint32_t snapshot_effect_seed = 0;
     int32_t snapshot_camera_end_tick = 0;
     uint8_t snapshot_vacant = 0;
+    bool snapshot_has_save = false;
+    int32_t snapshot_counters[3] = {};  // dialogue variant counter, object cluster stamp, AI quiet until tick
     uint32_t snapshot_held[k_max_players] = {};
     float snapshot_yaw[k_max_players] = {};
     float snapshot_pitch[k_max_players] = {};
@@ -209,6 +219,7 @@ struct session {
 session g;
 auto &profile_globals_block = halo::link::ref<saved_player_profile_slot [k_maximum_local_player_profiles]>(halo::ui::vars().profile_globals_block);
 auto &pending_difficulty = halo::link::ref<int16_t>(halo::ui::vars().pending_difficulty);
+auto &unit_dialogue_variant_counter = halo::link::ref<int32_t>(halo::units::vars().unit_dialogue_variant_counter);
 auto &split_screen_quit_prompt_string = halo::link::ref<uint16_t>(halo::ui::vars().split_screen_quit_prompt_string);
 random_seed g_tick_effect_seed;  // halo::math::simulation_effect_seed under lockstep
 int32_t g_camera_script_end_tick;
@@ -312,7 +323,6 @@ void reset_actions(int32_t start_tick)
 
         prefill_idle(s, start_tick);
         m.last_heard_ms = halo::platform::tick_milliseconds();
-        m.heard_this_level = false;
         for (int32_t v = 0; v < k_max_players; v++) {
             m.their_view[v] = first;
         }
@@ -327,6 +337,7 @@ void reset_actions(int32_t start_tick)
     g.pressed_since_stamp = 0;
     g.next_local_tick = start_tick + k_input_delay;
     g.resend_from = first;
+    g.leave_stamped = 0;  // marks on ticks not run yet are gone with the ring
     for (int32_t i = 0; i < k_hash_ring; i++) {
         g.my_hash_tick[i] = -1;
     }
@@ -432,7 +443,7 @@ bool join_allowed()
     return main.lost_map == 0 && main.won_map == 0 && main.revert_map == 0 && main.revert_map_if_allowed == 0 &&
         main.reset_map == 0 && main.level_transition == 0 && main.save_map == 0 && main.save_map_write_pending == 0 &&
         main.respawn_coop_players == 0 && main.switch_structure_bsp_index == -1 &&
-        halo::game::globals().game_time->initialized != 0 && !g.join_pending && g.snapshot == nullptr &&
+        halo::game::globals().game_time->initialized != 0 && g.join_slot < 0 && g.snapshot == nullptr &&
         g.leave_pending == 0 && free_slot() >= 0;
 }
 
@@ -450,11 +461,27 @@ void join_at(int32_t tick)
         return;
     }
     if (is_host()) {
-        g.snapshot = static_cast<uint8_t *>(malloc(size * 2));
+        if (g.join_slot >= 0 && g.join_slot != slot) {
+            // a leave since the HELLO freed a lower slot: the joiner's address and name move there with it
+            memcpy(g.members[slot].name, g.members[g.join_slot].name, sizeof(g.members[slot].name));
+            g.members[slot].address = g.members[g.join_slot].address;
+            g.members[slot].port = g.members[g.join_slot].port;
+            g.members[g.join_slot].address = 0;
+        }
+        g.join_slot = -1;
+        g.snapshot = static_cast<uint8_t *>(calloc(size, 2));
         if (g.snapshot != nullptr) {
+            const uint8_t *save = halo::saved_games::game_state_checkpoint_bytes();
+
             // ponytail: twice the bytes on the wire; send the save as a difference from the live state if joins drag
             memcpy(g.snapshot, live, size);
-            memcpy(g.snapshot + size, halo::saved_games::game_state_checkpoint_bytes(), size);
+            if (save != nullptr) {
+                memcpy(g.snapshot + size, save, size);
+            }
+            g.snapshot_has_save = save != nullptr;
+            g.snapshot_counters[0] = unit_dialogue_variant_counter;
+            g.snapshot_counters[1] = halo::physics::globals().object_cluster_stamp;
+            g.snapshot_counters[2] = halo::ai::globals().communication_quiet_until_tick;
             g.snapshot_size = size * 2;
             g.snapshot_slot = slot;
             g.snapshot_chunks_done = 0;
@@ -520,7 +547,12 @@ void leave_at(int32_t tick, int32_t slot)
 {
     member &leaving = g.members[slot];
 
-    if (!active_slot(slot) || slot == g.local_slot) {
+    g.leave_stamped &= ~(1u << slot);
+    if (slot == g.local_slot) {
+        g.dropped = true;  // the others took this machine for gone (a tab in the background): it joins again
+        return;
+    }
+    if (!active_slot(slot)) {
         return;
     }
     datum_index player = player_of_slot(slot);
@@ -533,6 +565,45 @@ void leave_at(int32_t tick, int32_t slot)
     printf("lockstep: player %d leaves at tick %d\n", slot, tick);
 }
 
+/**
+ * After a revert, whatever the save held (a save from before a join, or the host's sent with the join, whose local
+ * player is the host's): every slot has its player, a missing one made new and dead as at a join, this machine's is the
+ * local one, and a slot someone left has no unit.
+ */
+void claim_players()
+{
+    datum_index *local_players = halo::game::globals().local_player_globals->local_players;
+    datum_index local = k_datum_index_none;
+
+    for (int32_t s = 0; s < g.player_count; s++) {
+        datum_index handle = player_of_slot(s);
+
+        if (handle == k_datum_index_none) {
+            handle = halo::game::player_new_network(k_datum_index_none, 0, -1, 0);
+            if (handle == k_datum_index_none) {
+                break;
+            }
+            halo::game::player_at(handle)->deaths = 1;
+        }
+        player *entry = halo::game::player_at(handle);
+
+        entry->local_player_index = -1;
+        if (s == g.local_slot) {
+            local = handle;
+        }
+        if (g.members[s].vacant && entry->unit != k_datum_index_none) {
+            halo::game::player_kill_and_release_unit(handle, 0);
+        }
+    }
+    if (local != local_players[0]) {
+        halo::game::globals().player_control->local_players[0].unit = k_datum_index_none;
+    }
+    local_players[0] = local;
+    if (local != k_datum_index_none) {
+        halo::game::player_at(local)->local_player_index = 0;
+    }
+}
+
 /** The joiner, once the host's snapshot is the game state. */
 void start_from_snapshot()
 {
@@ -540,6 +611,12 @@ void start_from_snapshot()
 
     halo::math::globals().random_seed_global = g.snapshot_game_seed;
     g_tick_effect_seed = g.snapshot_effect_seed;
+    unit_dialogue_variant_counter = g.snapshot_counters[0];
+    if (halo::physics::globals().object_cluster_stamp < g.snapshot_counters[1]) {
+        // the host's objects carry its stamps: an untouched one would match this machine's count later on
+        halo::physics::globals().object_cluster_stamp = g.snapshot_counters[1];
+    }
+    halo::ai::globals().communication_quiet_until_tick = g.snapshot_counters[2];
     g_camera_script_end_tick = g.snapshot_camera_end_tick;
     {
         // the snapshot is the host's view: its player was the local one
@@ -1008,6 +1085,7 @@ void compare_hashes(int32_t index)
 void send_welcome(int32_t slot)
 {
     uint8_t reply[96 + sizeof(g.level) + k_max_players * 12];
+    uint8_t has_save = g.snapshot_has_save ? 1 : 0;
     uint8_t *at = header(reply, k_welcome, static_cast<uint8_t>(slot));
     uint8_t players = static_cast<uint8_t>(slot + 1 > g.player_count ? slot + 1 : g.player_count);
     uint8_t host = static_cast<uint8_t>(g.local_slot);
@@ -1023,6 +1101,8 @@ void send_welcome(int32_t slot)
     put(at, &g.epoch, 2);
     put(at, &host, 1);
     put(at, &g.snapshot_vacant, 1);
+    put(at, &has_save, 1);
+    put(at, g.snapshot_counters, sizeof(g.snapshot_counters));
     for (int32_t s = 0; s < players; s++) {
         put(at, &g.snapshot_held[s], 4);
         put(at, &g.snapshot_yaw[s], 4);
@@ -1134,7 +1214,7 @@ void receive_welcome(const uint8_t *buffer, ssize_t size, const sockaddr_in &fro
     int32_t players = buffer[8];
 
     if (nul == nullptr || slot < 0 || slot >= k_max_players || players < slot + 1 || players > k_max_players ||
-        end - (nul + 1) < 24 + players * 12) {
+        end - (nul + 1) < 37 + players * 12) {
         return;
     }
     const uint8_t *at = nul + 1;
@@ -1161,7 +1241,9 @@ void receive_welcome(const uint8_t *buffer, ssize_t size, const sockaddr_in &fro
     memcpy(&g.epoch, at + 20, 2);
     g.host_slot = at[22];
     g.snapshot_vacant = at[23];
-    at += 24;
+    g.snapshot_has_save = at[24] != 0;
+    memcpy(g.snapshot_counters, at + 25, sizeof(g.snapshot_counters));
+    at += 37;
     for (int32_t s = 0; s < players; s++, at += 12) {
         memcpy(&g.snapshot_held[s], at, 4);
         memcpy(&g.snapshot_yaw[s], at + 4, 4);
@@ -1173,6 +1255,7 @@ void receive_welcome(const uint8_t *buffer, ssize_t size, const sockaddr_in &fro
     g.members[g.host_slot].address = from.sin_addr.s_addr;
     g.members[g.host_slot].port = from.sin_port;
     g.snapshot_chunks_done = 0;
+    g.snapshot_progress_ms = halo::platform::tick_milliseconds();
     g.awaiting_snapshot = true;
     printf("lockstep: joining %s as player %d, receiving the game (%u KB)\n", g.level, slot, snapshot_size / 1024);
     queue_level(g.level, g.difficulty);
@@ -1209,7 +1292,11 @@ void pump()
         if (!is_host() && sender != g.host_slot) {
             sender = -1;
         }
-        if (type == k_hello && is_host()) {
+        if (type == k_bye && sender >= 0 && g.connected) {
+            // as if gone silent: the host lets it leave, a joiner turns to the next host
+            g.members[sender].heard_this_level = true;
+            g.members[sender].last_heard_ms = halo::platform::tick_milliseconds() - k_peer_timeout_ms - 1;
+        } else if (type == k_hello && is_host()) {
             receive_hello(buffer, size, from);
         } else if (type == k_welcome && g.kind == role::joiner && !g.connected) {
             receive_welcome(buffer, size, from);
@@ -1226,6 +1313,7 @@ void pump()
                 if (offset < g.snapshot_size && length <= g.snapshot_size - offset) {
                     memcpy(g.snapshot + offset, buffer + 10, length);
                     g.snapshot_chunks_done++;
+                    g.snapshot_progress_ms = halo::platform::tick_milliseconds();
                 }
             }
         } else if (type == k_state_ack && is_host() && g.snapshot != nullptr && sender == g.snapshot_slot && epoch == g.epoch &&
@@ -1288,6 +1376,35 @@ void send_snapshot_chunks()
     if (g.snapshot_chunks_done >= count || g.members[g.snapshot_slot].lost) {
         free(g.snapshot);
         g.snapshot = nullptr;
+    }
+}
+
+/** This machine leaves the session (quit to the main menu, dropped, or its join stalled); `rejoin` asks the host again. */
+void end_session(bool rejoin)
+{
+    uint32_t host = g.members[g.host_slot].address;
+    int socket = g.socket;
+    int qr_socket = g.qr_socket;
+    bool coop = g.coop_allowed;
+    bool test_host = g.test_host;
+
+    stop_advertising();
+    free(g.snapshot);
+    if (g.prefetch != nullptr) {
+        fclose(g.prefetch);
+    }
+    static const session fresh{};  // not a session{} temporary: too big for the web build's stack
+
+    g = fresh;
+    g.roles_read = true;
+    g.socket = socket;
+    g.qr_socket = qr_socket;
+    g.coop_allowed = coop;
+    g.test_host = test_host;
+    if (rejoin && host != 0) {
+        g.kind = role::joiner;
+        g.join_address = host;
+        show_message("Joining the game again.");
     }
 }
 
@@ -1373,7 +1490,9 @@ void check_for_lost_players(int32_t now)
             }
         }
         advance_contiguous(s);
-        g.leave_pending |= 1u << s;
+        if ((g.leave_stamped & (1u << s)) == 0) {
+            g.leave_pending |= 1u << s;
+        }
     }
 }
 
@@ -1516,6 +1635,25 @@ void frame_begin()
     }
     answer_queries();
     pump();
+    if (g.connected && !g.awaiting_snapshot && halo::main::globals().main_globals.main_menu_scenario_loaded != 0) {
+        uint8_t bye[8];
+
+        header(bye, k_bye, static_cast<uint8_t>(g.local_slot));
+        if (is_host()) {
+            send_to_joiners(bye, sizeof(bye), -1);
+        } else {
+            send_to_member(g.host_slot, bye, sizeof(bye));
+        }
+        printf("lockstep: left the co-op game\n");
+        end_session(false);
+        return;
+    }
+    if (g.dropped || (g.awaiting_snapshot && g.snapshot_chunks_done < snapshot_chunk_count() &&
+                         halo::platform::tick_milliseconds() - g.snapshot_progress_ms > k_snapshot_stall_ms)) {
+        printf("lockstep: %s, joining again\n", g.dropped ? "the others dropped this machine" : "the game stopped arriving");
+        end_session(true);
+        return;
+    }
     if (is_host() && g.snapshot != nullptr) {
         send_snapshot_chunks();
     }
@@ -1532,7 +1670,7 @@ void frame_begin()
         if (g.snapshot_chunks_done >= snapshot_chunk_count() && halo::main::globals().main_globals.main_menu_scenario_loaded == 0 &&
             halo::main::globals().main_globals.level_transition == 0 && halo::game::globals().game_time->initialized != 0) {
             halo::saved_games::game_state_apply_snapshot(g.snapshot);
-            halo::saved_games::game_state_set_checkpoint(g.snapshot + g.snapshot_size / 2);
+            halo::saved_games::game_state_set_checkpoint(g.snapshot_has_save ? g.snapshot + g.snapshot_size / 2 : nullptr);
             free(g.snapshot);
             g.snapshot = nullptr;
             g.awaiting_snapshot = false;
@@ -1548,7 +1686,8 @@ void frame_begin()
                 if (s != g.host_slot && s != g.local_slot && active_slot(s) && g.members[s].lost) {
                     uint8_t buffer[64 + k_max_players * 4 + k_actions_per_packet * sizeof(player_action)];
 
-                    send_to_member(g.host_slot, buffer, build_inputs(buffer, s, game_tick(), -1));
+                    // from a little back: this machine may be ahead of the new host, which ignores what it has
+                    send_to_member(g.host_slot, buffer, build_inputs(buffer, s, game_tick() - 2 * k_input_delay, -1));
                 }
             }
         }
@@ -1583,12 +1722,33 @@ void frame_begin()
 #endif
 }
 
+namespace {
+
+/** A level start or revert before a join's snapshot arrived: the joiner (its epoch now stale) drops out and asks again. */
+void cancel_join()
+{
+    g.join_pending = false;
+    g.join_slot = -1;
+    if (is_host() && g.snapshot != nullptr) {
+        free(g.snapshot);
+        g.snapshot = nullptr;
+        g.members[g.snapshot_slot].lost = true;
+    }
+}
+
+}  // namespace
+
 void on_new_map(uint32_t game_seed)
 {
     g_tick_effect_seed = game_seed ^ 0x5eed5eedu;
     if (g.connected && !g.awaiting_snapshot) {  // a joiner's epoch is the host's, from WELCOME
+        cancel_join();
         g.epoch++;
         reset_actions(0);
+        halo::ai::globals().communication_quiet_until_tick = 0;
+        for (int32_t s = 0; s < g.player_count; s++) {
+            g.members[s].heard_this_level = false;  // a new level may mean a map to download: the long timeout again
+        }
     }
 }
 
@@ -1601,8 +1761,11 @@ void on_revert()
 
         halo::math::globals().random_seed_global = seed;
         g_tick_effect_seed = seed ^ 0x5eed5eedu;
+        cancel_join();
         g.epoch++;
         reset_actions(game_tick());
+        claim_players();
+        halo::ai::globals().communication_quiet_until_tick = 0;
     }
 }
 
@@ -1636,6 +1799,11 @@ bool after_tick()
             main.respawn_coop_players = 0;
             main.respawn_coop_frames = 0;
         }
+    }
+    // the main loop acts on these between frames: no machine may run further ticks than another before it does
+    if (main.revert_map != 0 || main.revert_map_if_allowed != 0 || main.reset_map != 0 || main.won_map != 0 ||
+        main.level_transition != 0) {
+        g.stop_ticks = true;
     }
     bool stop = g.stop_ticks;
 
@@ -1683,6 +1851,20 @@ void local_restart_requested()
 bool in_tick()
 {
     return g.in_tick;
+}
+
+namespace {
+bool g_frame_effects_update;
+}
+
+void set_frame_effects_update(bool running)
+{
+    g_frame_effects_update = running;
+}
+
+bool refuses_effects()
+{
+    return g_frame_effects_update && active();
 }
 
 void camera_script_started(float seconds)
@@ -1762,6 +1944,7 @@ int32_t schedule_ticks(int32_t wanted)
                 if (g.leave_pending & (1u << s)) {
                     stamped.control_flags |= k_leave_flag | (static_cast<uint32_t>(s) << k_leave_slot_shift);
                     g.leave_pending &= ~(1u << s);
+                    g.leave_stamped |= 1u << s;
                     break;
                 }
             }
@@ -1889,6 +2072,7 @@ void tick_begin()
 void tick_end()
 {
     g.in_tick = false;
+    halo::math::set_simulation_effect_seed(nullptr);
     if (!active()) {
         return;
     }

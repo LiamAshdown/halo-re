@@ -419,7 +419,10 @@ void stop_all(void)
         halo::memory::data_delete_all(looping_sound_data);
         audio_device().stop_all();
     }
-    ai_communication_quiet_until_tick = 0;
+    if (!halo::game::lockstep::session_active()) {
+        // in co-op it is game state: one machine losing focus or muting must not let its AI speak sooner
+        ai_communication_quiet_until_tick = 0;
+    }
     sound_stopping_all = 0;
 }
 

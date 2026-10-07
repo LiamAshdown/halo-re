@@ -2961,6 +2961,29 @@ uint8_t LocalPlayers::any_within_10_units(const real_point3d *query_point)
     if (local_player_count > 2) {
         return 1;
     }
+    if (halo::game::lockstep::in_tick()) {
+        // the effect is made on every machine or none: near any player's unit, not this machine's camera
+        data_iterator iter;
+        player *plr;
+
+        iter.data = player_data;
+        iter.next_index = 0;
+        iter.index = k_datum_index_none;
+        iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
+        while ((plr = (player *)halo::memory::data_iterator_next(&iter)) != (player *)0) {
+            if (plr->unit != k_datum_index_none) {
+                const real_point3d &at = ((object *)halo::game::object_at(plr->unit))->bounding_center;
+                float dx = query_point->x - at.x;
+                float dy = query_point->y - at.y;
+                float dz = query_point->z - at.z;
+
+                if (dx * dx + dy * dy + dz * dz < 100.0f) {
+                    return 1;
+                }
+            }
+        }
+        return 0;
+    }
 
     for (slot = 0; slot < 1; slot++) {
         if (slot != -1 && slot < 1 && (int32_t)local_player_globals->local_players[slot] != -1) {

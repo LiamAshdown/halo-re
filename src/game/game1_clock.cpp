@@ -58,6 +58,8 @@ void SimulationClock::effects_update(real delta_time)
     int16_t ticks_this_frame;
     real tick_delta_time;
 
+    halo::game::lockstep::set_frame_effects_update(true);
+
     scale = (halo::main::globals().game_globals->players_are_double_speed == 0) ? 1.0f : 0.5f;
     ticks_this_frame = game_time->ticks_this_frame;
     tick_delta_time = (real)ticks_this_frame * scale * halo::math::k_seconds_per_tick;
@@ -75,6 +77,7 @@ void SimulationClock::effects_update(real delta_time)
     halo::effects::weather_update();
     chimera_contrail_scale = delta_time;
     halo::shaders::numeric_countdown_timer::update();
+    halo::game::lockstep::set_frame_effects_update(false);
 }
 
 /**
