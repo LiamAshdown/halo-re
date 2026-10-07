@@ -551,7 +551,7 @@ bool join_allowed()
         main.reset_map == 0 && main.level_transition == 0 && main.save_map == 0 && main.save_map_write_pending == 0 &&
         main.respawn_coop_players == 0 && main.switch_structure_bsp_index == -1 &&
         halo::game::globals().game_time->initialized != 0 && g.join_slot < 0 && g.snapshot == nullptr &&
-        g.leave_pending == 0 && free_slot() >= 0;
+        g.leave_pending == 0 && g.leave_stamped == 0 && free_slot() >= 0;
 }
 
 /**
@@ -1507,6 +1507,23 @@ void receive_hello(const uint8_t *buffer, ssize_t size, const sockaddr_in &from)
             send_welcome(known);  // the first WELCOME got lost
         }
         return;
+    }
+    if (g.connected && size > 8) {
+        // the same profile from a new address while its slot never sent an action: the page was reloaded or the
+        // join retried. That slot leaves first (a stuck player would otherwise stand there), then this joins into it.
+        for (int32_t s = 0; s < g.player_count; s++) {
+            member &m = g.members[s];
+
+            if (s != g.local_slot && active_slot(s) && !m.lost && !m.heard_this_level &&
+                strncmp(m.name, reinterpret_cast<const char *>(buffer + 8), sizeof(m.name) - 1) == 0) {
+                printf("lockstep: %s joins again from a new address, player %d leaves first\n", m.name, s);
+                m.lost = true;
+                if (g.snapshot != nullptr && g.snapshot_slot == s) {
+                    free(g.snapshot);
+                    g.snapshot = nullptr;
+                }
+            }
+        }
     }
     if (!join_allowed()) {
         return;  // the joiner asks again shortly
