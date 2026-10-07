@@ -46,6 +46,11 @@
  *   HASH    i32 tick, u32 hash, u8 n, n x u32 region hashes (simulation_region_hashes)
  *   ROSTER  u8 player count, then per slot u32 address, u16 port, the name (NUL terminated)
  *   BYE     (nothing) the sender quit to the main menu
+ *   DIFF_REQUEST  i32 tick: send your block hashes of the game state as it was after that tick (kept for 2 hash ticks)
+ *   DIFF_HASHES   i32 tick, u32 first block, u16 n, n x u32 hashes of k_diff_block_size bytes
+ *   DIFF_BLOCK_REQUEST i32 tick, u32 block;  DIFF_BLOCK i32 tick, u32 block, the bytes
+ * A desync (or a region drift) makes the host compare the two games byte for byte and log LSP-DIFF lines naming the
+ * data array, element and offset that differ.
  */
 
 #include "halo/game/api.hpp"
@@ -124,7 +129,11 @@ constexpr uint32_t k_lockstep_flags = k_skip_cinematic_flag | k_back_flag | k_re
     k_leave_flag | k_leave_slot_mask;
 constexpr char k_coop_gametype[] = "Co-op";
 
-enum : uint8_t { k_hello = 1, k_welcome = 2, k_input = 3, k_hash = 4, k_state = 5, k_state_ack = 6, k_roster = 7, k_bye = 8 };
+enum : uint8_t { k_hello = 1, k_welcome = 2, k_input = 3, k_hash = 4, k_state = 5, k_state_ack = 6, k_roster = 7, k_bye = 8, k_diff_request = 9,
+    k_diff_hashes = 10, k_diff_block_request = 11, k_diff_block = 12 };
+constexpr uint32_t k_diff_block_size = 1024;
+constexpr int32_t k_diff_hashes_per_packet = 1900;
+constexpr int32_t k_diff_blocks_fetched = 24;  // per comparison: the first differing blocks get their bytes logged
 constexpr uint32_t k_chunk_size = 8000;     // under the page server's 8 KB datagram limit
 constexpr int32_t k_chunks_per_frame = 6;   // ~3 MB/s at 60 frames: inside the page server's per-page rate
 constexpr size_t k_prefetch_per_frame = 4u << 20;
@@ -1162,12 +1171,219 @@ void receive_inputs(const uint8_t *packet, const uint8_t *end, int32_t slot, int
     }
 }
 
+// The game state after the last hash ticks, for comparing two machines' byte for byte when their hashes differ.
+uint8_t *g_arena_copy[2];
+int32_t g_arena_tick[2] = {-1, -1};
+struct diff_session {
+    int32_t tick = -1;
+    int32_t slot = -1;
+    int32_t pages = 0;
+    int32_t differing = 0;
+    int32_t fetched = 0;
+    char regions[512] = {};
+};
+diff_session g_diff;
+bool g_diffed_drift;
+bool g_diffed_desync;
+
+const uint8_t *arena_copy(int32_t tick, uint32_t *size)
+{
+    halo::saved_games::game_state_snapshot_bytes(size);
+    for (int32_t i = 0; i < 2; i++) {
+        if (g_arena_tick[i] == tick && g_arena_copy[i] != nullptr) {
+            return g_arena_copy[i];
+        }
+    }
+    return nullptr;
+}
+
+uint32_t block_hash(const uint8_t *bytes, uint32_t length)
+{
+    uint32_t hash = 2166136261u;
+
+    for (uint32_t i = 0; i < length; i++) {
+        hash = (hash ^ bytes[i]) * 16777619u;
+    }
+    return hash;
+}
+
+void start_diff(int32_t tick, int32_t slot)
+{
+    uint32_t size;
+    uint8_t packet[16];
+    uint8_t *at = header(packet, k_diff_request, static_cast<uint8_t>(g.local_slot));
+
+    if (g_diff.tick >= 0 || arena_copy(tick, &size) == nullptr) {
+        return;
+    }
+    g_diff = diff_session{};
+    g_diff.tick = tick;
+    g_diff.slot = slot;
+    put(at, &tick, 4);
+    send_to_member(slot, packet, at - packet);
+    printf("LSP-DIFF %d player %d: comparing the game state byte for byte\n", tick, slot);
+}
+
+/** The other machine asks for its view of a tick's game state: block hashes, or one block. */
+void answer_diff(const uint8_t *buffer, ssize_t size, int32_t sender, uint8_t type)
+{
+    int32_t tick;
+    uint32_t arena_size;
+
+    if (size < 12) {
+        return;
+    }
+    memcpy(&tick, buffer + 8, 4);
+    const uint8_t *arena = arena_copy(tick, &arena_size);
+
+    if (arena == nullptr) {
+        printf("LSP-DIFF %d: this machine no longer has that tick's game state\n", tick);
+        return;
+    }
+    uint32_t blocks = (arena_size + k_diff_block_size - 1) / k_diff_block_size;
+
+    if (type == k_diff_request) {
+        for (uint32_t first = 0; first < blocks; first += k_diff_hashes_per_packet) {
+            uint8_t packet[32 + k_diff_hashes_per_packet * 4];
+            uint8_t *at = header(packet, k_diff_hashes, static_cast<uint8_t>(g.local_slot));
+            uint16_t n = static_cast<uint16_t>(blocks - first < (uint32_t)k_diff_hashes_per_packet ? blocks - first : k_diff_hashes_per_packet);
+
+            put(at, &tick, 4);
+            put(at, &first, 4);
+            put(at, &n, 2);
+            for (uint32_t b = first; b < first + n; b++) {
+                uint32_t offset = b * k_diff_block_size;
+                uint32_t hash = block_hash(arena + offset, arena_size - offset < k_diff_block_size ? arena_size - offset : k_diff_block_size);
+
+                put(at, &hash, 4);
+            }
+            send_to_member(sender, packet, at - packet);
+        }
+    } else if (size >= 16) {
+        uint32_t block;
+        uint8_t packet[32 + k_diff_block_size];
+        uint8_t *at = header(packet, k_diff_block, static_cast<uint8_t>(g.local_slot));
+
+        memcpy(&block, buffer + 12, 4);
+        if (block >= blocks) {
+            return;
+        }
+        uint32_t offset = block * k_diff_block_size;
+
+        put(at, &tick, 4);
+        put(at, &block, 4);
+        put(at, arena + offset, arena_size - offset < k_diff_block_size ? arena_size - offset : k_diff_block_size);
+        send_to_member(sender, packet, at - packet);
+    }
+}
+
+/** The requester: the other machine's block hashes or bytes against this one's copy of the same tick. */
+void receive_diff(const uint8_t *buffer, ssize_t size, uint8_t type)
+{
+    int32_t tick;
+    uint32_t arena_size;
+
+    if (size < 16) {
+        return;
+    }
+    memcpy(&tick, buffer + 8, 4);
+    const uint8_t *arena = arena_copy(tick, &arena_size);
+
+    if (arena == nullptr || tick != g_diff.tick) {
+        return;
+    }
+    uint32_t blocks = (arena_size + k_diff_block_size - 1) / k_diff_block_size;
+
+    if (type == k_diff_hashes && size >= 18) {
+        uint32_t first;
+        uint16_t n;
+
+        memcpy(&first, buffer + 12, 4);
+        memcpy(&n, buffer + 16, 2);
+        if (size < 18 + n * 4 || first + n > blocks) {
+            return;
+        }
+        for (uint32_t b = first; b < first + n; b++) {
+            uint32_t offset = b * k_diff_block_size;
+            uint32_t theirs;
+
+            memcpy(&theirs, buffer + 18 + (b - first) * 4, 4);
+            if (block_hash(arena + offset, arena_size - offset < k_diff_block_size ? arena_size - offset : k_diff_block_size) == theirs) {
+                continue;
+            }
+            char where[96];
+
+            g_diff.differing++;
+            halo::saved_games::game_state_describe(offset, where, sizeof(where));
+            if (strlen(g_diff.regions) + strlen(where) + 3 < sizeof(g_diff.regions)) {
+                strcat(g_diff.regions, where);
+                strcat(g_diff.regions, ", ");
+            }
+            if (g_diff.fetched++ < k_diff_blocks_fetched) {
+                uint8_t packet[24];
+                uint8_t *at = header(packet, k_diff_block_request, static_cast<uint8_t>(g.local_slot));
+
+                put(at, &tick, 4);
+                put(at, &b, 4);
+                send_to_member(g_diff.slot, packet, at - packet);
+            }
+        }
+        g_diff.pages++;
+        if (g_diff.pages * k_diff_hashes_per_packet >= (int32_t)blocks) {
+            printf("LSP-DIFF %d: %d of %u blocks differ, starting at: %s\n", tick, g_diff.differing, blocks, g_diff.regions);
+        }
+    } else if (type == k_diff_block) {
+        uint32_t block;
+
+        memcpy(&block, buffer + 12, 4);
+        if (block >= blocks) {
+            return;
+        }
+        uint32_t offset = block * k_diff_block_size;
+        uint32_t length = arena_size - offset < k_diff_block_size ? arena_size - offset : k_diff_block_size;
+        int32_t shown = 0;
+
+        if (size < 16 + (ssize_t)length) {
+            return;
+        }
+        for (uint32_t i = 0; i + 4 <= length && shown < 6; i += 4) {
+            uint32_t mine;
+            uint32_t theirs;
+
+            memcpy(&mine, arena + offset + i, 4);
+            memcpy(&theirs, buffer + 16 + i, 4);
+            if (mine != theirs) {
+                char where[96];
+
+                halo::saved_games::game_state_describe(offset + i, where, sizeof(where));
+                printf("LSP-DIFF %d %s mine=%08x theirs=%08x\n", tick, where, mine, theirs);
+                shown++;
+            }
+        }
+    }
+}
+
 void compare_hash(int32_t index, int32_t slot)
 {
     member &m = g.members[slot];
 
     if (g.my_hash_tick[index] < 0 || g.my_hash_tick[index] != m.hash_tick[index]) {
         return;
+    }
+    if (is_host()) {
+        bool drift = false;
+
+        for (int32_t r = 0; r < k_region_hash_count; r++) {
+            drift = drift || g.my_regions[index][r] != m.regions[index][r];
+        }
+        if (g.my_hash[index] != m.hash[index] && !g_diffed_desync) {
+            g_diffed_desync = true;
+            g_diff.tick = -1;  // the desync matters more than a drift still being compared
+            start_diff(g.my_hash_tick[index], slot);
+        } else if (drift && !g_diffed_drift) {
+            g_diffed_drift = true;
+            start_diff(g.my_hash_tick[index], slot);
+        }
     }
     for (int32_t r = 0; r < k_region_hash_count; r++) {
         if (g.my_regions[index][r] != m.regions[index][r] && g.drifts[r]++ < 3) {
@@ -1461,6 +1677,10 @@ void pump()
             g.members[sender].heard_this_level = g.members[sender].heard_this_level || type == k_input;
             if (type == k_input) {
                 receive_inputs(buffer, buffer + size, slot, sender);
+            } else if (type == k_diff_request || type == k_diff_block_request) {
+                answer_diff(buffer, size, sender, type);
+            } else if (type == k_diff_hashes || type == k_diff_block) {
+                receive_diff(buffer, size, type);
             } else if (type == k_hash && size >= 16) {
                 int32_t tick;
                 uint32_t hash;
@@ -1872,6 +2092,16 @@ void frame_begin()
 
 namespace {
 
+void reset_diffs()
+{
+#if defined(__EMSCRIPTEN__)
+    g_arena_tick[0] = g_arena_tick[1] = -1;
+    g_diff.tick = -1;
+    g_diffed_drift = false;
+    g_diffed_desync = false;
+#endif
+}
+
 /** A level start or revert before a join's snapshot arrived: the joiner (its epoch now stale) drops out and asks again. */
 void cancel_join()
 {
@@ -1893,6 +2123,7 @@ void on_new_map(uint32_t game_seed)
         cancel_join();
         g.epoch++;
         reset_actions(0);
+        reset_diffs();
         halo::ai::globals().communication_quiet_until_tick = 0;
         for (int32_t s = 0; s < g.player_count; s++) {
             g.members[s].heard_this_level = false;  // a new level may mean a map to download: the long timeout again
@@ -1913,6 +2144,7 @@ void on_revert()
         g.epoch++;
         reset_actions(game_tick());
         claim_players();
+        reset_diffs();
         halo::ai::globals().communication_quiet_until_tick = 0;
     }
 }
@@ -2259,6 +2491,20 @@ void tick_end()
         g.my_hash_tick[index] = tick;
         g.my_hash[index] = hash;
         simulation_region_hashes(g.my_regions[index]);
+        {
+            // ponytail: two copies of the game state (~9 MB) and a memcpy each second, for byte-level desync reports
+            uint32_t size;
+            const uint8_t *live = halo::saved_games::game_state_snapshot_bytes(&size);
+            int32_t slot = (tick / k_hash_interval) % 2;
+
+            if (g_arena_copy[slot] == nullptr) {
+                g_arena_copy[slot] = static_cast<uint8_t *>(malloc(size));
+            }
+            if (g_arena_copy[slot] != nullptr) {
+                memcpy(g_arena_copy[slot], live, size);
+                g_arena_tick[slot] = tick;
+            }
+        }
         put(at, &tick, 4);
         put(at, &hash, 4);
         put(at, &regions, 1);

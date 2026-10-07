@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "halo/game/lockstep.hpp"
 #include "halo/hs/script_globals.hpp"
 #include "halo/main/main_globals_fields.hpp"
@@ -252,6 +253,27 @@ void load_core(char *name)
  *
  * @address 0x005380d0
  */
+namespace {
+
+/** The arena's named blocks in allocation order, for naming an offset (game_state_describe). */
+struct named_block {
+    const char *name;
+    const uint8_t *start;
+    int32_t size;
+    int32_t element_size;  // 0: a memory pool
+};
+named_block g_named_blocks[256];
+int32_t g_named_block_count;
+
+void note_block(const char *name, const void *start, int32_t size, int32_t element_size)
+{
+    if (g_named_block_count < 256) {
+        g_named_blocks[g_named_block_count++] = {name, static_cast<const uint8_t *>(start), size, element_size};
+    }
+}
+
+}  // namespace
+
 data_array *make(const char *name, int16_t maximum_count, int16_t element_size)
 {
     data_array *array;
@@ -278,6 +300,7 @@ data_array *make(const char *name, int16_t maximum_count, int16_t element_size)
     array->signature = k_data_array_signature;
     array->data = (uint8_t *)array + k_game_state_block_header_size;
     array->valid = 0;
+    note_block(name, array, block_size, element_size);
     return array;
 }
 
@@ -311,6 +334,7 @@ memory_pool *new_pool(const char *name, int32_t pool_size)
     pool->last_block = 0;
     pool->size = pool_size;
     pool->free_bytes = pool_size;
+    note_block(name, pool, block_size, 0);
     return pool;
 }
 
@@ -703,6 +727,37 @@ uint8_t write_profile_file(int32_t size, char *name, const void *buffer)
 }  // namespace halo::saved_games::game_state
 
 namespace halo::saved_games {
+
+/** Names an offset into the arena: "actor[5]+0x1c4", "players header+0x10", "after hs globals+0x2c" (unnamed blocks). */
+void game_state_describe(uint32_t offset, char *out, size_t size)
+{
+    const uint8_t *at = game_state_snapshot_source + offset;
+    const halo::saved_games::game_state::named_block *last = nullptr;
+
+    for (int32_t i = 0; i < halo::saved_games::game_state::g_named_block_count; i++) {
+        const auto &block = halo::saved_games::game_state::g_named_blocks[i];
+
+        if (block.start <= at && (last == nullptr || block.start > last->start)) {
+            last = &block;
+        }
+    }
+    if (last == nullptr) {
+        snprintf(out, size, "+0x%x", offset);
+        return;
+    }
+    int32_t inside = static_cast<int32_t>(at - last->start);
+
+    if (inside >= last->size) {
+        snprintf(out, size, "after %s+0x%x", last->name, inside - last->size);
+    } else if (inside < k_game_state_block_header_size) {
+        snprintf(out, size, "%s header+0x%x", last->name, inside);
+    } else if (last->element_size > 0) {
+        inside -= k_game_state_block_header_size;
+        snprintf(out, size, "%s[%d]+0x%x", last->name, inside / last->element_size, inside % last->element_size);
+    } else {
+        snprintf(out, size, "%s pool+0x%x", last->name, inside - k_game_state_block_header_size);
+    }
+}
 
 /** The live game state, as a checkpoint holds it (game_state_size bytes at the fixed game-state address). */
 const uint8_t *game_state_snapshot_bytes(uint32_t *size)

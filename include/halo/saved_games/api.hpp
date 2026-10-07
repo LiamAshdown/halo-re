@@ -93,6 +93,8 @@ const uint8_t *game_state_snapshot_bytes(uint32_t *size);
 void game_state_apply_snapshot(const uint8_t *bytes);
 /** What a revert goes back to (the last save), and making a blob (possibly another machine's) that. */
 const uint8_t *game_state_checkpoint_bytes();
+/** Names an arena offset by the data array or pool it falls in, for desync reports. */
+void game_state_describe(uint32_t offset, char *out, size_t size);
 void game_state_set_checkpoint(const uint8_t *bytes);
 void game_state_perform_save(uint8_t is_checkpoint);
 uint8_t game_state_queue_write(uint8_t final_flag);
