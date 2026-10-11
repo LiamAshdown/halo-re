@@ -78,6 +78,9 @@
 #include "interface.h"
 #include "main.h"
 #include "hs.h"
+#include "camera.h"
+#include "halo/camera/api.hpp"
+#include "halo/scenario/api.hpp"
 #include "saved_games.h"
 #include "cutscene.h"
 #include "../gamespy/gamespy_calls.hpp"
@@ -2060,6 +2063,28 @@ void frame_begin()
             g.snapshot = nullptr;
             g.awaiting_snapshot = false;
             start_from_snapshot();
+        }
+    }
+    if (in_level() && !g.awaiting_snapshot && g.frames % 150 == 0) {
+        // what this machine plays and looks at, to compare between machines (a black view, players that differ)
+        datum_index local = halo::game::globals().local_player_globals->local_players[0];
+        observer_camera *camera = halo::camera::observer_get_camera(0);
+
+        printf("LSP-VIEW tick %d local player %08x control unit %08x camera (%.1f %.1f %.1f) cluster %d bsp %d of %d\n",
+            game_tick(), local, halo::game::globals().player_control->local_players[0].unit,
+            camera != nullptr ? camera->position.x : 0.0f, camera != nullptr ? camera->position.y : 0.0f,
+            camera != nullptr ? camera->position.z : 0.0f, camera != nullptr ? camera->cluster_index : -1,
+            halo::scenario::globals().structure_bsp_index, halo::scenario::globals().game_globals->structure_bsp_index);
+        for (int32_t s = 0; s < g.player_count; s++) {
+            datum_index handle = player_of_slot(s);
+            player *entry = handle != k_datum_index_none ? halo::game::player_at(handle) : nullptr;
+            const real_point3d *at = entry != nullptr && entry->unit != k_datum_index_none
+                ? &halo::game::object_at(entry->unit)->bounding_center : nullptr;
+
+            printf("LSP-VIEW   slot %d player %08x unit %08x deaths %d team %d local %d vacant %d at (%.1f %.1f %.1f)\n", s,
+                handle, entry != nullptr ? entry->unit : k_datum_index_none, entry != nullptr ? entry->deaths : -1,
+                entry != nullptr ? entry->team : -1, entry != nullptr ? entry->local_player_index : -9, g.members[s].vacant,
+                at != nullptr ? at->x : 0.0f, at != nullptr ? at->y : 0.0f, at != nullptr ? at->z : 0.0f);
         }
     }
     if (in_level()) {
